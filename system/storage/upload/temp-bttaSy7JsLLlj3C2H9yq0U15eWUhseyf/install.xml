@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+@category  : OpenCart
+@module    : Smart Contact Me
+@author    : OCdevWizard <ocdevwizard@gmail.com>
+@copyright : Copyright (c) 2015, OCdevWizard
+@license   : http://license.ocdevwizard.com/Licensing_Policy.pdf
+-->
+
+<modification>
+  <code>ocdev_smart_contact_me_200</code>
+  <name>OCdevWizard: Smart Contact Me</name>
+  <version>2.0.0</version>
+  <author>ocdevwizard@gmail.com</author>
+  <link>http://www.opencart.com/index.php?route=extension/extension&amp;filter_username=OCdevWizard</link>
+  <!-- admin area -->
+  <file path="admin/controller/startup/permission.php">
+    <operation error="skip">
+      <search><![CDATA[$ignore = array(]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        'ocdevwizard/smart_contact_me',
+        'ocdevwizard/smart_contact_me_form',
+        'ocdevwizard/smart_contact_me_message',
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/controller/common/menu.php">
+    <operation error="skip">
+      <search><![CDATA[$this->load->language('common/menu');]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $data['text_smart_contact_me_left_menu'] = $this->language->get('text_smart_contact_me_left_menu');
+        $data['text_smart_contact_me_setting_left_menu'] = $this->language->get('text_smart_contact_me_setting_left_menu');
+        $data['smart_contact_me_link'] = $this->url->link('ocdevwizard/smart_contact_me', 'token='.$this->session->data['token'], 'SSL');
+        $data['text_smart_contact_me_form_left_menu'] = $this->language->get('text_smart_contact_me_form_left_menu');
+        $data['smart_contact_me_form_link'] = $this->url->link('ocdevwizard/smart_contact_me_form', 'token='.$this->session->data['token'], 'SSL');
+        $data['text_smart_contact_me_message_left_menu'] = $this->language->get('text_smart_contact_me_message_left_menu');
+        $data['smart_contact_me_message_link'] = $this->url->link('ocdevwizard/smart_contact_me_message', 'token='.$this->session->data['token'], 'SSL');
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/language/*/common/menu.php">
+    <operation error="skip">
+      <search><![CDATA[<?php]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $_['text_smart_contact_me_left_menu'] = 'Smart Contact Me';
+        $_['text_smart_contact_me_setting_left_menu'] = 'Main settings';
+        $_['text_smart_contact_me_form_left_menu'] = 'Form list';
+        $_['text_smart_contact_me_message_left_menu'] = 'Message list';
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/view/template/common/menu.tpl">
+    <operation error="skip">
+      <search><![CDATA[<li id="ocdevwizard"><a class="parent"><i class="fa fa-lightbulb-o fa-fw" aria-hidden="true"></i> <span><?php echo $text_ocdevwizard; ?></span></a><ul>]]></search>
+      <add position="replace"><![CDATA[
+        <li id="ocdevwizard"><a class="parent"><i class="fa fa-lightbulb-o fa-fw" aria-hidden="true"></i> <span><?php echo $text_ocdevwizard; ?></span></a><ul>
+          <li><a class="parent"><span><?php echo $text_smart_contact_me_left_menu; ?></span></a>
+            <ul>
+              <li><a href="<?php echo $smart_contact_me_link; ?>"><?php echo $text_smart_contact_me_setting_left_menu; ?></a></li>
+              <li><a href="<?php echo $smart_contact_me_form_link; ?>"><?php echo $text_smart_contact_me_form_left_menu; ?></a></li>
+              <li><a href="<?php echo $smart_contact_me_message_link; ?>"><?php echo $text_smart_contact_me_message_left_menu; ?></a></li>
+            </ul>
+          </li>
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/controller/common/header.php">
+    <operation error="skip">
+      <search><![CDATA[public function index() {]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $this->load->language('ocdevwizard/smart_contact_me_widget');
+        $this->load->model('ocdevwizard/smart_contact_me');
+        $this->load->model('ocdevwizard/ocdevwizard_setting');
+        $this->model_ocdevwizard_smart_contact_me->createDBTables();
+        $smcm_form_data = (array)$this->model_ocdevwizard_ocdevwizard_setting->getSettingData('smart_contact_me_form_data');
+        $data['smcm_form_data'] = $smcm_form_data;
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+    <operation error="skip">
+      <search><![CDATA[$data['alerts'] = $customer_total + $product_total + $review_total + $return_total + $affiliate_total;]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        if (isset($smcm_form_data['activate']) && $smcm_form_data['activate'] && $smcm_form_data['show_on_dashboard']) {
+          $data['text_smart_contact_me'] = $this->language->get('text_smart_contact_me');
+          $data['text_total_smart_contact_me'] = $this->language->get('text_total_not_viewed');
+          $data['smart_contact_me_url'] = $this->url->link('ocdevwizard/smart_contact_me', 'token='.$this->session->data['token'], 'SSL');
+          $data['total_smart_contact_me'] = $this->model_ocdevwizard_smart_contact_me->getTotalRecordsForWidget(array('filter_viewed' => 0));
+          $data['alerts'] = $data['alerts'] + $data['total_smart_contact_me'];
+        }
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/controller/common/dashboard.php">
+    <operation error="skip">
+      <search><![CDATA[public function index() {]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $this->load->model('ocdevwizard/ocdevwizard_setting');
+        $smcm_form_data = (array)$this->model_ocdevwizard_ocdevwizard_setting->getSettingData('smart_contact_me_form_data');
+
+        if (isset($smcm_form_data['activate']) && $smcm_form_data['activate'] && $smcm_form_data['show_on_dashboard']) {
+          $data['smcm_widget'] = $this->load->controller('ocdevwizard/smart_contact_me_widget');
+        }
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/view/template/common/header.tpl">
+    <operation error="skip">
+      <search><![CDATA[<li class="dropdown-header"><?php echo $text_order; ?></li>]]></search>
+      <add position="before"><![CDATA[
+        <?php if (isset($smcm_form_data['activate']) && $smcm_form_data['activate'] && $smcm_form_data['show_on_dashboard']) { ?>
+        <!-- start: OCdevWizard SMCM -->
+        <li class="dropdown-header"><?php echo $text_smart_contact_me; ?></li>
+        <li><a href="<?php echo $smart_contact_me_url; ?>" style="display: block; overflow: auto;"><span class="label label-warning pull-right"><?php echo $total_smart_contact_me; ?></span><?php echo $text_total_smart_contact_me; ?></a></li>
+        <li class="divider"></li>
+        <!-- end: OCdevWizard SMCM -->
+        <?php } ?>
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/view/template/common/dashboard.tpl">
+    <operation error="skip">
+      <search><![CDATA[<div class="col-lg-3 col-md-3 col-sm-6"><?php echo $order; ?></div>]]></search>
+      <add position="before"><![CDATA[
+        <?php if (isset($smcm_widget)) { ?>
+        <!-- start: OCdevWizard SMCM -->
+        <div class="col-lg-3 col-md-3 col-sm-6"><?php echo $smcm_widget; ?></div>
+        <!-- end: OCdevWizard SMCM -->
+        <?php } ?>
+      ]]></add>
+    </operation>
+  </file>
+  <!-- catalog area -->
+  <file path="catalog/controller/common/header.php">
+    <operation error="skip">
+      <search><![CDATA[public function index() {]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $this->load->model('ocdevwizard/ocdevwizard_setting');
+        
+        $smcm_form_data         = $this->model_ocdevwizard_ocdevwizard_setting->getSettingData('smart_contact_me_form_data');  
+        $smcm_store_id          = (int)$this->config->get('config_store_id');
+        $smcm_customer_group_id = ($this->customer->isLogged()) ? (int)$this->customer->getGroupId() : (int)$this->config->get('config_customer_group_id');
+        $smcm_customer_groups   = isset($smcm_form_data['customer_groups']) ? $smcm_form_data['customer_groups'] : array();
+        $smcm_stores            = isset($smcm_form_data['stores']) ? $smcm_form_data['stores'] : array();
+        $data['smcm_form_data'] = $smcm_form_data;
+
+        if (isset($smcm_form_data['activate']) && $smcm_form_data['activate'] && !in_array($smcm_customer_group_id, $smcm_customer_groups) && !in_array($smcm_store_id, $smcm_stores)) {
+          $data['smcm_status'] = 1;
+        } else {
+          $data['smcm_status'] = 0;
+        }
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="catalog/controller/common/footer.php">
+    <operation error="skip">
+      <search><![CDATA[public function index() {]]></search>
+      <add position="after"><![CDATA[
+        // start: OCdevWizard SMCM
+        $this->load->model('ocdevwizard/ocdevwizard_setting');
+        
+        $smcm_form_data         = $this->model_ocdevwizard_ocdevwizard_setting->getSettingData('smart_contact_me_form_data');  
+        $smcm_store_id          = (int)$this->config->get('config_store_id');
+        $smcm_customer_group_id = ($this->customer->isLogged()) ? (int)$this->customer->getGroupId() : (int)$this->config->get('config_customer_group_id');
+        $smcm_customer_groups   = isset($smcm_form_data['customer_groups']) ? $smcm_form_data['customer_groups'] : array();
+        $smcm_stores            = isset($smcm_form_data['stores']) ? $smcm_form_data['stores'] : array();
+        $data['smcm_form_data'] = $smcm_form_data;
+
+        if (isset($smcm_form_data['activate']) && $smcm_form_data['activate'] && !in_array($smcm_customer_group_id, $smcm_customer_groups) && !in_array($smcm_store_id, $smcm_stores)) {
+          $data['smcm_status'] = 1;
+        } else {
+          $data['smcm_status'] = 0;
+        }
+        // end: OCdevWizard SMCM
+      ]]></add>
+    </operation>
+  </file>
+  <file path="catalog/view/theme/*/template/common/header.tpl">
+    <operation error="skip">
+      <search><![CDATA[</head>]]></search>
+      <add position="before"><![CDATA[
+        <?php if ($smcm_status == 1) { ?>
+        <!-- <?php echo $smcm_form_data['front_module_name'].':'.$smcm_form_data['front_module_version']; ?> -->
+        <script src="catalog/view/javascript/ocdevwizard/smart_contact_me/jquery.magnific-popup.min.js?v=<?php echo $smcm_form_data['front_module_version']; ?>" type="text/javascript"></script>
+        <link href="catalog/view/javascript/ocdevwizard/smart_contact_me/magnific-popup.css?v=<?php echo $smcm_form_data['front_module_version']; ?>" rel="stylesheet" media="screen" />
+        <link rel="stylesheet" type="text/css" href="catalog/view/theme/default/stylesheet/ocdevwizard/smart_contact_me/stylesheet.css?v=<?php echo $smcm_form_data['front_module_version']; ?>"/>
+        <script type="text/javascript" src="catalog/view/javascript/ocdevwizard/smart_contact_me/inputmask.js"></script>
+        <script type="text/javascript" src="catalog/view/javascript/ocdevwizard/smart_contact_me/main.js"></script>
+        <!-- <?php echo $smcm_form_data['front_module_name'].':'.$smcm_form_data['front_module_version']; ?> -->
+        <?php } ?>
+      ]]></add>
+    </operation>
+  </file>
+  <file path="catalog/view/theme/*/template/common/footer.tpl">
+    <operation error="skip">
+      <search><![CDATA[</body>]]></search>
+      <add position="before"><![CDATA[
+        <?php if ($smcm_status == 1) { ?>
+        <!-- <?php echo $smcm_form_data['front_module_name'].':'.$smcm_form_data['front_module_version']; ?> -->
+        <script type="text/javascript">
+          $(function() {
+            $.ajax({
+              type: 'post',
+              url: 'index.php?route=ocdevwizard/smart_contact_me/getForms',
+              dataType: 'json',
+              success: function(json) {
+                $.each(json['forms'], function(i,value) {
+                  $.each(value['add_id_selector'], function(i,i_selector) {
+                    if (value['location'] == 1) {
+                      $(i_selector).before("<button class='smcm_call_button' onclick='getOCwizardModal_smcm(" + value['form_id'] + ")'>" + value['call_button'] + "</button>");
+                    } else if (value['location'] == 2) {
+                      $(i_selector).prepend("<button class='smcm_call_button' onclick='getOCwizardModal_smcm(" + value['form_id'] + ")'>" + value['call_button'] + "</button>");
+                    } else if (value['location'] == 3) {
+                      $(i_selector).append("<button class='smcm_call_button' onclick='getOCwizardModal_smcm(" + value['form_id'] + ")'>" + value['call_button'] + "</button>");
+                    } else {
+                      $(i_selector).after("<button class='smcm_call_button' onclick='getOCwizardModal_smcm(" + value['form_id'] + ")'>" + value['call_button'] + "</button>");
+                    }
+                  });
+                });
+              }
+            });
+          });
+
+          function getOCwizardModal_smcm(form_id) {
+            $.magnificPopup.open({
+              tLoading: '<img src="catalog/view/theme/default/stylesheet/ocdevwizard/smart_contact_me/loading.svg" alt="" />',
+              items: {
+                src: 'index.php?route=ocdevwizard/smart_contact_me&form_id=' + form_id,
+                type: 'ajax'
+              },
+              showCloseBtn: false
+            });
+          }
+        </script>
+        <!-- <?php echo $smcm_form_data['front_module_name'].':'.$smcm_form_data['front_module_version']; ?> -->
+        <?php } ?>
+      ]]></add>
+    </operation>
+  </file>
+</modification>

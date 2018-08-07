@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<name>Quick Login / Sign up</name>
+	<version>2x</version>
+	<code>Quick Login / Sign up</code>
+	<author>Webx IT Solutions</author>
+	<!--CATALOG STARTS-->
+	<file path="catalog/view/theme/*/template/common/header.tpl">
+		<operation>
+			<search><![CDATA[<body class="<?php echo $class; ?> header-type-<?php echo $theme_options->get( 'header_type' ); ?>">]]></search>
+			<add position="after"><![CDATA[
+                <?php echo $quicksignup; ?>]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/common/header.php">
+		<operation>
+			<search><![CDATA[$this->load->language('common/header');]]></search>
+			<add position="after"><![CDATA[
+		//XML
+		$data['quicksignup'] = $this->load->controller('common/quicksignup');
+		$data['signin_or_register'] = $this->language->get('signin_or_register');
+		
+		]]></add>
+		</operation>
+	</file>
+	<file path="catalog/language/*/common/header.php">
+		<operation>
+			<search><![CDATA[// Text]]></search>
+			<add position="after"><![CDATA[//XML
+                $_['signin_or_register']           = 'Войти';
+            ]]></add>
+		</operation>
+	</file>
+	<!--CATALOG ENDS-->
+</modification>

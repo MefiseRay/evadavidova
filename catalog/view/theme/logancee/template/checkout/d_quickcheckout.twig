@@ -1,0 +1,42 @@
+{{ header }} 
+ <div class="breadcrumb full-width">
+	<div class="background-breadcrumb"></div>
+	<div class="background">
+		<div class="shadow"></div>
+		<div class="pattern">
+			<div class="container">
+				<div class="clearfix">
+                     <ul>
+                        {% for breadcrumb in breadcrumbs %} 
+                            <li><a href="{{ breadcrumb.href }} ">{{ breadcrumb.text }} </a></li>
+                        {% endfor %} 
+                      </ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="main-content full-width inner-page">
+	<div class="background-content"></div>
+	<div class="background">
+		<div class="shadow"></div>
+		<div class="pattern">
+			<div class="container">
+                <div class="row">
+                    <div class="col-md-12 center-column" id="content">
+                        {% if error_warning %} 
+                          <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }} 
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                          </div>
+                          {% endif %} 
+  
+                        <!-- Quick Checkout v4.0 by Dreamvention.com checkout/quickcheckout -->
+                        {{ d_quickcheckout }} 
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ footer }} 

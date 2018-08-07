@@ -1,0 +1,245 @@
+/**
+ * multiscroll 0.0.6 Beta
+ * https://github.com/alvarotrigo/multiscroll.js
+ * MIT licensed
+ *
+ * Copyright (C) 2013 alvarotrigo.com - A project by Alvaro Trigo
+ */
+ #main {
+      overflow: visible;
+ }
+html, body {
+    margin: 0;
+    padding: 0;
+	overflow:hidden;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+.ms-section {
+    position: relative;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.ms-section.ms-table{
+    display: table;
+    width: 100%;
+}
+.ms-tableCell {
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+}
+.ms-easing {
+    -webkit-transition: all 0.7s ease-out;
+    -moz-transition: all 0.7s ease-out;
+    -o-transition: all 0.7s ease-out;
+    transition: all 0.7s ease-out;
+}
+#multiscroll-nav {
+    position: fixed;
+    z-index: 100;
+    margin-top: -32px;
+    top: 50%;
+    opacity: 1;
+}
+#multiscroll-nav.right {
+    right: 17px;
+}
+#multiscroll-nav.left {
+    left: 17px;
+}
+#multiscroll-nav ul{
+  margin: 0;
+  padding: 0;
+}
+#multiscroll-nav li{
+    display: block;
+    width: 14px;
+    height: 13px;
+    margin: 7px;
+    position:relative;
+}
+#multiscroll-nav li a{
+    display: block;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    text-decoration: none;
+}
+#multiscroll-nav li .active span{
+    background: #333;
+}
+#multiscroll-nav span{
+    top: 2px;
+    left: 2px;
+    width: 8px;
+    height: 8px;
+    border: 1px solid #000;
+    background: rgba(0, 0, 0, 0);
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    position: absolute;
+    z-index: 1;
+}
+.multiscroll-tooltip {
+    position: absolute;
+    color: #fff;
+    font-size: 14px;
+    font-family: arial, helvetica, sans-serif;
+    top: -2px;
+    white-space: nowrap;
+    max-width: 220px;
+}
+.multiscroll-tooltip.right {
+    right: 20px;
+}
+.multiscroll-tooltip.left {
+    left: 20px;
+}
+
+.home04 .footer-container {
+     position: fixed;
+     bottom: 0;
+     z-index: 99;
+     left: 60px;
+     right: 60px;
+     background: #fff;
+}
+
+.home04 .footer-container .footer-inner {
+     border: none;
+}
+
+header {
+     position: fixed;
+     left: 60px;
+     right: 60px;
+     top: -5px;
+     z-index: 99;
+     background: #fff;
+}
+
+header .slider-header {
+     position: relative;
+     margin-bottom: -6px;
+}
+
+.header-layout-4 .sticky-header ul.megamenu .megamenu-label {
+     margin-bottom: -6px;
+}
+
+#multiscroll {
+     display: none;
+}
+
+.activemultiscroll #multiscroll {
+     display: block;
+}
+
+.block-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 1600px) {
+     .responsive header {
+          top: -25px;
+     }
+     
+     .responsive header .slider-header {
+          margin-bottom: -26px;
+     }
+     
+     .responsive .header-layout-4 .sticky-header ul.megamenu .megamenu-label {
+          margin-bottom: -11px;
+     }
+}
+
+@media (max-width: 991px) {
+     .text {
+          display: none;
+     }
+     
+     .block-prent h2.title {
+          font-size: 30px;
+     }
+}
+
+@media (max-width: 767px) {
+     .responsive .block-prent h2.title {
+          font-size: 16px;
+          margin-bottom: 20px;
+     }
+     
+     .responsive .block-prent h2.title:before {
+          height: 2px;
+     }
+     
+     .responsive .home04 .footer-container {
+          display: none;
+     }
+     
+     .responsive header {
+          left: 15px;
+          right: 15px;
+     }
+     
+     .home-parallax.responsive #main {
+          padding-left: 15px;
+          padding-right: 15px;
+     }
+     
+     .responsive .block-prent .btn-ex {
+          margin-top: 0;
+          font-size: 11px;
+          overflow: hidden;
+     }
+     
+     .responsive .block-prent .date-time .date, 
+     .responsive .block-prent .date-time .month {
+          font-size: 14px;
+     }
+     
+     .responsive .block-prent h3.title {
+          font-size: 16px;
+          margin-bottom: 10px;
+     }
+     
+     .responsive .block-prent .quote {
+          font-size: 30px;
+          margin-bottom: 10px;
+     }
+     
+     .responsive .block-prent #contactForm .form-list .input-box input, 
+     .responsive .block-prent #contactForm .form-list .input-box textarea {
+          height: 30px;
+          line-height: 28px;
+          padding: 0;
+     }
+     
+     .responsive .block-prent #contactForm .buttons-set {
+          margin-top: 10px;
+     }
+     
+     .responsive .block-prent #contactForm button span {
+          line-height: 30px;
+          border: 0;
+          padding: 0;
+     }
+     
+     .responsive .block-prent #contactForm button span span {
+          line-height: 30px;
+          border: 0;
+          padding: 0 15px;
+     }
+}

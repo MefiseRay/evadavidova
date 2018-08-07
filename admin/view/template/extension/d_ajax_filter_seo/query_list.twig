@@ -1,0 +1,190 @@
+{{header}}{{column_left}}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="form-inline pull-right">
+                <a href="{{add}}" data-toggle="tooltip" title="{{button_add}}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
+                <button type="button" data-toggle="tooltip" title="{{button_delete}}" class="btn btn-danger" onclick="confirm('{{text_confirm}}') ? $('#form').submit() : false;"><i class="fa fa-trash-o"></i></button>
+                <a href="{{cancel}}" data-toggle="tooltip" title="{{button_cancel}}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+            </div>
+            <h1>{{heading_title}} {{version}}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{breadcrumb.href}}">{{breadcrumb.text}}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error.warning %}
+            <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{error.warning}}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        {% if success %}
+            <div class="alert alert-success"><i class="fa fa-exclamation-circle"></i> {{success}}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-pencil"></i> {{text_edit}}</h3>
+            </div>
+            <div class="panel-body">
+                <form action="{{delete}}" method="post" enctype="multipart/form-data" id="form">
+                    <ul class="nav nav-tabs">
+                        <li><a href="{{href_settings}}" class="htab-item"><i class="fa fa-cog fa-fw"></i> {{text_settings}}</a></li>
+                        <li class="active"><a href="{{href_queries}}" class="htab-item"><i class="fa fa-list"></i> {{text_queries}}</a></li>
+                    </ul>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <td class="text-center" style="width:30px;"><input class="form-control"  type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" /></td>
+                                    <td class="text-center">
+                                        {% if sort == 'afq.path' %}
+                                        <a href="{{sort_path}}" class="{{order|lower}}">{{column_category}}</a>
+                                        {% else %}
+                                        <a href="{{sort_path}}">{{column_category}}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if sort == 'afq.params' %}
+                                        <a href="{{sort_params}}" class="{{order|lower}}">{{column_params}}</a>
+                                        {% else %}
+                                        <a href="{{sort_params}}">{{column_params}}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if sort == 'afq.popularity' %}
+                                        <a href="{{sort_popularity}}" class="{{order|lower}}">{{column_popularity}}</a>
+                                        {% else %}
+                                        <a href="{{sort_popularity}}">{{column_popularity}}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{column_action}}</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="filter">
+                                    <td></td>
+                                    <td class="text-center">
+                                        <input type="hidden" name="filter_path" value="{{filter_path}}"/>
+                                        <input type="text" class="form-control" name="select_category_name" value="{{filter_path_name}}"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="text" class="form-control" name="filter_params" value="{{filter_params}}"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="text" class="form-control" name="filter_popularity" value="{{filter_popularity}}"/>
+                                    </td>
+                                    <td class="text-center col-sm-1">
+                                        <button type="button" id="button_filter" class="btn btn-primary"><i class="fa fa-search"></i> {{button_filter}}</button>
+                                    </td>
+                                </tr>
+                                {% if queries %}
+                                {% for query in queries %}
+                                <tr>
+                                    <td class="text-center">
+                                    {% if query.query_id in selected %}
+                                        <input class="form-control" type="checkbox" name="selected[]" value="{{query.query_id}}" checked="checked" />
+                                    {% else %}
+                                        <input class="form-control" type="checkbox" name="selected[]" value="{{query.query_id}}" />
+                                    {% endif %}
+                                    </td>
+                                    <td class="text-center">{{query.category_path}}</td>
+                                    <td class="text-center">{{query.params}}</td>
+                                    <td class="text-center">{{query.popularity}}</td>
+                                    <td class="text-center">
+                                        <a href="{{query.edit}}" data-toggle="tooltip" title="{{button_edit}}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                 <tr>
+                                    <td class="text-center" colspan="5">{{text_no_results}}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="col-sm-6 text-left">{{pagination}}</div>
+                    <div class="col-sm-6 text-right">{{results}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#button_filter').on('click', function() {
+        var url = 'index.php?route=extension/d_ajax_filter_seo/query&token=<?php echo $token; ?>';
+
+        var filter_path = $('input[name=\'filter_path\']').val();
+
+        if (filter_path) {
+            url += '&filter_path=' + encodeURIComponent(filter_path);
+        }
+
+        var filter_params = $('input[name=\'filter_params\']').val();
+
+        if (filter_params) {
+            url += '&filter_params=' + encodeURIComponent(filter_params);
+        }
+
+        var filter_popularity = $('input[name=\'filter_popularity\']').val();
+
+        if (filter_popularity) {
+            url += '&filter_popularity=' + encodeURIComponent(filter_popularity);
+        }
+        location = url;
+    });
+    $(document).on('change', 'input[name=select_category_name]', function(){
+        if($(this).val() == ''){
+             $('input[name=filter_path]').val('');
+        }
+    });
+    $('input[name=filter_params]').autocomplete({
+        'source': function(request, response) {
+            $.ajax({
+                url: 'index.php?route=extension/{{codename}}/query/autocompleteParams&{{token_url}}&filter_params=' +  encodeURIComponent(request),
+                dataType: 'json',
+                success: function(json) {
+                    response($.map(json, function(item) {
+                        return {
+                            label: item['params'],
+                            value: item['params']
+                        }
+                    }));
+                }
+            });
+        },
+        'select': function(item) {
+            $('input[name=filter_params]').val(item['value']);;
+        }
+    });
+
+    $('input[name=select_category_name]').autocomplete({
+        'source': function(request, response) {
+            $.ajax({
+                url: 'index.php?route=extension/{{codename}}/query/autocompleteCategory&{{token_url}}&filter_name=' +  encodeURIComponent(request),
+                dataType: 'json',
+                success: function(json) {
+                    response($.map(json, function(item) {
+                        return {
+                            label: item['name'],
+                            value: item['path']
+                        }
+                    }));
+                }
+            });
+        },
+        'select': function(item) {
+            $('input[name=select_category_name]').val(item['label']);
+
+            $('input[name=filter_path]').val(item['value']);
+        }
+    });
+</script>
+{{footer}}

@@ -1,0 +1,106 @@
+.filter-product {
+	margin-top: 10px;
+}
+
+	.filter-product .carousel {
+		overflow: hidden;
+	}
+	
+	.filter-product .filter-tabs {
+		list-style: none;
+		margin: 0px;
+		padding: 38px 0px 33px 0px;
+		text-align: center;
+	}
+		.filter-product .filter-tabs ul {
+			list-style: none;
+			margin: 0px;
+			padding: 0px;
+		}
+	
+		.filter-product .filter-tabs ul > li {
+		  display: inline-block;
+		  padding: 7px 15px;
+		  position: relative;
+		}
+		
+		     .filter-product .filter-tabs ul > li:before {
+		          display: inline-block;
+		          font-family: FontAwesome;
+		          text-rendering: auto;
+		          -webkit-font-smoothing: antialiased;
+		          -moz-osx-font-smoothing: grayscale;
+		          transform: translate(0,0);
+		          content: "\f111";
+		          position: absolute;
+		          top: 50%;
+		          left: -4px;
+		          margin-top: -4px;
+		          font-size: 8px;
+		          width: 8px;
+		          height: 8px;
+		          color: #999999;
+		          line-height: 1;
+		     }
+		     
+		          .filter-product .filter-tabs ul > li:first-child:before {
+		               display: none;
+		          }
+		
+			.filter-product .filter-tabs ul > li > a {
+			  font-size: 18px;
+			  text-transform: uppercase;
+			  text-align: center;
+			  color: #999;
+			  letter-spacing: 0.5px;
+			}
+			
+			.filter-product .filter-tabs ul > li > a:hover {
+			  color: #000;
+			}
+			
+			.filter-product .filter-tabs ul > li.active > a,
+			.filter-product .filter-tabs ul > li.active > a:hover,
+			.filter-product .filter-tabs ul > li.active > a:focus {
+			  color: #000;
+			}
+
+.tab-content {
+	position: relative;
+}
+
+     .tab-content .overflow-carousel {
+          width: 100%;
+          top: 35%;
+          left: 0;
+          position: absolute;
+          transform: translateY(-50%);
+          z-index: 99;
+     }
+          
+     .tab-content .overflow-carousel > a {
+          background: url("../img/arrow-left.svg") no-repeat 0 0;
+          display: block;
+          margin: 0;
+          padding: 0;
+          width: 60px;
+          height: 60px;
+          color: #cccccc;
+          text-align: center;
+          position: absolute;
+          left: -20px;
+     }
+
+     .tab-content .overflow-carousel > .next-button {
+          background: url("../img/arrow-right.svg") no-repeat 0 0;
+          left: auto;
+          right: -20px;
+     }
+
+    .tab-content .overflow-carousel > a i {
+        display: none;
+    }
+     
+			
+@media (max-width: 767px) {
+}

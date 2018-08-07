@@ -1,0 +1,94 @@
+---------- Date: 2018-02-21 00:48:35 ~ IP : 188.68.25.173 ----------
+REQUEST URI : /admin/index.php?route=user/user_permission&token=xQ5tmpFJJzcsN4ObM8dRTfi4HYAbP9D3
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_urls_generator.xml
+   id        : SEO Mega KIT - URLs Generator
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : admin/model/catalog/product.php(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'product_id=" . (int)$product_id . "') AS keyword
+
+----------------------------------------------------------------------
+
+
+---------- Date: 2018-02-21 00:49:34 ~ IP : 188.68.25.173 ----------
+REQUEST URI : /admin/index.php?route=catalog/product&token=xQ5tmpFJJzcsN4ObM8dRTfi4HYAbP9D3
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_titles_generator.xml
+   id        : SEO Mega KIT - Products - Titles Generator
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : admin/controller/catalog/product.php(1)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): $this->error['meta_title'][$language_id] = $this->language->get('error_meta_title');
+----------------------------------------------------------------------
+
+
+---------- Date: 2018-02-21 00:49:37 ~ IP : 188.68.25.173 ----------
+REQUEST URI : /admin/index.php?route=catalog/product/edit&token=xQ5tmpFJJzcsN4ObM8dRTfi4HYAbP9D3&product_id=228
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_urls_generator.xml
+   id        : SEO Mega KIT - URLs Generator
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : admin/model/catalog/manufacturer.php(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'manufacturer_id=" . (int)$manufacturer_id . "') AS keyword
+
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_can_cat.xml
+   id        : SEO Mega KIT - Canonical Category
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : admin/view/template/catalog/product_form.tpl(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): <input type="hidden" name="product_category[]" value="<?php echo $product_category['category_id']; ?>" />
+
+----------------------------------------------------------------------
+
+
+---------- Date: 2018-02-21 00:50:45 ~ IP : 188.68.25.173 ----------
+REQUEST URI : /index.php?route=product/product&path=4&product_id=265
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_titles_cmi.xml
+   id        : SEO Mega KIT - SEO Title, SEO Heading Title (category, information, manufacturer)
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : catalog/model/catalog/manufacturer.php(2)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): $sql .= " ORDER BY name";
+
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_seo_image.xml
+   id        : SEO Mega KIT - SEO Images
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : catalog/model/tool/image.php(2)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): if ($this->request->server['HTTPS']) {
+
+----------------------------------------------------------------------
+
+
+---------- Date: 2018-02-21 00:50:58 ~ IP : 188.68.25.173 ----------
+REQUEST URI : /index.php?route=product/category&path=4&mfp=1-[%D0%B4%D0%BB%D0%B8%D0%BD%D0%BD%D1%8B%D0%B9]
+MOD DETAILS:
+   modFile   : /home/c/ci10951/public_html/vqmod/xml/_seo_mega_pack_titles_cmi.xml
+   id        : SEO Mega KIT - SEO Title, SEO Heading Title (category, information, manufacturer)
+   version   : 1.5.x
+   vqmver    : 2.X
+   author    : marsilea15@gmail.com
+
+File Name    : catalog/view/theme/*/template/product/category.tpl(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): <?php echo $content_bottom; ?>
+
+----------------------------------------------------------------------
+
+

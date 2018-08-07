@@ -1,0 +1,105 @@
+{
+    "codename": "d_seo_module",
+    "version": "2.0.9",
+    "name": "SEO Module",
+    "description": "SEO module is the core platform, necessary for the installation of other SEO modules.",
+	"index": "extension/module/d_seo_module",
+	"readme": "system/mbooth/readme/d_seo_module.md",
+    "author": {
+        "name": "Dreamvention",
+        "email": "info@dreamvention.com",
+        "url": "https://dreamvention.com"
+    },
+    "opencart_version": [
+        "2.3.0.2"
+    ],
+    "mbooth_version": "^4.0.0",
+    "type": "module",
+    "license": {
+        "type": "free",
+        "url": "https://shopunity.net/licenses/free"
+    },
+    "install": {
+        "url": "extension/module/install&extension=d_seo_module" 
+    },
+	"uninstall": {
+        "url": "extension/module/uninstall&extension=d_seo_module"
+    },
+    "support": {
+        "email": "support@dreamvention.com",
+        "url": "https:/dreamvention.com/support"
+    },
+    "required": {
+		"d_shopunity": ">= 3.0.0",
+		"d_bootstrap_switch": ">= 3.3.3",
+		"d_tinysort": ">= 2.3.6",
+		"d_rubaxa_sortable": ">= 1.4.0",
+		"d_phpexcel": ">= 1.0.0",
+        "d_robots_txt_parser": ">= 1.0.0",
+	    "d_simple_html_dom": ">= 1.0.0"
+    },
+    "files": [
+        "system/mbooth/extension/d_seo_module.json",
+		"system/mbooth/install/d_seo_module.xml",
+		"system/mbooth/readme/d_seo_module.md",
+		"system/config/d_seo_module.php",
+		"system/config/d_seo_module_url_target.php",
+						
+		"admin/controller/extension/module/d_seo_module.php",
+		"admin/model/extension/module/d_seo_module.php",
+		"admin/language/en-gb/extension/module/d_seo_module.php",
+		"admin/view/stylesheet/d_seo_module.css",
+		
+		"admin/controller/d_seo_module/d_seo_module.php",
+		"admin/model/d_seo_module/d_seo_module.php",
+		"admin/language/en-gb/d_seo_module/d_seo_module.php",
+		
+		"admin/controller/extension/dashboard/d_seo_module_url_target.php",
+		"admin/model/extension/dashboard/d_seo_module_url_target.php",
+		"admin/language/en-gb/extension/dashboard/d_seo_module_url_target.php",
+		"admin/view/template/extension/dashboard/d_seo_module_url_target.tpl",
+		"admin/view/template/extension/dashboard/d_seo_module_url_target_info.tpl",
+				
+		"admin/controller/d_seo_module_url_target/d_seo_module_url_target.php",
+		"admin/model/d_seo_module_url_target/d_seo_module_url_target.php",
+		
+		"admin/controller/d_seo_module_manager/d_seo_module.php",
+		"admin/model/d_seo_module_manager/d_seo_module.php",
+		"admin/language/en-gb/d_seo_module_manager/d_seo_module.php",
+		
+		"admin/controller/d_seo_module_adviser/d_seo_module.php",
+		"admin/model/d_seo_module_adviser/d_seo_module.php",
+		"admin/language/en-gb/d_seo_module_adviser/d_seo_module.php",
+				
+		"catalog/controller/extension/module/d_seo_module.php",
+		"catalog/model/extension/module/d_seo_module.php",
+		
+		"catalog/controller/d_seo_module/d_seo_module.php",
+		
+		"catalog/controller/d_seo_module_adviser/d_seo_module.php",
+		"catalog/model/d_seo_module_adviser/d_seo_module.php",
+		"catalog/language/en-gb/d_seo_module_adviser/d_seo_module.php"
+    ],
+	"dirs": [
+        "admin/view/template/extension/module/d_seo_module",
+		"admin/view/template/d_seo_module/d_seo_module"
+    ],
+    "changelog": [
+        {
+            "version": "2.0.9",
+            "change": "Quick Install SEO Module"
+        },
+		{
+            "version": "2.0.8",
+            "change": "Bugs fixed. Simple HTML Dom validation"
+        },
+		{
+            "version": "2.0.7",
+            "change": "bugs fixed"
+        },
+		{
+            "version": "2.0.0",
+            "change": ""
+        }
+    ]
+}

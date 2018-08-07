@@ -1,0 +1,5 @@
+  .posts .post .post-media img, 
+.posts .post .post-media iframe,
+.post .post-media iframe, 
+.post .post-media img { width: 100%; }
+.common-home .main-content .pattern > .container { padding-bottom: 0px !important; }

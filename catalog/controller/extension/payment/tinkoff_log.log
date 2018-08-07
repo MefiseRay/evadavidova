@@ -1,0 +1,60 @@
+[Sun May 20 18:30:36 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"122","Success":"false","Status":"REJECTED","PaymentId":21174428,"ErrorCode":"9999","Amount":657000,"CardId":4596555,"Pan":"515876******9018","ExpDate":"1120","Token":"5cd0e15fa8ed4684418b1c0cac130dd92bba22121e98df020faca55a5aa8a8d8","Password":"60ey2puzuv6h37sx"}
+{"Amount":657000,"CardId":4596555,"ErrorCode":"9999","ExpDate":"1120","OrderId":"122","Pan":"515876******9018","Password":"60ey2puzuv6h37sx","PaymentId":21174428,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"5cd0e15fa8ed4684418b1c0cac130dd92bba22121e98df020faca55a5aa8a8d8"}
+[Sun May 20 18:30:36 2018] Values : 657000459655599991120122515876******901860ey2puzuv6h37sx21174428REJECTEDfalse1521029714572DEMO
+[Sun May 20 18:30:36 2018] new token =5cd0e15fa8ed4684418b1c0cac130dd92bba22121e98df020faca55a5aa8a8d8
+original token =5cd0e15fa8ed4684418b1c0cac130dd92bba22121e98df020faca55a5aa8a8d8
+[Wed Jun 06 20:50:47 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"133","Success":"false","Status":"REJECTED","PaymentId":22888679,"ErrorCode":"9999","Amount":772000,"CardId":4918590,"Pan":"533669******9522","ExpDate":"0420","Token":"ec772f14a2796f2c62612cc24dfd5499af38f11f4d9ea481221b85a15f341d8b","Password":"60ey2puzuv6h37sx"}
+{"Amount":772000,"CardId":4918590,"ErrorCode":"9999","ExpDate":"0420","OrderId":"133","Pan":"533669******9522","Password":"60ey2puzuv6h37sx","PaymentId":22888679,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"ec772f14a2796f2c62612cc24dfd5499af38f11f4d9ea481221b85a15f341d8b"}
+[Wed Jun 06 20:50:47 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"134","Success":"false","Status":"REJECTED","PaymentId":22889048,"ErrorCode":"9999","Amount":772000,"CardId":4918590,"Pan":"533669******9522","ExpDate":"0420","Token":"db465cddb8e8a8efe637c85526ba4f4cdc520c7cee4040de8f13960fd2f25759","Password":"60ey2puzuv6h37sx"}
+{"Amount":772000,"CardId":4918590,"ErrorCode":"9999","ExpDate":"0420","OrderId":"134","Pan":"533669******9522","Password":"60ey2puzuv6h37sx","PaymentId":22889048,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"db465cddb8e8a8efe637c85526ba4f4cdc520c7cee4040de8f13960fd2f25759"}
+[Wed Jun 06 20:50:47 2018] Values : 772000491859099990420133533669******952260ey2puzuv6h37sx22888679REJECTEDfalse1521029714572DEMO
+[Wed Jun 06 20:50:47 2018] Values : 772000491859099990420134533669******952260ey2puzuv6h37sx22889048REJECTEDfalse1521029714572DEMO
+[Wed Jun 06 20:50:47 2018] new token =ec772f14a2796f2c62612cc24dfd5499af38f11f4d9ea481221b85a15f341d8b
+original token =ec772f14a2796f2c62612cc24dfd5499af38f11f4d9ea481221b85a15f341d8b
+[Wed Jun 06 20:50:47 2018] new token =db465cddb8e8a8efe637c85526ba4f4cdc520c7cee4040de8f13960fd2f25759
+original token =db465cddb8e8a8efe637c85526ba4f4cdc520c7cee4040de8f13960fd2f25759
+[Fri Jun 08 10:50:25 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"139","Success":"false","Status":"REJECTED","PaymentId":23066485,"ErrorCode":"9999","Amount":1241300,"CardId":4947205,"Pan":"489347******7050","ExpDate":"0319","Token":"e96bf566e1b267f10748a89a4b9612a5439a1e8393eb186c4cdfcf9b0be7f17e","Password":"60ey2puzuv6h37sx"}
+{"Amount":1241300,"CardId":4947205,"ErrorCode":"9999","ExpDate":"0319","OrderId":"139","Pan":"489347******7050","Password":"60ey2puzuv6h37sx","PaymentId":23066485,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"e96bf566e1b267f10748a89a4b9612a5439a1e8393eb186c4cdfcf9b0be7f17e"}
+[Fri Jun 08 10:50:25 2018] Values : 1241300494720599990319139489347******705060ey2puzuv6h37sx23066485REJECTEDfalse1521029714572DEMO
+[Fri Jun 08 10:50:25 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"137","Success":"false","Status":"REJECTED","PaymentId":23066341,"ErrorCode":"9999","Amount":1241300,"CardId":4947205,"Pan":"489347******7050","ExpDate":"0319","Token":"abed25accf2f381713fa52eef4ee498c55ecade9fca9d44f7f9de565a84be2f0","Password":"60ey2puzuv6h37sx"}
+{"Amount":1241300,"CardId":4947205,"ErrorCode":"9999","ExpDate":"0319","OrderId":"137","Pan":"489347******7050","Password":"60ey2puzuv6h37sx","PaymentId":23066341,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"abed25accf2f381713fa52eef4ee498c55ecade9fca9d44f7f9de565a84be2f0"}
+[Fri Jun 08 10:50:25 2018] new token =e96bf566e1b267f10748a89a4b9612a5439a1e8393eb186c4cdfcf9b0be7f17e
+original token =e96bf566e1b267f10748a89a4b9612a5439a1e8393eb186c4cdfcf9b0be7f17e
+[Fri Jun 08 10:50:25 2018] Values : 1241300494720599990319137489347******705060ey2puzuv6h37sx23066341REJECTEDfalse1521029714572DEMO
+[Fri Jun 08 10:50:25 2018] new token =abed25accf2f381713fa52eef4ee498c55ecade9fca9d44f7f9de565a84be2f0
+original token =abed25accf2f381713fa52eef4ee498c55ecade9fca9d44f7f9de565a84be2f0
+[Fri Jun 08 10:50:57 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"140","Success":"false","Status":"REJECTED","PaymentId":23066716,"ErrorCode":"9999","Amount":1241300,"CardId":4947205,"Pan":"489347******7050","ExpDate":"0319","Token":"62b17290839de84833e74ad7e34250d8ee16c20acd218c0cf7cc2f7fecce939b","Password":"60ey2puzuv6h37sx"}
+{"Amount":1241300,"CardId":4947205,"ErrorCode":"9999","ExpDate":"0319","OrderId":"140","Pan":"489347******7050","Password":"60ey2puzuv6h37sx","PaymentId":23066716,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"62b17290839de84833e74ad7e34250d8ee16c20acd218c0cf7cc2f7fecce939b"}
+[Fri Jun 08 10:50:57 2018] Values : 1241300494720599990319140489347******705060ey2puzuv6h37sx23066716REJECTEDfalse1521029714572DEMO
+[Fri Jun 08 10:50:57 2018] new token =62b17290839de84833e74ad7e34250d8ee16c20acd218c0cf7cc2f7fecce939b
+original token =62b17290839de84833e74ad7e34250d8ee16c20acd218c0cf7cc2f7fecce939b
+[Fri Jun 08 10:50:57 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"136","Success":"false","Status":"REJECTED","PaymentId":23066011,"ErrorCode":"9999","Amount":1241300,"CardId":4947205,"Pan":"489347******7050","ExpDate":"0319","Token":"5625f7598b3c86bff41ba8b85e316d1a7628ccf8bbeb52d7d64bc28f693ae966","Password":"60ey2puzuv6h37sx"}
+{"Amount":1241300,"CardId":4947205,"ErrorCode":"9999","ExpDate":"0319","OrderId":"136","Pan":"489347******7050","Password":"60ey2puzuv6h37sx","PaymentId":23066011,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"5625f7598b3c86bff41ba8b85e316d1a7628ccf8bbeb52d7d64bc28f693ae966"}
+[Fri Jun 08 10:50:57 2018] Values : 1241300494720599990319136489347******705060ey2puzuv6h37sx23066011REJECTEDfalse1521029714572DEMO
+[Fri Jun 08 10:50:57 2018] new token =5625f7598b3c86bff41ba8b85e316d1a7628ccf8bbeb52d7d64bc28f693ae966
+original token =5625f7598b3c86bff41ba8b85e316d1a7628ccf8bbeb52d7d64bc28f693ae966
+[Fri Jun 08 10:50:57 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"135","Success":"false","Status":"REJECTED","PaymentId":23065328,"ErrorCode":"9999","Amount":1241300,"CardId":4947205,"Pan":"489347******7050","ExpDate":"0319","Token":"869f9473101f6fe81e35698c258d25ed21d5c54a45ecb972438ba1439c3e9221","Password":"60ey2puzuv6h37sx"}
+{"Amount":1241300,"CardId":4947205,"ErrorCode":"9999","ExpDate":"0319","OrderId":"135","Pan":"489347******7050","Password":"60ey2puzuv6h37sx","PaymentId":23065328,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"869f9473101f6fe81e35698c258d25ed21d5c54a45ecb972438ba1439c3e9221"}
+[Fri Jun 08 10:50:57 2018] Values : 1241300494720599990319135489347******705060ey2puzuv6h37sx23065328REJECTEDfalse1521029714572DEMO
+[Fri Jun 08 10:50:57 2018] new token =869f9473101f6fe81e35698c258d25ed21d5c54a45ecb972438ba1439c3e9221
+original token =869f9473101f6fe81e35698c258d25ed21d5c54a45ecb972438ba1439c3e9221
+[Fri Jun 08 14:16:27 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"147","Success":"true","Status":"AUTHORIZED","PaymentId":23085120,"ErrorCode":"0","Amount":676000,"CardId":3607984,"Pan":"430000******0777","ExpDate":"1122","Token":"61676e5fa57836408add98167b182675e13ffd4ffcb9609dbaff03563ba502c9","Password":"60ey2puzuv6h37sx"}
+{"Amount":676000,"CardId":3607984,"ErrorCode":"0","ExpDate":"1122","OrderId":"147","Pan":"430000******0777","Password":"60ey2puzuv6h37sx","PaymentId":23085120,"Status":"AUTHORIZED","Success":"true","TerminalKey":"1521029714572DEMO","Token":"61676e5fa57836408add98167b182675e13ffd4ffcb9609dbaff03563ba502c9"}
+[Fri Jun 08 14:16:27 2018] Values : 676000360798401122147430000******077760ey2puzuv6h37sx23085120AUTHORIZEDtrue1521029714572DEMO
+[Fri Jun 08 14:16:27 2018] new token =61676e5fa57836408add98167b182675e13ffd4ffcb9609dbaff03563ba502c9
+original token =61676e5fa57836408add98167b182675e13ffd4ffcb9609dbaff03563ba502c9
+[Fri Jun 08 14:16:27 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"147","Success":"true","Status":"CONFIRMED","PaymentId":23085120,"ErrorCode":"0","Amount":676000,"CardId":3607984,"Pan":"430000******0777","ExpDate":"1122","Token":"d6ff68b570453d60bc43cbdfac6665532e388dd43f68982341d17e83409dd32b","Password":"60ey2puzuv6h37sx"}
+{"Amount":676000,"CardId":3607984,"ErrorCode":"0","ExpDate":"1122","OrderId":"147","Pan":"430000******0777","Password":"60ey2puzuv6h37sx","PaymentId":23085120,"Status":"CONFIRMED","Success":"true","TerminalKey":"1521029714572DEMO","Token":"d6ff68b570453d60bc43cbdfac6665532e388dd43f68982341d17e83409dd32b"}
+[Fri Jun 08 14:16:27 2018] Values : 676000360798401122147430000******077760ey2puzuv6h37sx23085120CONFIRMEDtrue1521029714572DEMO
+[Fri Jun 08 14:16:27 2018] new token =d6ff68b570453d60bc43cbdfac6665532e388dd43f68982341d17e83409dd32b
+original token =d6ff68b570453d60bc43cbdfac6665532e388dd43f68982341d17e83409dd32b
+[Sun Jun 24 14:00:41 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"163","Success":"false","Status":"REJECTED","PaymentId":24541568,"ErrorCode":"9999","Amount":752000,"CardId":5246818,"Pan":"553691******3792","ExpDate":"1222","Token":"43fd91d07104b0fdcd75028a97593de2c5bffa13d3ec09e57c4bcec831175e43","Password":"60ey2puzuv6h37sx"}
+{"Amount":752000,"CardId":5246818,"ErrorCode":"9999","ExpDate":"1222","OrderId":"163","Pan":"553691******3792","Password":"60ey2puzuv6h37sx","PaymentId":24541568,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"43fd91d07104b0fdcd75028a97593de2c5bffa13d3ec09e57c4bcec831175e43"}
+[Sun Jun 24 14:00:41 2018] Values : 752000524681899991222163553691******379260ey2puzuv6h37sx24541568REJECTEDfalse1521029714572DEMO
+[Sun Jun 24 14:00:41 2018] new token =43fd91d07104b0fdcd75028a97593de2c5bffa13d3ec09e57c4bcec831175e43
+original token =43fd91d07104b0fdcd75028a97593de2c5bffa13d3ec09e57c4bcec831175e43
+[Sun Jun 24 14:01:02 2018] {"TerminalKey":"1521029714572DEMO","OrderId":"164","Success":"false","Status":"REJECTED","PaymentId":24541862,"ErrorCode":"9999","Amount":752000,"CardId":5246818,"Pan":"553691******3792","ExpDate":"1222","Token":"5b853fd03ecb719eab57282cffd2c829fc6ad2bf540dfedc4ea844f8c47158cb","Password":"60ey2puzuv6h37sx"}
+{"Amount":752000,"CardId":5246818,"ErrorCode":"9999","ExpDate":"1222","OrderId":"164","Pan":"553691******3792","Password":"60ey2puzuv6h37sx","PaymentId":24541862,"Status":"REJECTED","Success":"false","TerminalKey":"1521029714572DEMO","Token":"5b853fd03ecb719eab57282cffd2c829fc6ad2bf540dfedc4ea844f8c47158cb"}
+[Sun Jun 24 14:01:02 2018] Values : 752000524681899991222164553691******379260ey2puzuv6h37sx24541862REJECTEDfalse1521029714572DEMO
+[Sun Jun 24 14:01:02 2018] new token =5b853fd03ecb719eab57282cffd2c829fc6ad2bf540dfedc4ea844f8c47158cb
+original token =5b853fd03ecb719eab57282cffd2c829fc6ad2bf540dfedc4ea844f8c47158cb

@@ -1,0 +1,73 @@
+<modification>
+  <id>Google Analytics - Ecommerce Tracking (Universal Analytics)</id>
+  <version>1.0</version>
+  <vqmver>2.4</vqmver>
+  <author>gk@venta-group.ru</author>
+
+  <file name="catalog/controller/checkout/success.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[
+				$this->cart->clear();
+			]]></search>
+			<add><![CDATA[
+				$this->session->data['export_order_id'] = $this->session->data['order_id'];	
+			]]></add>
+		</operation>	
+  </file>
+   
+  <file name="catalog/controller/common/header.php">
+    <operation error="skip">
+      <search position="after">
+        <![CDATA[
+			$data['name'] = $this->config->get('config_name');
+        ]]>
+      </search>
+      <add>
+        <![CDATA[
+			$mydata = array();
+
+			if (isset($this->session->data['export_order_id'])) {
+				$this->load->model('account/order');
+				$this->load->model('catalog/category');
+				$this->load->model('catalog/product');
+				
+				$order_id = $this->session->data['export_order_id'];
+				$order_data = $this->model_account_order->getOrder($order_id);
+				$order_totals   = $this->model_account_order->getOrderTotals($order_id);
+				$order_products = $this->model_account_order->getOrderProducts($order_id);		
+				
+				////////////////////////////// data for create_xml_for_1C() method ////////////////////////
+				if ($order_data) {
+					//order info
+					date_default_timezone_set('Europe/Moscow');
+					$mydata['order_id'] = $order_id;
+					$mydata['date']     = date('Y-m-d');
+					$mydata['time']     = date('H:i:s');
+					
+					//client info
+					$mydata['firstname']    = $order_data['firstname'];
+					$mydata['lastname']    	= $order_data['lastname'];
+					$mydata['customer_id'] 	= $order_data['customer_id'];
+					$mydata['telephone']   	= $order_data['telephone'];
+					$mydata['email']   		= $order_data['email'];
+					$mydata['address']     	= $order_data['payment_address_1'];	
+					$mydata['country']     	= $order_data['payment_country'];
+					$mydata['zone']     	= $order_data['payment_zone'];
+					$mydata['city']     	= $order_data['payment_city'];
+					
+					// order info
+					$mydata['total']     	= $order_data['total'];
+
+					$mydata['products'] 		= $order_products;
+				
+					$this->load->controller('export1C/exportOrder/exportOrder', $mydata);
+				}
+
+				unset($this->session->data['export_order_id']);	
+			}
+		]]>
+      </add>
+    </operation>
+  </file>
+  
+</modification>

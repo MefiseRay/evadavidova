@@ -1,0 +1,4 @@
+.posts .post .post-media img, 
+.posts .post .post-media iframe,
+.post .post-media iframe, 
+.post .post-media img { width: 100%; }

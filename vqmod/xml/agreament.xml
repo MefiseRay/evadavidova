@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<name>Agreament</name>
+	<version>2x</version>
+	<code>Customer Agreament</code>
+	<author>promo-venta.ru</author>
+
+	<file path="catalog/view/theme/*/template/ocdevwizard/smart_contact_me/smart_contact_me.tpl">
+		<operation>
+			<search><![CDATA[
+			</form>
+			]]></search>
+			<add position="after"><![CDATA[
+			<?php $config = $registry->get('config');
+			$agreament_caption = $config->get('agreament_caption'); ?>
+			<?php if ($config->get('agreament_status') && $config->get('agreament_feedback') && $agreament_caption[$config->get('config_language_id')] != '') { ?>
+				<div class="personal-data required">
+					<input id="agreament-<?php echo $form_id;?>" name="personal_data" checked="checked" type="checkbox">
+					<label for="agreament-<?php echo $form_id;?>">
+						<?php echo html_entity_decode($agreament_caption[$config->get('config_language_id')],ENT_COMPAT, 'UTF-8'); ?>
+					</label>
+				</div>	
+			<?php } ?>
+			]]></add>
+		</operation>	
+		<operation>	
+			<search><![CDATA[
+			// send data to processing
+			]]></search>
+			<add position="before"><![CDATA[
+				$("#agreament-<?php echo $form_id;?>").change(function(){
+					if ($(this).prop("checked")) {
+						$(this).parents('#smcm-modal-body').find('.btn-primary').removeAttr('disabled');
+					} else {
+						$(this).parents('#smcm-modal-body').find('.btn-primary').attr('disabled','disabled');
+					}
+				});
+			]]></add>
+		</operation>
+	</file>
+	<file path="catalog/view/theme/*/template/product/product.tpl">
+		<operation>
+			<search><![CDATA[
+			<?php echo $captcha; ?>
+			]]></search>
+			<add position="before"><![CDATA[
+			<?php $agreament_caption = $config->get('agreament_caption'); ?>
+			<?php if ($config->get('agreament_status') && $config->get('agreament_review') && $agreament_caption[$config->get('config_language_id')] != '') { ?>
+				<div class="personal-data required">
+					<input id="agreament-review" name="personal_data" checked="checked" type="checkbox">
+					<label for="agreament-review">
+						<?php echo html_entity_decode($agreament_caption[$config->get('config_language_id')],ENT_COMPAT, 'UTF-8'); ?>
+					</label>
+				</div>	
+			<?php } ?>
+			]]></add>
+		</operation>	
+		<operation>	
+			<search><![CDATA[
+			$('#button-review').on('click', function() {
+			]]></search>
+			<add position="before"><![CDATA[
+				$("#agreament-review").change(function(){
+					if ($(this).prop("checked")) {
+						$('#form-review').find('#button-review').removeAttr('disabled');
+					} else {
+						$('#form-review').find('#button-review').attr('disabled','disabled');
+					}
+				});
+			]]></add>
+		</operation>
+	</file>
+	<file path="catalog/view/theme/*/template/blog/blog.tpl">
+		<operation>
+			<search><![CDATA[
+			<div class="form-group col-sm-12 text-right">
+			]]></search>
+			<add position="before" offset="1"><![CDATA[
+			<?php $agreament_caption = $config->get('agreament_caption'); ?>
+			<?php if ($config->get('agreament_status') && $config->get('agreament_review') && $agreament_caption[$config->get('config_language_id')] != '') { ?>
+				<div class="personal-data required">
+					<input id="agreament-comment" name="personal_data" checked="checked" type="checkbox">
+					<label for="agreament-comment">
+						<?php echo html_entity_decode($agreament_caption[$config->get('config_language_id')],ENT_COMPAT, 'UTF-8'); ?>
+					</label>
+				</div>	
+			<?php } ?>
+			]]></add>
+		</operation>	
+		<operation>	
+			<search><![CDATA[
+			$('#button-comment').on('click', function() {
+			]]></search>
+			<add position="before"><![CDATA[
+				$("#agreament-comment").change(function(){
+					if ($(this).prop("checked")) {
+						$('#comment_form').find('#button-comment').removeAttr('disabled');
+					} else {
+						$('#comment_form').find('#button-comment').attr('disabled','disabled');
+					}
+				});
+			]]></add>
+		</operation>
+	</file>
+</modification>

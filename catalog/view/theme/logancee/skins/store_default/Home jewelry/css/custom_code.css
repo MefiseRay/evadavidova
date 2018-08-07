@@ -1,0 +1,6 @@
+  .posts .post .post-media img, 
+.posts .post .post-media iframe,
+.post .post-media iframe, 
+.post .post-media img { width: 100%; }
+
+.common-home .carousel-brands {margin-top: 0px !important; }

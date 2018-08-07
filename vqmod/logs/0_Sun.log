@@ -1,0 +1,28 @@
+---------- Date: 2017-11-19 16:17:46 ~ IP : 127.0.0.1 ----------
+REQUEST URI : /
+MOD DETAILS:
+   modFile   : I:\OpenServer\domains\ocstore\vqmod/xml/quicksignup.xml
+   id        : 
+   version   : 2x
+   vqmver    : 
+   author    : Webx IT Solutions
+
+File Name    : catalog/view/theme/*/template/common/header.tpl(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): <?php echo $telephone; ?></span></li>
+----------------------------------------------------------------------
+
+
+---------- Date: 2017-11-19 16:21:39 ~ IP : 127.0.0.1 ----------
+REQUEST URI : /
+MOD DETAILS:
+   modFile   : I:\OpenServer\domains\ocstore\vqmod/xml/quicksignup.xml
+   id        : 
+   version   : 2x
+   vqmver    : 
+   author    : Webx IT Solutions
+
+File Name    : catalog/view/theme/*/template/common/header.tpl(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): </header>
+----------------------------------------------------------------------
+
+

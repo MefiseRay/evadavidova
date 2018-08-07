@@ -1,0 +1,107 @@
+<div id="smcm-modal-body">
+  <!-- 
+  @category  : OpenCart
+  @module    : Smart Contact Me
+  @author    : OCdevWizard <ocdevwizard@gmail.com> 
+  @copyright : Copyright (c) 2015, OCdevWizard
+  @license   : http://license.ocdevwizard.com/Licensing_Policy.pdf
+  -->
+
+  <div class="modal-heading">
+    Заказать обратный звонок    <span class="modal-close" onclick="$.magnificPopup.close();"></span>
+  </div>
+  <div id="check-data" >
+    <div id="smcm-modal-data" class="modal-body">
+      <form id="smcm-form-1">
+        <input name="form_id" type="hidden" value="1" />
+                <!-- FIELDS DATA -->
+          <div class="ocdev_smart_feedback_fields">
+                                          <div  data-error-name="field_1" class="form-group center ">
+                  <div class="field-heading control-label">Контактное лицо</div>
+                  <input name="field_1" type="text" placeholder="Контактное лицо" />
+                </div>
+                                                                      <div  data-error-name="field_2" class="form-group center ">
+                  <div class="field-heading control-label">Контактный телефон</div>
+                  <input name="field_2" type="text" placeholder="Контактный телефон" />
+                </div>
+                                            <script type="text/javascript">
+                  $("#smcm-modal-body [name='field_2']").inputmask('+7 (999) 999-99-99');
+                </script>
+                                    </div>
+              </form>
+
+										<div class="personal-data required">
+					<input id="agreament-1" name="personal_data" checked="checked" type="checkbox">
+					<label for="agreament-1">
+						Я согласен на обработку <a href="/offer/">персональных данных</a>					</label>
+				</div>	
+						
+    </div>
+  </div>
+  <!-- BUTTONS -->
+  <div class="modal-footer buttons text-center">
+        <input type="button" onclick="sendFeedbackPopup('1');" value="Отправить заявку" class="btn btn-primary" />
+  </div>
+  <script type="text/javascript">
+    $('.mfp-bg').css({
+      'background': 'url(image/ocdevwizard/smart_contact_me/background/bg_2.png)',
+      'opacity': '0.8'
+    });
+
+    // loadmask function
+    function maskElement(element, status) {
+      if (status == true) {
+        $('<div/>')
+        .attr('class', 'smcm-modal-loadmask')
+        .prependTo(element);
+        $('<div class="smcm-modal-loadmask-loading" />').insertAfter($('.smcm-modal-loadmask'));
+      } else {
+        $('.smcm-modal-loadmask').remove();
+        $('.smcm-modal-loadmask-loading').remove();
+      }
+    }
+
+
+				$("#agreament-1").change(function(){
+					if ($(this).prop("checked")) {
+						$(this).parents('#smcm-modal-body').find('.btn-primary').removeAttr('disabled');
+					} else {
+						$(this).parents('#smcm-modal-body').find('.btn-primary').attr('disabled','disabled');
+					}
+				});
+			
+    // send data to processing
+    function sendFeedbackPopup(form_id) {
+      var $button_send = $('#smcm-modal-body .modal-footer > .send-button-data');
+      $button_send.attr("disabled", true);
+      maskElement('#check-data', true);
+      $.ajax({
+        type: 'post',
+        url: 'index.php?route=ocdevwizard/smart_contact_me/save',
+        dataType: 'json',
+        data: $('#check-data #smcm-form-'+form_id).serialize(),
+        success: function(json) {
+          $('.alert-success').remove();
+          $('.popup-text-danger').remove();
+          if (json['error']) {
+            if (json['error']['field']) {
+              maskElement('#check-data', false);
+              for (i in json['error']['field']) {
+                var element = $('#check-data #smcm-form-'+form_id+' [data-error-name='+i+']');
+                element.append('<div class="popup-text-danger">'+json['error']['field'][i]+'</div>');
+              }
+            }
+            $button_send.attr("disabled", false);
+          } else {
+            if (json['output']) {
+			  yaCounter48659294.reachGoal('callback');
+              maskElement('#check-data', false);
+              $('.send-button-data').remove();
+              $('#smcm-modal-data').html(json['output']);
+            }
+          }
+        }
+      });
+    }
+  </script>
+</div>
