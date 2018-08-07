@@ -168,7 +168,7 @@ class ControllerOcdevwizardSmartContactMe extends Controller {
         'field_data'        => $post_fields
       );
 
-      $this->{'model_ocdevwizard_'.self::$_module_name}->addMessage($filter_data);
+      //$this->{'model_ocdevwizard_'.self::$_module_name}->addMessage($filter_data);
 
       if (isset($form_info['success_message'])) {
         $json['output'] = html_entity_decode($form_info['success_message'], ENT_QUOTES, 'UTF-8');
