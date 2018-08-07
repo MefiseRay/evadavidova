@@ -137,6 +137,7 @@
         success: function(json) {
           $('.alert-success').remove();
           $('.popup-text-danger').remove();
+          $('.modal-footer.buttons .btn.btn-primary').remove();
           if (json['error']) {
             if (json['error']['field']) {
               maskElement('#check-data', false);
