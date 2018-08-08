@@ -156,3 +156,13 @@ catalog/view/theme/logancee/template/extension/module/category.tpl
 system/library/mfilter_mobile.php
 catalog/language/english/module/mega_filter.php
 catalog/language/ru-ru/module/mega_filter.php
+catalog/model/coc/product.php
+catalog/language/en-gb/product/product.php
+catalog/language/ru-ru/product/product.php
+catalog/model/catalog/review.php
+catalog/controller/common/home.php
+catalog/controller/extension/module/revolution_slider.php
+catalog/view/theme/logancee/template/extension/module/revslideroutput.tpl
+catalog/view/theme/logancee/template/common/home.tpl
+catalog/language/en-gb/extension/module/featured.php
+catalog/language/ru-ru/extension/module/featured.php
