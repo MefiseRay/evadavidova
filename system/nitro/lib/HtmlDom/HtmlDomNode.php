@@ -1,21 +1,7 @@
 <?php
-class HtmlDomNode {
-    public $tagName;
-    public $children;
-    public $parent;
-    public $root;
-    public $detached;
-    public $htmlNode;
-    public $headNode;
-    public $bodyNode;
-    public $isVoid;
 
-    private $attributes;
-    private $comments;
-    private $innerText;
-    private $doctype = '';
-    private $containingElement;
-
+class HtmlDomNode
+{
     public static $self_closing_tags = array('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr');
     public static $head_tags = array('meta', 'link', 'script', 'noscript', 'style', 'template', 'title', 'base');
     public static $optional_closing_tags = array('html', 'head', 'body', 'p', 'dt', 'dd', 'li', 'option', 'thead', 'th', 'tbody', 'tr', 'td', 'tfoot', 'colgroup');
@@ -37,8 +23,23 @@ class HtmlDomNode {
         'td' => array('tr', 'td', 'th'),
         'th' => array('td', 'th'),
     );
+    public $tagName;
+    public $children;
+    public $parent;
+    public $root;
+    public $detached;
+    public $htmlNode;
+    public $headNode;
+    public $bodyNode;
+    public $isVoid;
+    private $attributes;
+    private $comments;
+    private $innerText;
+    private $doctype = '';
+    private $containingElement;
 
-    public function __construct($tagName, $parent = NULL, $root = NULL) {
+    public function __construct($tagName, $parent = NULL, $root = NULL)
+    {
         $this->tagName = strtolower($tagName);
         $this->parent = $parent;
 
@@ -68,76 +69,33 @@ class HtmlDomNode {
 
     }
 
-    public function getDoctype() {
+    public function getDoctype()
+    {
         return $this->root->doctype;
     }
 
-    public function addComment(&$comment) {
+    public function addComment(&$comment)
+    {
         $this->comments->attach(new HtmlDomComment($comment));
         $this->innerText .= '{comment_content}';
     }
 
-    public function setAttribute($name, $value, $attrWrapperChar = false, $override = true) {
-        if (empty($name)) {
-            return;
-        }
-
-        if ($this->isVoid) {
-            switch ($this->tagName) {
-            case 'html':
-                $this->root->htmlNode->setAttribute($name, $value, $attrWrapperChar, $override);
-                return;
-            case 'head':
-                $this->root->headNode->setAttribute($name, $value, $attrWrapperChar, $override);
-                return;
-            case 'body':
-                $this->root->bodyNode->setAttribute($name, $value, $attrWrapperChar, $override);
-                return;
-            }
-        }
-
-        if ($attrWrapperChar === false) {
-            if (strpos($value, '"') === false) {
-                $attrWrapperChar = '"';
-            } else if (strpos($value, "'") === false) {
-                $attrWrapperChar = "'";
-            } else {
-                $attrWrapperChar = '';
-            }
-        }
-
-        $name = strtolower($name);
-        $attr = $this->getAttribute($name);
-        if (!$attr || $override) {
-            if ($attr) {
-                $this->attributes->detach($attr);
-            }
-
-            $attr = new DomNodeAttribute($name, $value, $attrWrapperChar);
-            $this->attributes->attach($attr);
-        }
-    }
-
-    public function getAttributes() {
+    public function getAttributes()
+    {
         return $this->attributes;
     }
 
-    public function getComments() {
+    public function getComments()
+    {
         return $this->comments;
     }
 
-    public function getAttribute($name) {
-        foreach ($this->attributes as $attr) {
-            if ($attr->name == $name) return $attr;
-        }
-        return NULL;
-    }
-
-    public function remove($node = null) {
+    public function remove($node = null)
+    {
         if (!$node) {
             $this->parent->remove($this);
         } else {
-            foreach ($this->children as $k=>$child) {
+            foreach ($this->children as $k => $child) {
                 if ($node == $child) {
                     $text_parts = explode('{child_node_content}', $this->innerText);
                     $combined_parts = array_splice($text_parts, $k, 2);
@@ -153,15 +111,8 @@ class HtmlDomNode {
         }
     }
 
-    public function appendChild(&$node) {
-        $this->children->attach($node);
-        $node->parent = $this;
-        $node->root = $this->root;
-        $this->innerText .= '{child_node_content}';
-        $node->detached = false;
-    }
-
-    public function after(&$node) {
+    public function after(&$node)
+    {
         //TODO: fix for self-closing tags
         $detached_nodes = new SplObjectStorage();
         $start_detaching = false;
@@ -180,7 +131,8 @@ class HtmlDomNode {
         }
     }
 
-    public function before(&$node) {
+    public function before(&$node)
+    {
         //TODO: fix for self-closing tags
         $detached_nodes = new SplObjectStorage();
         $start_detaching = false;
@@ -199,7 +151,8 @@ class HtmlDomNode {
         }
     }
 
-    public function html($html) {
+    public function html($html)
+    {
         foreach ($this->children as $child) {
             $child->remove();
         }
@@ -207,132 +160,8 @@ class HtmlDomNode {
         $this->parseDom(new StringIterator($html));
     }
 
-    public function find($selector, &$matches = null, &$selectorObject = null, $innerCall = false) {
-        if (!$matches) {
-            $matches = new SplObjectStorage();
-        }
-
-        if (empty($selector)) return $matches;
-
-        if (!$selectorObject) {
-            $selectorObject = new HtmlDomSelector($selector);
-        }
-
-        if (!$this->isVoid && $selectorObject->test($this)) {
-            $matches->attach($this);
-        }
-
-        foreach ($this->children as $child) {
-            $child->find($selector, $matches, $selectorObject, true);
-        }
-
-        if (!$innerCall) {
-            if ($matches->count() == 1) {
-                $matches->rewind();
-                return $matches->current();
-            }
-
-            return $matches;
-        }
-    }
-
-    public function isSelfClosing() {
-        return in_array($this->tagName, self::$self_closing_tags);
-    }
-
-    public function getInnerText() {
-        $texts = explode('{child_node_content}', str_replace('{comment_content}', '', $this->innerText));
-        foreach ($this->children as $k => $child) {
-            if (isset($texts[$k])) {
-                $texts[$k] .= $child->getInnerText();
-            }
-        }
-
-        return implode('', $texts);
-    }
-
-    public function dumpDom($lvl = 0) {
-        foreach ($this->children as $child) {
-            $tagHeader = str_repeat('| ', $lvl/2) . $child->tagName;
-
-            foreach ($child->getAttributes() as $attr) {
-                if ($attr->value !== false) {
-                    $tagHeader .= ' ' . $attr->name . '=' . $attr->wrapperChar . $attr->value . $attr->wrapperChar;
-                } else {
-                    $tagHeader .= ' ' . $attr->name;
-                }
-            }
-
-            if (!$child->isVoid) {
-                echo $tagHeader . "\n";
-            } else {
-                echo $tagHeader . " (VOID)\n";
-            }
-
-            $child->dumpDom($lvl+2);
-        }
-    }
-
-    public function getHtml($include_comments = false, $minify_level = 0) {
-        if (!empty($this->tagName) && !$this->isVoid) {
-            $tagHeader = '<' . $this->tagName;
-            foreach ($this->attributes as $attr) {
-                if ($attr->value !== false) {
-                    $tagHeader .= ' ' . $attr->name . '=' . $attr->wrapperChar . $attr->value . $attr->wrapperChar;
-                } else {
-                    $tagHeader .= ' ' . $attr->name;
-                }
-            }
-            if ($this->isSelfClosing()) return $tagHeader . '/>';
-
-            $tagHeader .= '>';
-        }
-
-        $tmp_html = $this->innerText;
-
-        if ($include_comments) {
-            $texts = explode('{comment_content}', $tmp_html);
-            foreach ($this->comments as $k => $comment) {
-                if (isset($texts[$k])) {
-                    $texts[$k] .= $comment->text;
-                }
-            }
-            $tmp_html = implode('', $texts);
-        } else {
-            $tmp_html = str_replace('{comment_content}', '', $tmp_html);
-        }
-
-
-        if ($minify_level && !in_array($this->tagName, array("script", "style", "pre"))) {
-            $tmp_html = str_replace(array("\n", "\r", "\t", "\f"), " ", $tmp_html);
-            $tmp_html = preg_replace("/\s+/", " ", $tmp_html);
-        }
-
-        $texts = explode('{child_node_content}', $tmp_html);
-        foreach ($this->children as $k => $child) {
-            if (isset($texts[$k])) {
-                $texts[$k] .= $child->getHtml($include_comments, $minify_level);
-            }
-        }
-
-        $tmp_html = implode('', $texts);
-
-        if ($minify_level === 2 && !in_array($this->tagName, array("script", "style", "pre"))) {
-            $tmp_html = preg_replace('/([^\s])\s+$/', '$1', $tmp_html);
-        }
-
-        if (!empty($this->tagName)) {
-            if (!$this->isVoid) {
-                return $tagHeader . $tmp_html . '</' . $this->tagName . '>';
-            } else {
-                return $tmp_html;
-            }
-        } else {
-            return $this->root->doctype . $tmp_html;
-        }
-    }
-
-    public function parseDom(&$iterator) {
+    public function parseDom(&$iterator)
+    {
         if ($this->isSelfClosing()) return;
 
         $inTag = false;
@@ -359,7 +188,7 @@ class HtmlDomNode {
 
         if ($iterator->key() > 0) {
             $iterator->next();//Move to the next character because foreach does not call next() when starting iteration and the the node will not be able to read correctly. It will read the last > from the tag.
-        } 
+        }
 
         foreach ($iterator as $char) {
             $nextChar = $iterator->peek();
@@ -517,56 +346,32 @@ class HtmlDomNode {
                         $nextNode = new HtmlDomNode($tagNameTrimmed, $this, $this->root);
 
                         switch ($tagNameTrimmed) {
-                        case 'html':
-                            if (!$this->root->bodyNode->detached) {//This may need to check the htmlNode object instead of body - so feel free to experiment if needed
-                                $nextNode->isVoid = true;
-                            } else {
-                                $this->containingElement = $this->root;
-                                $nextNode = $this->root->htmlNode;
-                            }
-                            break;
-                        case 'head':
-                            if (!$this->root->bodyNode->detached) {//This may need to check the headNode object instead of body - so feel free to experiment if needed
-                                $nextNode->isVoid = true;
-                            } else {
-                                $this->containingElement = $this->root->htmlNode;
-                                $nextNode = $this->root->headNode;
-
-                                if ($this->root->htmlNode->detached) {
-                                    $this->root->appendChild($this->root->htmlNode);
-                                }
-                            }
-                            break;
-                        case 'body':
-                            if (!$this->root->bodyNode->detached) {
-                                $nextNode->isVoid = true;
-                            } else {
-                                $this->containingElement = $this->root->htmlNode;
-                                $nextNode = $this->root->bodyNode;
-
-                                if ($this->root->htmlNode->detached) {
-                                    $this->root->appendChild($this->root->htmlNode);
-                                }
-
-                                if ($this->root->headNode->detached) {
-                                    $this->root->htmlNode->appendChild($this->root->headNode);
-                                }
-                            }
-                            break;
-                        default:
-                            if ($this->root->bodyNode->detached) {
-                                if (in_array($tagNameTrimmed, self::$head_tags)) {
-                                    $this->containingElement = $this->root->headNode;
-
-                                    if ($this->root->htmlNode->detached) {
-                                        $this->root->appendChild($this->root->htmlNode);
-                                    }
-
-                                    if ($this->root->headNode->detached) {
-                                        $this->root->htmlNode->appendChild($this->root->headNode);
-                                    }
+                            case 'html':
+                                if (!$this->root->bodyNode->detached) {//This may need to check the htmlNode object instead of body - so feel free to experiment if needed
+                                    $nextNode->isVoid = true;
                                 } else {
-                                    $this->containingElement = $this->root->bodyNode;
+                                    $this->containingElement = $this->root;
+                                    $nextNode = $this->root->htmlNode;
+                                }
+                                break;
+                            case 'head':
+                                if (!$this->root->bodyNode->detached) {//This may need to check the headNode object instead of body - so feel free to experiment if needed
+                                    $nextNode->isVoid = true;
+                                } else {
+                                    $this->containingElement = $this->root->htmlNode;
+                                    $nextNode = $this->root->headNode;
+
+                                    if ($this->root->htmlNode->detached) {
+                                        $this->root->appendChild($this->root->htmlNode);
+                                    }
+                                }
+                                break;
+                            case 'body':
+                                if (!$this->root->bodyNode->detached) {
+                                    $nextNode->isVoid = true;
+                                } else {
+                                    $this->containingElement = $this->root->htmlNode;
+                                    $nextNode = $this->root->bodyNode;
 
                                     if ($this->root->htmlNode->detached) {
                                         $this->root->appendChild($this->root->htmlNode);
@@ -575,13 +380,37 @@ class HtmlDomNode {
                                     if ($this->root->headNode->detached) {
                                         $this->root->htmlNode->appendChild($this->root->headNode);
                                     }
+                                }
+                                break;
+                            default:
+                                if ($this->root->bodyNode->detached) {
+                                    if (in_array($tagNameTrimmed, self::$head_tags)) {
+                                        $this->containingElement = $this->root->headNode;
 
-                                    if ($this->root->bodyNode->detached) {
-                                        $this->root->htmlNode->appendChild($this->root->bodyNode);
+                                        if ($this->root->htmlNode->detached) {
+                                            $this->root->appendChild($this->root->htmlNode);
+                                        }
+
+                                        if ($this->root->headNode->detached) {
+                                            $this->root->htmlNode->appendChild($this->root->headNode);
+                                        }
+                                    } else {
+                                        $this->containingElement = $this->root->bodyNode;
+
+                                        if ($this->root->htmlNode->detached) {
+                                            $this->root->appendChild($this->root->htmlNode);
+                                        }
+
+                                        if ($this->root->headNode->detached) {
+                                            $this->root->htmlNode->appendChild($this->root->headNode);
+                                        }
+
+                                        if ($this->root->bodyNode->detached) {
+                                            $this->root->htmlNode->appendChild($this->root->bodyNode);
+                                        }
                                     }
                                 }
-                            }
-                            break;
+                                break;
                         }
 
                         $readingAttrValue = false;
@@ -638,19 +467,19 @@ class HtmlDomNode {
                         $passedThroughEquals = $nextChar == '=';
 
                         $x = 1;
-                        while(null !== ($str = $iterator->peek($x))) {
+                        while (null !== ($str = $iterator->peek($x))) {
                             $trimmed_str = trim($str);
                             if ($trimmed_str !== '') {
                                 if ($trimmed_str == "'" || $trimmed_str == '"') {
-                                    $iterator->consume(max($x-1, 0));//consume the spaces before ['"] but leave the quotes, so we can properly detect them on the next run
+                                    $iterator->consume(max($x - 1, 0));//consume the spaces before ['"] but leave the quotes, so we can properly detect them on the next run
                                 } else if ($trimmed_str == '=') {
                                     $passedThroughEquals = true;
                                     $iterator->consume($x);
-                                    $x=1;
+                                    $x = 1;
                                     continue;
                                 } else {
                                     if (!$passedThroughEquals) {
-                                        $iterator->consume(max($x-2, 0));//if there were spaces after the = and the next non space char and this char is not ['"] then the attribute does not have a value and this is probably another attribute
+                                        $iterator->consume(max($x - 2, 0));//if there were spaces after the = and the next non space char and this char is not ['"] then the attribute does not have a value and this is probably another attribute
                                         $nextNode->setAttribute($attributeName, false, '', false);
                                         $readingAttrValue = false;
                                         $attrValueWrapperChar = '';
@@ -668,7 +497,7 @@ class HtmlDomNode {
                             if ($buffer == $char && !$attrValueWrapperChar) {
                                 $attrValueWrapperChar = $char;
                                 $buffer = '';
-                            } else if($attrValueWrapperChar == $char) {
+                            } else if ($attrValueWrapperChar == $char) {
                                 $nextNode->setAttribute($attributeName, rtrim($buffer, $char), $attrValueWrapperChar, false);
                                 $readingAttrValue = false;
                                 $attrValueWrapperChar = '';
@@ -689,11 +518,17 @@ class HtmlDomNode {
         }
     }
 
-    private function parseComment($iterator) {
+    public function isSelfClosing()
+    {
+        return in_array($this->tagName, self::$self_closing_tags);
+    }
+
+    private function parseComment($iterator)
+    {
         $comment = '';
         foreach ($iterator as $subchar) {
             $comment .= $subchar;
-            if ($subchar == '-'){
+            if ($subchar == '-') {
                 $isCommentEnd = false;
 
                 if ($iterator->peek(2) == '->') {
@@ -713,7 +548,192 @@ class HtmlDomNode {
         }
     }
 
-    private function isSpaceChar($char) {
+    private function isSpaceChar($char)
+    {
         return $char == ' ' || $char == "\t" || $char == "\r" || $char == "\n" || $char == "\f";
+    }
+
+    public function appendChild(&$node)
+    {
+        $this->children->attach($node);
+        $node->parent = $this;
+        $node->root = $this->root;
+        $this->innerText .= '{child_node_content}';
+        $node->detached = false;
+    }
+
+    public function setAttribute($name, $value, $attrWrapperChar = false, $override = true)
+    {
+        if (empty($name)) {
+            return;
+        }
+
+        if ($this->isVoid) {
+            switch ($this->tagName) {
+                case 'html':
+                    $this->root->htmlNode->setAttribute($name, $value, $attrWrapperChar, $override);
+                    return;
+                case 'head':
+                    $this->root->headNode->setAttribute($name, $value, $attrWrapperChar, $override);
+                    return;
+                case 'body':
+                    $this->root->bodyNode->setAttribute($name, $value, $attrWrapperChar, $override);
+                    return;
+            }
+        }
+
+        if ($attrWrapperChar === false) {
+            if (strpos($value, '"') === false) {
+                $attrWrapperChar = '"';
+            } else if (strpos($value, "'") === false) {
+                $attrWrapperChar = "'";
+            } else {
+                $attrWrapperChar = '';
+            }
+        }
+
+        $name = strtolower($name);
+        $attr = $this->getAttribute($name);
+        if (!$attr || $override) {
+            if ($attr) {
+                $this->attributes->detach($attr);
+            }
+
+            $attr = new DomNodeAttribute($name, $value, $attrWrapperChar);
+            $this->attributes->attach($attr);
+        }
+    }
+
+    public function getAttribute($name)
+    {
+        foreach ($this->attributes as $attr) {
+            if ($attr->name == $name) return $attr;
+        }
+        return NULL;
+    }
+
+    public function find($selector, &$matches = null, &$selectorObject = null, $innerCall = false)
+    {
+        if (!$matches) {
+            $matches = new SplObjectStorage();
+        }
+
+        if (empty($selector)) return $matches;
+
+        if (!$selectorObject) {
+            $selectorObject = new HtmlDomSelector($selector);
+        }
+
+        if (!$this->isVoid && $selectorObject->test($this)) {
+            $matches->attach($this);
+        }
+
+        foreach ($this->children as $child) {
+            $child->find($selector, $matches, $selectorObject, true);
+        }
+
+        if (!$innerCall) {
+            if ($matches->count() == 1) {
+                $matches->rewind();
+                return $matches->current();
+            }
+
+            return $matches;
+        }
+    }
+
+    public function getInnerText()
+    {
+        $texts = explode('{child_node_content}', str_replace('{comment_content}', '', $this->innerText));
+        foreach ($this->children as $k => $child) {
+            if (isset($texts[$k])) {
+                $texts[$k] .= $child->getInnerText();
+            }
+        }
+
+        return implode('', $texts);
+    }
+
+    public function dumpDom($lvl = 0)
+    {
+        foreach ($this->children as $child) {
+            $tagHeader = str_repeat('| ', $lvl / 2) . $child->tagName;
+
+            foreach ($child->getAttributes() as $attr) {
+                if ($attr->value !== false) {
+                    $tagHeader .= ' ' . $attr->name . '=' . $attr->wrapperChar . $attr->value . $attr->wrapperChar;
+                } else {
+                    $tagHeader .= ' ' . $attr->name;
+                }
+            }
+
+            if (!$child->isVoid) {
+                echo $tagHeader . "\n";
+            } else {
+                echo $tagHeader . " (VOID)\n";
+            }
+
+            $child->dumpDom($lvl + 2);
+        }
+    }
+
+    public function getHtml($include_comments = false, $minify_level = 0)
+    {
+        if (!empty($this->tagName) && !$this->isVoid) {
+            $tagHeader = '<' . $this->tagName;
+            foreach ($this->attributes as $attr) {
+                if ($attr->value !== false) {
+                    $tagHeader .= ' ' . $attr->name . '=' . $attr->wrapperChar . $attr->value . $attr->wrapperChar;
+                } else {
+                    $tagHeader .= ' ' . $attr->name;
+                }
+            }
+            if ($this->isSelfClosing()) return $tagHeader . '/>';
+
+            $tagHeader .= '>';
+        }
+
+        $tmp_html = $this->innerText;
+
+        if ($include_comments) {
+            $texts = explode('{comment_content}', $tmp_html);
+            foreach ($this->comments as $k => $comment) {
+                if (isset($texts[$k])) {
+                    $texts[$k] .= $comment->text;
+                }
+            }
+            $tmp_html = implode('', $texts);
+        } else {
+            $tmp_html = str_replace('{comment_content}', '', $tmp_html);
+        }
+
+
+        if ($minify_level && !in_array($this->tagName, array("script", "style", "pre"))) {
+            $tmp_html = str_replace(array("\n", "\r", "\t", "\f"), " ", $tmp_html);
+            $tmp_html = preg_replace("/\s+/", " ", $tmp_html);
+        }
+
+        $texts = explode('{child_node_content}', $tmp_html);
+        foreach ($this->children as $k => $child) {
+            if (isset($texts[$k])) {
+                $texts[$k] .= $child->getHtml($include_comments, $minify_level);
+            }
+        }
+
+        $tmp_html = implode('', $texts);
+
+        if ($minify_level === 2 && !in_array($this->tagName, array("script", "style", "pre"))) {
+            $tmp_html = preg_replace('/([^\s])\s+$/', '$1', $tmp_html);
+        }
+
+        if (!empty($this->tagName)) {
+            if (!$this->isVoid) {
+                return $tagHeader . $tmp_html . '</' . $this->tagName . '>';
+            } else {
+                return $tmp_html;
+            }
+        } else {
+            return $this->root->doctype . $tmp_html;
+        }
     }
 }

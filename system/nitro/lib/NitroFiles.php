@@ -1,7 +1,8 @@
 <?php
 
-class NitroFiles {
-    
+class NitroFiles
+{
+
     private $root;
     private $start;
     private $batch;
@@ -26,7 +27,8 @@ class NitroFiles {
         );  
     */
 
-    public function __construct($config = array()) {
+    public function __construct($config = array())
+    {
         // Init root
         $this->root = !empty($config['root']) ? realpath($config['root']) : dirname(__FILE__);
         $this->root .= DIRECTORY_SEPARATOR;
@@ -38,7 +40,7 @@ class NitroFiles {
         $start_rel_path = !empty($config['start']) ? ltrim($config['start'], DIRECTORY_SEPARATOR) : '';
         $start_path = realpath($this->root . $start_rel_path);
         $this->start = !is_file($start_path) ? $this->root : $start_path;
-        
+
         // Init batch
         $this->batch = (isset($config['batch']) && is_numeric($config['batch'])) ? (int)$config['batch'] : 0;
 
@@ -64,33 +66,25 @@ class NitroFiles {
         $this->prepareFolders();
     }
 
-    public function __destruct() {
-        $this->closeCurrentDir();
-    }
-
-    public function closeCurrentDir() {
-        if ($this->current_dir) {
-            closedir($this->current_dir);
-            $this->current_dir = false;
-        }
-    }
-
-    public function getTempFileName() {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'isense_nitropack';
-    }
-
-    public function prepareFolders() {
+    public function prepareFolders()
+    {
         $file = $this->getTempFileName();
 
         if (isExecEnabled($file)) {
-            exec('find "' . rtrim($this->root, DIRECTORY_SEPARATOR) .'" -type d -exec echo {}/ \\; > ' . $file);
+            exec('find "' . rtrim($this->root, DIRECTORY_SEPARATOR) . '" -type d -exec echo {}/ \\; > ' . $file);
         } else {
             file_put_contents($file, '');
             $this->readDirRecursive($this->root);
         }
     }
 
-    public function readDirRecursive($dir) {
+    public function getTempFileName()
+    {
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'isense_nitropack';
+    }
+
+    public function readDirRecursive($dir)
+    {
         file_put_contents($this->getTempFileName(), $dir . PHP_EOL, FILE_APPEND);
 
         $dh = opendir($dir);
@@ -108,11 +102,21 @@ class NitroFiles {
         closedir($dh);
     }
 
-    public function clearStatCache() {
-        clearstatcache();
+    public function __destruct()
+    {
+        $this->closeCurrentDir();
     }
 
-    public function isEmpty() {
+    public function closeCurrentDir()
+    {
+        if ($this->current_dir) {
+            closedir($this->current_dir);
+            $this->current_dir = false;
+        }
+    }
+
+    public function isEmpty()
+    {
         $this->clearResult();
 
         $result = $this->handleProgressive(false, true);
@@ -122,25 +126,59 @@ class NitroFiles {
         return $result;
     }
 
-    public function delete() {
-        $this->clearResult();
-
-        $this->handleProgressive(true);
-
-        $this->closeCurrentDir();
+    public function clearResult()
+    {
+        $this->clearStatCache();
+        $this->result = array();
+        $this->total_size = 0;
     }
 
-    public function find() {
-        $this->clearResult();
-
-        $this->handleProgressive();
-
-        $this->closeCurrentDir();
-
-        return $this->getResult();
+    public function clearStatCache()
+    {
+        clearstatcache();
     }
 
-    public function findDir() {
+    public function handleProgressive($delete = false, $locate = false)
+    {
+        $count = 0;
+        $dirs_iterated = false;
+
+        do {
+            $this->findDir();
+
+            if (!$this->current_dir) {
+                break;
+            }
+
+            while ($item = $this->nextFileInDir()) {
+                if ($locate) {
+                    return false;
+                }
+
+                if ($delete) {
+                    unlink($item);
+                } else {
+                    $this->addFileToResult($item);
+                }
+
+                $count++;
+            }
+
+            $count_in_bounds = true;
+
+            if (!empty($this->batch) && !$delete) {
+                $count_in_bounds = $count < $this->batch;
+            }
+
+        } while (!$dirs_iterated && $count_in_bounds);
+
+        if ($locate) {
+            return true;
+        }
+    }
+
+    public function findDir()
+    {
         if ($this->getContinueFrom() == '') {
             $this->setContinueFrom($this->root);
         } else {
@@ -177,7 +215,18 @@ class NitroFiles {
         }
     }
 
-    public function nextFileInDir() {
+    public function getContinueFrom()
+    {
+        return $this->continue_from;
+    }
+
+    public function setContinueFrom($item)
+    {
+        $this->continue_from = $item;
+    }
+
+    public function nextFileInDir()
+    {
         if (!$this->current_dir) {
             $this->findDir();
         }
@@ -193,10 +242,10 @@ class NitroFiles {
                     $item_path = $this->current_dir_name . $item;
 
                     if (!is_file($item_path)) continue;
-                    
+
                     break;
                 }
-                
+
                 if ($item_path === false) break;
 
                 $valid = $this->isValidFile($item_path);
@@ -210,71 +259,13 @@ class NitroFiles {
         return false;
     }
 
-    public function handleProgressive($delete = false, $locate = false) {
-        $count = 0;
-        $dirs_iterated = false;
-
-        do {
-            $this->findDir();
-
-            if (!$this->current_dir) {
-                break;
-            }
-
-            while ($item = $this->nextFileInDir()) {
-                if ($locate) {
-                    return false;
-                }
-
-                if ($delete) {
-                    unlink($item);
-                } else {
-                    $this->addFileToResult($item);
-                }
-
-                $count++;
-            }
-
-            $count_in_bounds = true;
-
-            if (!empty($this->batch) && !$delete) {
-                $count_in_bounds = $count < $this->batch;
-            }
-
-        } while(!$dirs_iterated && $count_in_bounds);
-
-        if ($locate) {
-            return true;
-        }
+    private function filterDots($var)
+    {
+        return !in_array($var, array('.', '..'));
     }
 
-    public function clearResult() {
-        $this->clearStatCache();
-        $this->result = array();
-        $this->total_size = 0;
-    }
-
-    public function getResult() {
-        return $this->result;
-    }
-
-    public function setContinueFrom($item) {
-        $this->continue_from = $item;
-    }
-
-    public function getContinueFrom() {
-        return $this->continue_from;
-    }
-
-    private function addFileToResult($item) { 
-        $this->result[] = array(
-            'full_path' => $item,
-            'rel_path' => implode(DIRECTORY_SEPARATOR, $this->getScope($this->root, $item)),
-            'size' => filesize($item)
-        );
-    }
-
-    private function isValidFile($item) {
+    private function isValidFile($item)
+    {
         if (!is_file($item)) {
             return false;
         }
@@ -316,14 +307,50 @@ class NitroFiles {
         }
     }
 
-    private function getScope($var_root, $var_start) {
+    private function getScope($var_root, $var_start)
+    {
         $start = array_filter(explode(DIRECTORY_SEPARATOR, $var_start));
         $root = array_filter(explode(DIRECTORY_SEPARATOR, $var_root));
 
         return array_slice($start, count($root));
     }
 
-    private function items($path, $offset = '') {
+    private function addFileToResult($item)
+    {
+        $this->result[] = array(
+            'full_path' => $item,
+            'rel_path' => implode(DIRECTORY_SEPARATOR, $this->getScope($this->root, $item)),
+            'size' => filesize($item)
+        );
+    }
+
+    public function delete()
+    {
+        $this->clearResult();
+
+        $this->handleProgressive(true);
+
+        $this->closeCurrentDir();
+    }
+
+    public function find()
+    {
+        $this->clearResult();
+
+        $this->handleProgressive();
+
+        $this->closeCurrentDir();
+
+        return $this->getResult();
+    }
+
+    public function getResult()
+    {
+        return $this->result;
+    }
+
+    private function items($path, $offset = '')
+    {
         $values = array();
 
         $path = realpath($path) . DIRECTORY_SEPARATOR;
@@ -334,28 +361,25 @@ class NitroFiles {
 
         while (false !== ($entry = readdir($handle))) {
             if (!$this->filterDots($entry) || $offset >= $entry) continue;
-            
+
             $this->applyPath($entry, 0, $path);
-            
+
             array_push($values, $entry);
-            
+
             sort($values, SORT_STRING);
 
             if ($this->batch > 0 && count($values) > $this->batch) {
-        $values = array_slice($values, 0, $this->batch);
-      }
-    }
+                $values = array_slice($values, 0, $this->batch);
+            }
+        }
 
-    closedir($handle);
+        closedir($handle);
 
         return $values;
     }
 
-    private function filterDots($var) {
-        return !in_array($var, array('.', '..'));
-    }
-
-    private function applyPath(&$var, $index, $path) {
+    private function applyPath(&$var, $index, $path)
+    {
         $var = $path . $var;
     }
 }

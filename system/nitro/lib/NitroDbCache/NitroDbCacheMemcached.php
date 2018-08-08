@@ -1,10 +1,12 @@
 <?php
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . "NitroDbCacheDriver.php";
 
-class NitroDbCacheMemcached extends NitroDbCacheDriver {
+class NitroDbCacheMemcached extends NitroDbCacheDriver
+{
     private $con = null;
 
-    public function __construct($host, $port) {
+    public function __construct($host, $port)
+    {
         $this->con = new Memcached;
         $this->con->addServer($host, $port);
         $stats = $this->con->getStats();
@@ -13,7 +15,8 @@ class NitroDbCacheMemcached extends NitroDbCacheDriver {
         }
     }
 
-    public function clear() {
+    public function clear()
+    {
         if ($this->con) {
             return $this->con->flush();
         }
@@ -21,7 +24,8 @@ class NitroDbCacheMemcached extends NitroDbCacheDriver {
         return false;
     }
 
-    public function set($key, $value, $ttl) {
+    public function set($key, $value, $ttl)
+    {
         if ($this->con) {
             return $this->con->set($key, $value, $ttl);
         }
@@ -29,7 +33,8 @@ class NitroDbCacheMemcached extends NitroDbCacheDriver {
         return false;
     }
 
-    public function get($key) {
+    public function get($key)
+    {
         if ($this->con) {
             return $this->con->get($key);
         }

@@ -1,6 +1,7 @@
 <?php
 
-class iProgress {
+class iProgress
+{
     private $task_name = 'isense';
     private $max_value = 0;
     private $current_value = 0;
@@ -14,7 +15,8 @@ class iProgress {
     private $fp;
     private $data = array();
 
-    public function __construct($task = 'isense', $messageHistoryCount = 20) {
+    public function __construct($task = 'isense', $messageHistoryCount = 20)
+    {
         $this->task_name = $task;
         $this->progress_file = dirname(__FILE__) . DIRECTORY_SEPARATOR . $task . '.iprogress';
         $this->fp = fopen($this->progress_file, 'c+');
@@ -30,86 +32,8 @@ class iProgress {
         $this->data = !empty($this->state['data']) ? json_decode($this->state['data'], true) : array();
     }
 
-    public function __destruct() {
-        fclose($this->fp);
-    }
-
-    public function abort() { $this->sync(); $this->abortCalled = true; $this->saveState(); }
-    public function resume() { $this->sync(); $this->abortCalled = false; $this->saveState(); }
-    public function abortCalled() { $this->sync(); return $this->abortCalled; }
-
-    public function setMax($max) { $this->sync(); $this->max_value = $max; $this->saveState(); }
-    public function getMax() { $this->sync(); return $this->max_value; }
-
-    public function setProgress($progress) { $this->sync(); $this->current_value = $progress; $this->saveState(); }
-    public function getProgress($sync = true) { if ($sync) $this->sync(); return $this->current_value; }
-
-    public function setData($key, $value) { $this->sync(); $this->data[$key] = $value; $this->saveState(); }
-    public function getData($key) { $this->sync(); return isset($this->data[$key]) ? $this->data[$key] : NULL; }
-
-    public function addMsg($msg) {
-        $this->sync();
-        $this->messages[] = $msg;
-        $this->last_message = $msg;
-        if ($this->countMessages() > $this->message_history_count) { $this->truncMessages(); }
-        $this->saveState();
-    }
-    public function replaceMsg($msg) {
-        $this->sync();
-        if ($this->countMessages()) {
-            array_splice($this->messages, -1, 1, $msg);
-            $this->saveState();
-        } else {
-            $this->addMsg($msg);
-        }
-    }
-    public function getMessages() { $this->sync(); return $this->messages; }
-    public function getLastMessage() { $this->sync(); return $this->last_message; }
-    public function clearMessages() { $messages = $this->messages; $this->messages = array(); $this->saveState(); return $messages; }
-
-    public function iterateWith($value) { $this->sync(); $this->current_value += $value; $this->saveState(); }
-    public function getProgressPercent() { $this->sync(); return (($this->max_value == $this->current_value) || $this->max_value == 0) ? 100 : (int)(($this->current_value/$this->max_value)*100); }
-
-    public function clear() {
-        $this->max_value = 0;
-        $this->current_value = 0;
-        $this->messages = array();
-        $this->last_message = '';
-        $this->abortCalled = false;
-        $this->data = array();
-        $this->saveState();
-    }
-
-    private function countMessages() {
-        return count($this->messages);
-    }
-
-    private function truncMessages() {
-        $message_overflow = $this->countMessages() - $this->message_history_count;
-        if ($message_overflow > 0) {
-            $this->messages = array_slice($this->messages, $message_overflow);
-        }
-    }
-
-    private function saveState() {
-        $this->state['max'] = $this->max_value;
-        $this->state['current'] = $this->current_value;
-        $this->state['messages'] = $this->messages;
-        $this->state['last_message'] = $this->last_message;
-        $this->state['abort'] = $this->abortCalled;
-        $this->state['data'] = json_encode($this->data);
-
-        if (is_resource($this->fp)) {
-            flock($this->fp, LOCK_EX);
-            ftruncate($this->fp, 0);
-            rewind($this->fp);
-            fwrite($this->fp, json_encode($this->state));
-            fflush($this->fp);
-            flock($this->fp, LOCK_UN);
-        }
-    }
-
-    private function loadState() {
+    private function loadState()
+    {
         if (is_resource($this->fp)) {
             //flock($this->fp, LOCK_SH);
             $info = fstat($this->fp);
@@ -128,7 +52,20 @@ class iProgress {
         }
     }
 
-    private function sync() {
+    public function __destruct()
+    {
+        fclose($this->fp);
+    }
+
+    public function abort()
+    {
+        $this->sync();
+        $this->abortCalled = true;
+        $this->saveState();
+    }
+
+    private function sync()
+    {
         $this->loadState();
 
         if (isset($this->state['max'])) { //if one is set, the others will also be set
@@ -139,5 +76,155 @@ class iProgress {
             $this->abortCalled = $this->state['abort'];
             $this->data = json_decode($this->state['data'], true);
         }
+    }
+
+    private function saveState()
+    {
+        $this->state['max'] = $this->max_value;
+        $this->state['current'] = $this->current_value;
+        $this->state['messages'] = $this->messages;
+        $this->state['last_message'] = $this->last_message;
+        $this->state['abort'] = $this->abortCalled;
+        $this->state['data'] = json_encode($this->data);
+
+        if (is_resource($this->fp)) {
+            flock($this->fp, LOCK_EX);
+            ftruncate($this->fp, 0);
+            rewind($this->fp);
+            fwrite($this->fp, json_encode($this->state));
+            fflush($this->fp);
+            flock($this->fp, LOCK_UN);
+        }
+    }
+
+    public function resume()
+    {
+        $this->sync();
+        $this->abortCalled = false;
+        $this->saveState();
+    }
+
+    public function abortCalled()
+    {
+        $this->sync();
+        return $this->abortCalled;
+    }
+
+    public function setMax($max)
+    {
+        $this->sync();
+        $this->max_value = $max;
+        $this->saveState();
+    }
+
+    public function getMax()
+    {
+        $this->sync();
+        return $this->max_value;
+    }
+
+    public function setProgress($progress)
+    {
+        $this->sync();
+        $this->current_value = $progress;
+        $this->saveState();
+    }
+
+    public function getProgress($sync = true)
+    {
+        if ($sync) $this->sync();
+        return $this->current_value;
+    }
+
+    public function getData($key)
+    {
+        $this->sync();
+        return isset($this->data[$key]) ? $this->data[$key] : NULL;
+    }
+
+    public function setData($key, $value)
+    {
+        $this->sync();
+        $this->data[$key] = $value;
+        $this->saveState();
+    }
+
+    public function replaceMsg($msg)
+    {
+        $this->sync();
+        if ($this->countMessages()) {
+            array_splice($this->messages, -1, 1, $msg);
+            $this->saveState();
+        } else {
+            $this->addMsg($msg);
+        }
+    }
+
+    private function countMessages()
+    {
+        return count($this->messages);
+    }
+
+    public function addMsg($msg)
+    {
+        $this->sync();
+        $this->messages[] = $msg;
+        $this->last_message = $msg;
+        if ($this->countMessages() > $this->message_history_count) {
+            $this->truncMessages();
+        }
+        $this->saveState();
+    }
+
+    private function truncMessages()
+    {
+        $message_overflow = $this->countMessages() - $this->message_history_count;
+        if ($message_overflow > 0) {
+            $this->messages = array_slice($this->messages, $message_overflow);
+        }
+    }
+
+    public function getMessages()
+    {
+        $this->sync();
+        return $this->messages;
+    }
+
+    public function getLastMessage()
+    {
+        $this->sync();
+        return $this->last_message;
+    }
+
+    public function clearMessages()
+    {
+        $messages = $this->messages;
+        $this->messages = array();
+        $this->saveState();
+        return $messages;
+    }
+
+    public function iterateWith($value)
+    {
+        $this->sync();
+        $this->current_value += $value;
+        $this->saveState();
+    }
+
+    public function getProgressPercent()
+    {
+        $this->sync();
+        return (($this->max_value == $this->current_value) || $this->max_value == 0) ? 100 : (int)(($this->current_value / $this->max_value) * 100);
+    }
+
+    public function clear()
+    {
+        $this->max_value = 0;
+        $this->current_value = 0;
+        $this->messages = array();
+        $this->last_message = '';
+        $this->abortCalled = false;
+        $this->data = array();
+        $this->saveState();
     }
 }

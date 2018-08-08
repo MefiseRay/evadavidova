@@ -1,30 +1,19 @@
 <?php
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . "NitroDbCacheDriver.php";
 
-class NitroDbCacheHDD extends NitroDbCacheDriver {
+class NitroDbCacheHDD extends NitroDbCacheDriver
+{
     private $cache_dir = "";
     private $ttl = 3600;
 
-    public function __construct($dir, $ttl = 3600) {
+    public function __construct($dir, $ttl = 3600)
+    {
         $this->cache_dir = $dir;
         $this->ttl = $ttl;
     }
 
-    private function isDirWritable() {
-        if (empty($this->cache_dir)) return false;
-
-        if (!is_dir($this->cache_dir)) {
-            if (!mkdir($this->cache_dir)) return false;
-        }
-
-        return is_writeable($this->cache_dir);
-    }
-
-    private function getFileForKey($key) {
-        return $this->cache_dir . $key . '.nitro';
-    }
-
-    public function clear() {
+    public function clear()
+    {
         if ($this->isDirWritable()) {
             $dh = opendir($this->cache_dir);
 
@@ -51,7 +40,19 @@ class NitroDbCacheHDD extends NitroDbCacheDriver {
         return false;
     }
 
-    public function set($key, $value, $ttl) {
+    private function isDirWritable()
+    {
+        if (empty($this->cache_dir)) return false;
+
+        if (!is_dir($this->cache_dir)) {
+            if (!mkdir($this->cache_dir)) return false;
+        }
+
+        return is_writeable($this->cache_dir);
+    }
+
+    public function set($key, $value, $ttl)
+    {
         if ($this->isDirWritable()) {
             return file_put_contents($this->getFileForKey($key), $value);
         }
@@ -59,7 +60,13 @@ class NitroDbCacheHDD extends NitroDbCacheDriver {
         return false;
     }
 
-    public function get($key) {
+    private function getFileForKey($key)
+    {
+        return $this->cache_dir . $key . '.nitro';
+    }
+
+    public function get($key)
+    {
         if ($this->isDirWritable()) {
             $file = $this->getFileForKey($key);
 

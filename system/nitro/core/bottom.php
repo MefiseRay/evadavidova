@@ -3,9 +3,10 @@ session_write_close();
 
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'core.php';//core.php includes top.php
 
-function writeToCacheFile() {
+function writeToCacheFile()
+{
     if (!isPreCacheRequest() && passesPageCacheValidation() == false) {
-        return false;	
+        return false;
     }
 
     $cachefile = NITRO_PAGECACHE_FOLDER . generateNameOfCacheFile();
@@ -30,9 +31,9 @@ function writeToCacheFile() {
 
     if (
         $is_html &&
-        getNitroPersistence('Mini.Enabled') && 
+        getNitroPersistence('Mini.Enabled') &&
         (
-            getNitroPersistence('Mini.CSSExtract') || 
+            getNitroPersistence('Mini.CSSExtract') ||
             getNitroPersistence('Mini.JSExtract')
         )
     ) {
@@ -43,7 +44,8 @@ function writeToCacheFile() {
             require_once NITRO_FOLDER . 'core' . DS . 'resources_fix_tool_deprecated.php';
         }
 
-        function nitro_error_handler_bottom($errno, $errstr, $errfile, $errline) {
+        function nitro_error_handler_bottom($errno, $errstr, $errfile, $errline)
+        {
             return true;
         }
 
@@ -51,7 +53,8 @@ function writeToCacheFile() {
 
         try {
             $ob_content = extractHardcodedResources($ob_content);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         restore_error_handler();
     }
@@ -73,7 +76,7 @@ function writeToCacheFile() {
     fwrite($cached, $ob_content);
     fclose($cached);
 
-    if (getNitroPersistence('Compress.Enabled') && getNitroPersistence('Compress.HTML')) {  
+    if (getNitroPersistence('Compress.Enabled') && getNitroPersistence('Compress.HTML')) {
         $ob_content = compressGzipIfNecessary($ob_content);
 
         $old_cachefile = $cachefile;
@@ -103,7 +106,8 @@ function writeToCacheFile() {
     }
 }
 
-function addImageWHAttributesIfNecessary($content) {
+function addImageWHAttributesIfNecessary($content)
+{
     if (getNitroPersistence('PageCache.AddWHImageAttributes')) {
         if (mobileCheck()) {
             return $content;
@@ -115,7 +119,8 @@ function addImageWHAttributesIfNecessary($content) {
     return $content;
 }
 
-function compressGzipIfNecessary($content) {
+function compressGzipIfNecessary($content)
+{
     $level = getNitroPersistence('Compress.HTMLLevel');
 
     if (getNitroPersistence('Compress.Enabled') && getNitroPersistence('Compress.HTML') && $level) {
@@ -125,16 +130,18 @@ function compressGzipIfNecessary($content) {
     return $content;
 }
 
-function writeLoadTime($time) {
+function writeLoadTime($time)
+{
     if (!isPreCacheRequest() && passesPageCacheValidation() == false) {
-        return false;	
+        return false;
     }
 
     $session = &nitroGetSession();
     unset($session['NitroRenderTime']);
 }
 
-function close_nitro() {
+function close_nitro()
+{
     writeToCacheFile();
 
     if (ob_get_level()) {

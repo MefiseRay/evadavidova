@@ -1,14 +1,17 @@
 <?php
-class HtmlDomSelectorPattern {
+
+class HtmlDomSelectorPattern
+{
     private static $mode_modifiers = array('^', '*', '$');
+    public $is_direct_parent;
     private $pattern_string;
     private $tagName;
     private $attributes;
     private $state;
     private $parent_patterns;
-    public $is_direct_parent;
 
-    public function __construct($patt_str, $is_direct_parent = false) {
+    public function __construct($patt_str, $is_direct_parent = false)
+    {
         $this->pattern_string = $patt_str;
         $this->is_direct_parent = $is_direct_parent;
         $this->tagName = '';
@@ -19,7 +22,78 @@ class HtmlDomSelectorPattern {
         $this->parse();
     }
 
-    public function test(&$node) {
+    private function parse()
+    {
+        $parts = explode(' ', preg_replace('/\s?>\s?/', '> ', preg_replace('/\s+/', ' ', $this->pattern_string)));//This will break if there are spaces in the attribute query. Example: [data-greeting="hello world"]
+
+        $part = array_pop($parts);
+        foreach (array_reverse($parts) as $parent_part) {
+            $is_direct_parent = false;
+            if (substr($parent_part, -1) == '>') {
+                $parent_part = substr($parent_part, 0, -1);
+                $is_direct_parent = true;
+            }
+            $this->parent_patterns->attach(new HtmlDomSelectorPattern($parent_part, $is_direct_parent));
+        }
+
+        if (preg_match('/^(.*?)(\..*?)?(\[.*?\])?$/', $part, $matches)) {
+            if (!empty($matches[1])) {
+                if (strpos($matches[1], '#') !== false) {//look for id
+                    $tag_parts = explode('#', $matches[1]);
+
+                    $this->addAttribValue('id', array_pop($tag_parts));
+                    $this->tagName = implode('', $tag_parts);
+                } else {
+                    $this->tagName = $matches[1];
+                }
+            }
+
+            if (!empty($matches[2])) {
+                $parts = explode('.', ltrim($matches[2], '.'));
+
+                foreach ($parts as $part) {
+                    $this->addAttribValue('class*', $part);
+                }
+            }
+
+            if (!empty($matches[3])) {
+                $parts = explode('][', trim($matches[3], '[]'));
+
+                foreach ($parts as $part) {
+                    $subparts = explode('=', $part);
+                    $attr = array_shift($subparts);
+
+                    if ($subparts) {
+                        $val = implode('=', $subparts);
+                        $this->addAttribValue($attr, trim(trim($val, ' '), '\'"'));//the trims should be nested because a space may be desired in the value
+                    } else {
+                        $this->addAttribValue($attr, null);
+                    }
+                }
+            }
+        }
+    }
+
+    private function addAttribValue($attr, $val)
+    {
+        $attr = trim($attr, ' ');
+        $mode = substr($attr, -1);
+
+        if (in_array($mode, self::$mode_modifiers)) {
+            $attr = substr($attr, 0, -1);
+        }
+
+        if (!isset($this->attributes[$attr])) {
+            $this->attributes[$attr] = new SplObjectStorage();
+        }
+
+        if ($val) {
+            $this->attributes[$attr]->attach(new HtmlDomSelectorPatternAttributeValue($mode, $val));
+        }
+    }
+
+    public function test(&$node)
+    {
         if ($this->tagName && $node->tagName !== $this->tagName) return false;
 
         foreach ($this->attributes as $attr => $values) {
@@ -80,73 +154,5 @@ class HtmlDomSelectorPattern {
         }
 
         return true;
-    }
-
-    private function addAttribValue($attr, $val) {
-        $attr = trim($attr, ' ');
-        $mode = substr($attr, -1);
-
-        if (in_array($mode, self::$mode_modifiers)) {
-            $attr = substr($attr, 0, -1);
-        }
-
-        if (!isset($this->attributes[$attr])) {
-            $this->attributes[$attr] = new SplObjectStorage();
-        }
-
-        if ($val) {
-            $this->attributes[$attr]->attach(new HtmlDomSelectorPatternAttributeValue($mode, $val));
-        }
-    }
-
-    private function parse() {
-        $parts = explode(' ', preg_replace('/\s?>\s?/', '> ', preg_replace('/\s+/', ' ', $this->pattern_string)));//This will break if there are spaces in the attribute query. Example: [data-greeting="hello world"]
-
-        $part = array_pop($parts);
-        foreach(array_reverse($parts) as $parent_part) {
-            $is_direct_parent = false;
-            if (substr($parent_part, -1) == '>') {
-                $parent_part = substr($parent_part, 0, -1);
-                $is_direct_parent = true;
-            }
-            $this->parent_patterns->attach(new HtmlDomSelectorPattern($parent_part, $is_direct_parent));
-        }
-
-        if (preg_match('/^(.*?)(\..*?)?(\[.*?\])?$/', $part, $matches)) {
-            if (!empty($matches[1])) {
-                if (strpos($matches[1], '#') !== false) {//look for id
-                    $tag_parts = explode('#', $matches[1]);
-
-                    $this->addAttribValue('id', array_pop($tag_parts));
-                    $this->tagName = implode('', $tag_parts);
-                } else {
-                    $this->tagName = $matches[1];
-                }
-            }
-
-            if (!empty($matches[2])) {
-                $parts = explode('.', ltrim($matches[2], '.'));
-
-                foreach ($parts as $part) {
-                    $this->addAttribValue('class*', $part);
-                }
-            }
-
-            if (!empty($matches[3])) {
-                $parts = explode('][', trim($matches[3], '[]'));
-
-                foreach($parts as $part) {
-                    $subparts = explode('=', $part);
-                    $attr = array_shift($subparts);
-
-                    if ($subparts) {
-                        $val = implode('=', $subparts);
-                        $this->addAttribValue($attr, trim(trim($val, ' '), '\'"'));//the trims should be nested because a space may be desired in the value
-                    } else {
-                        $this->addAttribValue($attr, null);
-                    }
-                }
-            }
-        }
     }
 }

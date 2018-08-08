@@ -1,10 +1,12 @@
 <?php
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . "NitroDbCacheDriver.php";
 
-class NitroDbCacheRedis extends NitroDbCacheDriver {
+class NitroDbCacheRedis extends NitroDbCacheDriver
+{
     private $con = null;
 
-    public function __construct($host, $port) {
+    public function __construct($host, $port)
+    {
         try {
             $this->con = new Redis;
             if (!$this->con->connect($host, $port)) {
@@ -15,7 +17,8 @@ class NitroDbCacheRedis extends NitroDbCacheDriver {
         }
     }
 
-    public function clear() {
+    public function clear()
+    {
         if ($this->con) {
             if (!$this->con->delete($this->con->keys('*'))) return false;
             return true;
@@ -24,7 +27,8 @@ class NitroDbCacheRedis extends NitroDbCacheDriver {
         return false;
     }
 
-    public function set($key, $value, $ttl) {
+    public function set($key, $value, $ttl)
+    {
         if ($this->con) {
             return $this->con->set($key, $value, $ttl);
         }
@@ -32,7 +36,8 @@ class NitroDbCacheRedis extends NitroDbCacheDriver {
         return false;
     }
 
-    public function get($key) {
+    public function get($key)
+    {
         if ($this->con) {
             return $this->con->get($key);
         }

@@ -23,7 +23,7 @@ if (
             if (!empty($res['errors']) && NITRO_DEBUG_MODE == 1) {
                 $smush_error_log->write($filename . " | " . var_export($res['errors'], true));
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             if (NITRO_DEBUG_MODE) {
                 $smush_error_log->write($filename . " | " . $e->getMessage());
             }

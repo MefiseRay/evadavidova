@@ -1,6 +1,7 @@
 <?php
 
-class NitroSmush {
+class NitroSmush
+{
     private $_temp_file_prefix = 'nitrosmush_temp';
     private $_file_loaded = 'loaded.temp';
     private $_output_errors = 'output_errors.temp';
@@ -138,15 +139,18 @@ class NitroSmush {
         )
     );
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_session = md5(strval(microtime(true)));
     }
 
-    public function setTempDir($tmp_dir) {
+    public function setTempDir($tmp_dir)
+    {
         $this->_temp_dir = $tmp_dir;
     }
 
-    public function debug($state) {
+    public function debug($state)
+    {
         $this->_debug = $state;
     }
 
@@ -154,28 +158,9 @@ class NitroSmush {
         Run this in the admin panel, best to do it with an AJAX call, since it takes time and might timeout the admin panel on slower servers.
         Returns: Array() with all errors encountered.
     */
-    public function loadExecutables($reload = false) {
-        if (!file_exists($this->_temp_path($this->_file_loaded, true)) || $reload || !$this->_mozjpeg_exists()) {
-            return $this->_load_executables();
-        }
-        return array();
-    }
 
-    /*
-        $source: The source of the image. Can be a relative ot absolute path. Accepted extensions: GIF, PNG, JP(E)G
-        $destination: The destination image. Can be a different name, or the same name. If not specified, the smusher tries to overwrite the original image
-
-        Returns:
-
-        Array (
-            smushed: Boolean value, indicating if the image has been smushed
-            savings_b: Bytes saved
-            savings_percent: How many percent have been saved
-            errors: Array() containing errors
-        )
-    */
-
-    public function smush($source, $destination = false, $use_api = false, $quality = 100) {
+    public function smush($source, $destination = false, $use_api = false, $quality = 100)
+    {
         $loadErrors = $use_api ? array() : $this->loadExecutables();
         if (empty($destination)) {
             $destination = $source;
@@ -194,7 +179,7 @@ class NitroSmush {
         if (!$use_api) {
             try {
                 $this->_check_compatibility();
-                
+
                 $os = $this->_get_os_suffix();
 
                 foreach ($this->_config as $filetype_regex => $filetype_config) {
@@ -268,7 +253,7 @@ class NitroSmush {
                     $result['savings_percent'] = round((1 - ($min / $previous_size)) * 100, 2);
                 }
             }
-        
+
             $this->_clean_temp();
         } catch (Exception $e) {
             $result['errors'][] = $e->getMessage();
@@ -283,249 +268,30 @@ class NitroSmush {
         return $result;
     }
 
-    private function _mozjpeg_exists() {
-        return file_exists($this->_get_exe('mozjpeg', 'cjpeg_linux'));
-    }
+    /*
+        $source: The source of the image. Can be a relative ot absolute path. Accepted extensions: GIF, PNG, JP(E)G
+        $destination: The destination image. Can be a different name, or the same name. If not specified, the smusher tries to overwrite the original image
 
-    private function _set_error_handler() {
-        set_error_handler(
-            create_function(
-                '$severity, $message, $file, $line',
-                'throw new Exception($message . " in file " . $file . " on line " . $line);'
-            )
-        );
-    }
+        Returns:
 
-    private function _restore_error_handler() {
-        restore_error_handler();
-    }
+        Array (
+            smushed: Boolean value, indicating if the image has been smushed
+            savings_b: Bytes saved
+            savings_percent: How many percent have been saved
+            errors: Array() containing errors
+        )
+    */
 
-    private function _get_mime($file) {
-        if (preg_match('~\.gif$~i', $file)) {
-            return 'image/gif';
-        } else if (preg_match('~\.jpe?g$~i', $file)) {
-            return 'image/jpeg';
-        } else if (preg_match('~\.png$~i', $file)) {
-            return 'image/png';
-        } else {
-            throw new Exception("Invalid extension of " . $file);
+    public function loadExecutables($reload = false)
+    {
+        if (!file_exists($this->_temp_path($this->_file_loaded, true)) || $reload || !$this->_mozjpeg_exists()) {
+            return $this->_load_executables();
         }
+        return array();
     }
 
-    private function _curl_api($args) {
-        $source = $args['source'];
-        $quality = $args['quality'];
-
-        $ch = curl_init($this->_api['http_url']);
-
-        if (class_exists('CURLFile')) {
-            $post_file = new CURLFile($source, $this->_get_mime($source), basename($source));
-        } else {
-            $post_file = '@' . $source;
-        }
-
-        curl_setopt_array($ch, array(
-            CURLOPT_POST => 1,
-            CURLOPT_POSTFIELDS => array(
-                'image' => $post_file,
-                'quality' => $quality
-            ),
-            CURLOPT_RETURNTRANSFER => 1
-        ));
-
-        $json = curl_exec($ch);
-
-        $response = json_decode($json, true);
-
-        curl_close($ch);
-
-        if (!empty($response['error'])) {
-            throw new Exception($response['error']);
-        }
-
-        return $this->_download_file($response['result_file']);
-    }
-
-    private function _file_api($args) {
-        $source = $args['source'];
-        $quality = $args['quality'];
-
-        $data = ""; 
-
-        $boundary = "---------------------" . substr(md5(mt_rand(0, 32000)), 0, 10);
-
-        $data .= "--" . $boundary . "\n";
-
-        $data .= "Content-Disposition: form-data; name=\"quality\"\n\n"; 
-        $data .= $quality."\n";
-        $data .= "--" . $boundary . "\n";
-
-        $fileContents = file_get_contents($source); 
-
-        $data .= "Content-Disposition: form-data; name=\"image\"; filename=\"" . basename($source) . "\"\n"; 
-        $data .= "Content-Type: " . $this->_get_mime($source) . "\n"; 
-        $data .= "Content-Transfer-Encoding: binary\n\n"; 
-        $data .= $fileContents."\n";
-
-        $data .= "--" . $boundary . "\n";
-
-        $params = array('http' => array( 
-            'method' => 'POST', 
-            'header' => 'Content-Type: multipart/form-data; boundary='.$boundary, 
-            'content' => $data 
-        ));
-
-        $url = $this->_api['http_url'];
-
-        $ctx = stream_context_create($params); 
-        $fp = fopen($url, 'rb', false, $ctx); 
-
-        if (!$fp) { 
-            throw new Exception("There was a problem with $url");
-        } 
-
-        $json = @stream_get_contents($fp);
-
-        fclose($fp);
-
-        if ($json === false) { 
-            throw new Exception("Problem reading data from $url"); 
-        }
-
-        $response = json_decode($json, true);
-
-        if (!empty($response['error'])) {
-            throw new Exception($response['error']);
-        }
-
-        return $this->_download_file($response['result_file']);
-    }
-
-    private function _download_file($url) {
-        $result = array(
-            'result_file' => false,
-            'result_size' => 0
-        );
-
-        $download = $this->_smush_api(array($this, '_curl_download'), array($this, '_file_download'), $url);
-
-        $this->_is_readable($download);
-
-        $result['result_file'] = $download;
-        $result['result_size'] = filesize($download);
-
-        return $result;
-    }
-
-    private function _curl_download($file) {
-        $destination = $this->_temp_path('downloaded');
-
-        $ch = curl_init($file);
-
-        touch($destination);
-        $this->_is_writable($destination);
-        $fh = fopen($destination, 'wb');
-
-        curl_setopt_array($ch, array(
-            CURLOPT_FILE => $fh
-        ));
-
-        curl_exec($ch);
-
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if ($code != 200) {
-            fclose($fh);
-            curl_close($ch);
-            throw new Exception("Response code is " . $code . " for file " . $file);
-        }
-
-        fclose($fh);
-
-        if (filesize($destination) == 0) {
-            throw new Exception("An error has been encountered while downloading " . $file);
-        }
-
-        curl_close($ch);
-
-        return $destination;
-    }
-
-    private function _file_download($file) {
-        $destination = $this->_temp_path('downloaded');
-
-        touch($destination);
-        $this->_is_writable($destination);
-
-        file_put_contents($destination, file_get_contents($file));
-
-        return $destination;
-    }
-
-    private function _smush_api($callable_curl, $callable_file, $arg) {
-        if (function_exists('curl_init')) {
-            return call_user_func($callable_curl, $arg);
-        } else if (ini_get('allow_url_fopen') == '1') {
-            return call_user_func($callable_file, $arg);
-        } else {
-            throw new Exception("Your server does not support CURL and allow_url_fopen is disalbed. At least one of these options must be enabled on your server. Please contact your web hosting provider.");
-        }
-    }
-
-    private function _clean_temp() {
-        $dir = $this->_temp_path('');
-
-        $items = scandir($dir);
-
-        foreach ($items as $item) {
-            if (!in_array($item, array('.', '..'))) {
-                unlink($dir . $item);
-            }
-        }
-
-        rmdir($dir);
-    }
-
-    private function _check_compatibility() {
-        if (!$this->_exec_enabled()) {
-            throw new Exception("exec() function not allowed! Please contact your web hosting provider to enable it.");
-        }
-    }
-
-    private function _exec_enabled() {
-        $command = function_exists('exec') &&
-                !in_array('exec', array_map('trim', explode(', ', ini_get('disable_functions')))) &&
-                !(strtolower(ini_get('safe_mode')) != 'off' && ini_get('safe_mode') != 0);
-
-        if ($command) {
-            $result = array();
-            exec('whoami', $result);
-            return !empty($result);
-        }
-
-        return false;
-    }
-
-    private function _substr_caps($text, $length) {
-        return strtoupper(substr($text, 0, $length));
-    }
-
-    private function _os() {
-        return php_uname('s');
-    }
-
-    private function _check_dir_create($tmp_dir, $target_dir) {
-        if (!is_dir($target_dir)) {
-            if ($this->_is_writable($tmp_dir, false)) {
-                mkdir($target_dir, 0755);
-
-                $this->_is_writable($target_dir, false);
-                $this->_is_readable($target_dir, false);
-            }
-        }
-    }
-
-    private function _temp_path($file, $base = false) {
+    private function _temp_path($file, $base = false)
+    {
         $tmp_dir = !empty($this->_temp_dir) ? $this->_temp_dir : sys_get_temp_dir();
         $target_dir = rtrim($tmp_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->_temp_file_prefix;
 
@@ -536,13 +302,47 @@ class NitroSmush {
 
             $this->_check_dir_create($tmp_dir, $target_dir);
         }
-        
+
         $path = $target_dir . DIRECTORY_SEPARATOR . $file;
 
         return $path;
     }
 
-    private function _chmod($path, $mode = false) {
+    private function _check_dir_create($tmp_dir, $target_dir)
+    {
+        if (!is_dir($target_dir)) {
+            if ($this->_is_writable($tmp_dir, false)) {
+                mkdir($target_dir, 0755);
+
+                $this->_is_writable($target_dir, false);
+                $this->_is_readable($target_dir, false);
+            }
+        }
+    }
+
+    private function _is_writable($path, $touch = true)
+    {
+        if ($touch) {
+            touch($path);
+        }
+
+        $path = realpath($path);
+
+        if (is_writable($path)) {
+            return true;
+        } else {
+            $this->_chmod($path);
+
+            if (is_writable($path)) {
+                return true;
+            } else {
+                throw new Exception("Path is not writable: " . $path);
+            }
+        }
+    }
+
+    private function _chmod($path, $mode = false)
+    {
         $path = realpath($path);
 
         $uname = $this->_os();
@@ -564,7 +364,18 @@ class NitroSmush {
         return chmod($path, $mode);
     }
 
-    private function _is_readable($path, $touch = true) {
+    private function _os()
+    {
+        return php_uname('s');
+    }
+
+    private function _substr_caps($text, $length)
+    {
+        return strtoupper(substr($text, 0, $length));
+    }
+
+    private function _is_readable($path, $touch = true)
+    {
         if ($touch) {
             touch($path);
         }
@@ -584,29 +395,174 @@ class NitroSmush {
         }
     }
 
-    private function _is_writable($path, $touch = true) {
-        if ($touch) {
-            touch($path);
+    private function _mozjpeg_exists()
+    {
+        return file_exists($this->_get_exe('mozjpeg', 'cjpeg_linux'));
+    }
+
+    private function _get_exe($name, $os_suffix)
+    {
+        return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Executables' . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . $os_suffix;
+    }
+
+    private function _load_executables()
+    {
+        $folder = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Executables';
+
+        $load_errors = array();
+
+        $this->_set_error_handler();
+
+        try {
+            if (!is_dir($folder) || !$this->_mozjpeg_exists()) {
+                $this->_download_execs($folder);
+            }
+
+            $this->_check_compatibility();
+
+            $os_suffix = $this->_get_os_suffix();
+
+            $file_loaded = $this->_temp_path($this->_file_loaded, true);
+            if ($this->_is_writable($file_loaded)) {
+                file_put_contents($file_loaded, '');
+            }
+
+            foreach ($this->_config as $filetype_regex => $filetype_config) {
+                foreach ($filetype_config as $tool_name => $tool_config) {
+                    try {
+                        $this->_load_executable($tool_name, $os_suffix, $tool_config);
+                    } catch (Exception $e) {
+                        $load_errors[] = $e->getMessage();
+                    }
+                }
+            }
+
+            $this->_clean_temp();
+        } catch (Exception $e) {
+            $load_errors[] = $e->getMessage();
         }
 
-        $path = realpath($path);
+        $this->_restore_error_handler();
 
-        if (is_writable($path)) {
-            return true;
-        } else {
-            $this->_chmod($path);
+        return $load_errors;
+    }
 
-            if (is_writable($path)) {
-                return true;
+    private function _set_error_handler()
+    {
+        set_error_handler(
+            create_function(
+                '$severity, $message, $file, $line',
+                'throw new Exception($message . " in file " . $file . " on line " . $line);'
+            )
+        );
+    }
+
+    private function _download_execs($destination_dir)
+    {
+        $url = '';
+        $destination_file = $destination_dir . 'nitrosmush_execs.zip';
+
+        if (!class_exists('ZipArchive')) {
+            throw new Exception("Missing ZIP extension. Please install/load PHP ZipArchive and try again");
+        }
+
+        if (!is_dir($destination_dir)) {
+            if (!mkdir($destination_dir, 0755, true)) {
+                throw new Exception("Could not create destination directory $destination_dir for the NitroSmush executables");
+            }
+        }
+
+        $this->_clear_dir($destination_dir);
+
+        $file_loaded = $this->_temp_path($this->_file_loaded, true);
+
+        if (!file_exists($file_loaded) && !is_writable($file_loaded)) {
+            throw new Exception("Could not clear file with loaded executables.");
+        }
+
+        if (file_exists($file_loaded)) {
+            unlink($file_loaded);
+        }
+
+        if (!is_dir($destination_dir)) {
+            if (!mkdir($destination_dir, 0755, true)) {
+                throw new Exception("Could not create destination directory $destination_dir for the NitroSmush executables");
+            }
+        }
+
+        if (!copy($url, $destination_file)) {
+            rmdir($destination_dir); //This is needed, because otherwise this function will not be called the next time we try to smush something, since the dir will exist
+            throw new Exception("Could not download needed executable files.");
+        }
+
+        $zip = new ZipArchive();
+        $zip->open($destination_file);
+        $zip->extractTo($destination_dir);
+        $zip->close();
+
+        unlink($destination_file);
+    }
+
+    private function _clear_dir($dir)
+    {
+        foreach (new RecursiveDirectoryIterator($dir) as $fileInfo) {
+            if (preg_match('~[^\.]\.?\.$~', $fileInfo->getPathname())) {
+                continue;
+            }
+
+            if ($fileInfo->isDir()) {
+                $this->_clear_dir($fileInfo->getPathname());
+                rmdir(realpath($fileInfo->getPathname()));
             } else {
-                throw new Exception("Path is not writable: " . $path);
+                unlink(realpath($fileInfo->getPathname()));
             }
         }
     }
 
-    private function _arch() {
+    private function _check_compatibility()
+    {
+        if (!$this->_exec_enabled()) {
+            throw new Exception("exec() function not allowed! Please contact your web hosting provider to enable it.");
+        }
+    }
+
+    private function _exec_enabled()
+    {
+        $command = function_exists('exec') &&
+            !in_array('exec', array_map('trim', explode(', ', ini_get('disable_functions')))) &&
+            !(strtolower(ini_get('safe_mode')) != 'off' && ini_get('safe_mode') != 0);
+
+        if ($command) {
+            $result = array();
+            exec('whoami', $result);
+            return !empty($result);
+        }
+
+        return false;
+    }
+
+    private function _get_os_suffix()
+    {
+        $uname = $this->_os();
+        $arch = $this->_arch();
+
+        if ($this->_substr_caps($uname, 3) == 'WIN') {
+            $os_suffix = 'win' . $arch;
+        } else if ($this->_substr_caps($uname, 5) == 'LINUX') {
+            $os_suffix = 'linux' . $arch;
+        } else if ($this->_substr_caps($uname, 6) == 'DARWIN') {
+            $os_suffix = 'mac' . $arch;
+        } else {
+            throw new Exception("php_uname('s') returned a non-supported OS: " . $uname . "! Valid values are: WIN, LINUX, DARWIN");
+        }
+
+        return $os_suffix;
+    }
+
+    private function _arch()
+    {
         return 64;
-        
+
         // $arch = php_uname('m');
 
         // if ($arch == 'x86_64' || $arch == 'amd64') {
@@ -616,7 +572,79 @@ class NitroSmush {
         // }
     }
 
-    private function _process_image($exe, $setting, $source_path, $destination_path, $quality_str, $quality) {
+    private function _load_executable($name, $os, $config)
+    {
+        if (empty($config[$os])) return;
+
+        $exe = $this->_get_exe($name, $config[$os]);
+
+        if (!is_executable($exe)) {
+            $this->_chmod($exe, 0555);
+
+            if (!is_executable($exe)) {
+                throw new Exception("File is not executable: " . $exe);
+            }
+        }
+
+        try {
+            foreach ($this->_parse_config_for($config['settings']) as $setting) {
+                $this->_test_config($exe, $config['extension'], $setting, $config['quality'], 100);
+            }
+
+            $this->_executable_is_loaded($name, true);
+        } catch (Exception $e) {
+
+        }
+    }
+
+    private function _parse_config_for($settings)
+    {
+        $new_settings = array();
+
+        foreach ($settings as $setting) {
+            $for_matches = array();
+
+            preg_match_all('~{FOR(.*?)}~', $setting, $for_matches);
+
+            if (!empty($for_matches[1][0])) {
+                $for_match = $for_matches[1][0];
+
+                $search = '{FOR' . $for_match . '}';
+
+                $delimiter = stripos($for_match, '-') !== FALSE ? '-' : ',';
+
+                $bounds = explode($delimiter, $for_match);
+
+                if ($delimiter == '-') {
+                    for ($i = (int)$bounds[0]; $i <= (int)$bounds[1]; $i++) {
+                        $new_settings[] = str_replace($search, $i, $setting);
+                    }
+                } else {
+                    foreach ($bounds as $replace) {
+                        $new_settings[] = str_replace($search, $replace, $setting);
+                    }
+                }
+
+                $new_settings = $this->_parse_config_for($new_settings);
+
+            } else {
+                $new_settings[] = $setting;
+            }
+        }
+
+        return $new_settings;
+    }
+
+    private function _test_config($exe, $extension, $setting, $quality_str)
+    {
+        $source_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Images' . DIRECTORY_SEPARATOR . 'source.' . $extension;
+        $destination_path = $this->_temp_path('result.' . $extension);
+
+        $this->_process_image($exe, $setting, $source_path, $destination_path, $quality_str, 100);
+    }
+
+    private function _process_image($exe, $setting, $source_path, $destination_path, $quality_str, $quality)
+    {
         $output_errors = $this->_temp_path($this->_output_errors);
 
         $this->_is_readable($source_path);
@@ -670,159 +698,8 @@ class NitroSmush {
         }
     }
 
-    private function _escapeshellarg($text) {
-        if (preg_match('~[^\w\/\\\]{1}~u', $text)) {
-            return "'" . $text . "'";
-        } else {
-            return escapeshellarg($text);
-        }
-    }
-
-    private function _test_config($exe, $extension, $setting, $quality_str) {
-        $source_path = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Images' . DIRECTORY_SEPARATOR . 'source.' . $extension;
-        $destination_path = $this->_temp_path('result.' . $extension);
-
-        $this->_process_image($exe, $setting, $source_path, $destination_path, $quality_str, 100);
-    }
-
-    private function _parse_config_for($settings) {
-        $new_settings = array();
-
-        foreach ($settings as $setting) {
-            $for_matches = array();
-
-            preg_match_all('~{FOR(.*?)}~', $setting, $for_matches);
-
-            if (!empty($for_matches[1][0])) {
-                $for_match = $for_matches[1][0];
-                
-                $search = '{FOR' . $for_match . '}';
-
-                $delimiter = stripos($for_match, '-') !== FALSE ? '-' : ',';
-
-                $bounds = explode($delimiter, $for_match);
-
-                if ($delimiter == '-') {
-                    for ($i = (int)$bounds[0]; $i <= (int)$bounds[1]; $i++) {
-                        $new_settings[] = str_replace($search, $i, $setting);
-                    }
-                } else {
-                    foreach ($bounds as $replace) {
-                        $new_settings[] = str_replace($search, $replace, $setting);
-                    }
-                }
-
-                $new_settings = $this->_parse_config_for($new_settings);
-
-            } else {
-                $new_settings[] = $setting;
-            }
-        }
-
-        return $new_settings;
-    }
-
-    private function _get_exe($name, $os_suffix) {
-        return dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Executables' . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . $os_suffix;
-    }
-
-    private function _clear_dir($dir) {
-        foreach (new RecursiveDirectoryIterator($dir) as $fileInfo) {
-            if (preg_match('~[^\.]\.?\.$~', $fileInfo->getPathname())) {
-                continue;
-            }
-
-            if ($fileInfo->isDir()) {
-                $this->_clear_dir($fileInfo->getPathname());
-                rmdir(realpath($fileInfo->getPathname()));
-            } else {
-                unlink(realpath($fileInfo->getPathname()));
-            }
-        }
-    }
-
-    private function _download_execs($destination_dir) {
-        $url = '';
-        $destination_file = $destination_dir . 'nitrosmush_execs.zip';
-
-        if (!class_exists('ZipArchive')) {
-            throw new Exception("Missing ZIP extension. Please install/load PHP ZipArchive and try again");
-        }
-
-        if (!is_dir($destination_dir)) {
-            if (!mkdir($destination_dir, 0755, true)) {
-                throw new Exception("Could not create destination directory $destination_dir for the NitroSmush executables");
-            }
-        }
-
-        $this->_clear_dir($destination_dir);
-
-        $file_loaded = $this->_temp_path($this->_file_loaded, true);
-
-        if (!file_exists($file_loaded) && !is_writable($file_loaded)) {
-            throw new Exception("Could not clear file with loaded executables.");
-        }
-
-        if (file_exists($file_loaded)) {
-            unlink($file_loaded);
-        }
-
-        if (!is_dir($destination_dir)) {
-            if (!mkdir($destination_dir, 0755, true)) {
-                throw new Exception("Could not create destination directory $destination_dir for the NitroSmush executables");
-            }
-        }
-
-        if (!copy($url, $destination_file)) {
-            rmdir($destination_dir); //This is needed, because otherwise this function will not be called the next time we try to smush something, since the dir will exist
-            throw new Exception("Could not download needed executable files.");
-        }
-
-        $zip = new ZipArchive();
-        $zip->open($destination_file);
-        $zip->extractTo($destination_dir);
-        $zip->close();
-
-        unlink($destination_file);
-    }
-
-    private function _load_executable($name, $os, $config) {
-        if (empty($config[$os])) return;
-
-        $exe = $this->_get_exe($name, $config[$os]);
-
-        if (!is_executable($exe)) {
-            $this->_chmod($exe, 0555);
-
-            if (!is_executable($exe)) {
-                throw new Exception("File is not executable: " . $exe);
-            }
-        }
-
-        try {
-            foreach ($this->_parse_config_for($config['settings']) as $setting) {
-                $this->_test_config($exe, $config['extension'], $setting, $config['quality'], 100);
-            }
-
-            $this->_executable_is_loaded($name, true);
-        } catch (Exception $e) {
-            
-        }
-    }
-
-    private function _load_contents($file) {
-        $key = 'nitrosmush.' . md5($file);
-
-        if (!isset($GLOBALS[$key])) {
-            if ($this->_is_readable($file)) {
-                $GLOBALS[$key] = file_get_contents($file);
-            }
-        }
-
-        return $GLOBALS[$key];
-    }
-
-    private function _executable_is_loaded($name, $load_write = false) {
+    private function _executable_is_loaded($name, $load_write = false)
+    {
         $file_loaded = $this->_temp_path($this->_file_loaded, true);
 
         $contents = $this->_load_contents($file_loaded);
@@ -843,62 +720,225 @@ class NitroSmush {
         return $loaded;
     }
 
-    private function _get_os_suffix() {
-        $uname = $this->_os();
-        $arch = $this->_arch();
+    private function _load_contents($file)
+    {
+        $key = 'nitrosmush.' . md5($file);
 
-        if ($this->_substr_caps($uname, 3) == 'WIN') {
-            $os_suffix = 'win' . $arch;
-        } else if ($this->_substr_caps($uname, 5) == 'LINUX') {
-            $os_suffix = 'linux' . $arch;
-        } else if ($this->_substr_caps($uname, 6) == 'DARWIN') {
-            $os_suffix = 'mac' . $arch;
-        } else {
-            throw new Exception("php_uname('s') returned a non-supported OS: " . $uname . "! Valid values are: WIN, LINUX, DARWIN");
+        if (!isset($GLOBALS[$key])) {
+            if ($this->_is_readable($file)) {
+                $GLOBALS[$key] = file_get_contents($file);
+            }
         }
 
-        return $os_suffix;
+        return $GLOBALS[$key];
     }
 
-    private function _load_executables() {
-        $folder = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Executables';
+    private function _clean_temp()
+    {
+        $dir = $this->_temp_path('');
 
-        $load_errors = array();
+        $items = scandir($dir);
 
-        $this->_set_error_handler();
-
-        try {
-            if (!is_dir($folder) || !$this->_mozjpeg_exists()) {
-                $this->_download_execs($folder);
+        foreach ($items as $item) {
+            if (!in_array($item, array('.', '..'))) {
+                unlink($dir . $item);
             }
-            
-            $this->_check_compatibility();
-
-            $os_suffix = $this->_get_os_suffix();
-
-            $file_loaded = $this->_temp_path($this->_file_loaded, true);
-            if ($this->_is_writable($file_loaded)) {
-                file_put_contents($file_loaded, '');
-            }
-
-            foreach ($this->_config as $filetype_regex => $filetype_config) {
-                foreach ($filetype_config as $tool_name => $tool_config) {
-                    try {
-                        $this->_load_executable($tool_name, $os_suffix, $tool_config);
-                    } catch (Exception $e) {
-                        $load_errors[] = $e->getMessage();
-                    }
-                }
-            }
-
-            $this->_clean_temp();
-        } catch (Exception $e) {
-            $load_errors[] = $e->getMessage();
         }
 
-        $this->_restore_error_handler();
+        rmdir($dir);
+    }
 
-        return $load_errors;
+    private function _restore_error_handler()
+    {
+        restore_error_handler();
+    }
+
+    private function _smush_api($callable_curl, $callable_file, $arg)
+    {
+        if (function_exists('curl_init')) {
+            return call_user_func($callable_curl, $arg);
+        } else if (ini_get('allow_url_fopen') == '1') {
+            return call_user_func($callable_file, $arg);
+        } else {
+            throw new Exception("Your server does not support CURL and allow_url_fopen is disalbed. At least one of these options must be enabled on your server. Please contact your web hosting provider.");
+        }
+    }
+
+    private function _curl_api($args)
+    {
+        $source = $args['source'];
+        $quality = $args['quality'];
+
+        $ch = curl_init($this->_api['http_url']);
+
+        if (class_exists('CURLFile')) {
+            $post_file = new CURLFile($source, $this->_get_mime($source), basename($source));
+        } else {
+            $post_file = '@' . $source;
+        }
+
+        curl_setopt_array($ch, array(
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => array(
+                'image' => $post_file,
+                'quality' => $quality
+            ),
+            CURLOPT_RETURNTRANSFER => 1
+        ));
+
+        $json = curl_exec($ch);
+
+        $response = json_decode($json, true);
+
+        curl_close($ch);
+
+        if (!empty($response['error'])) {
+            throw new Exception($response['error']);
+        }
+
+        return $this->_download_file($response['result_file']);
+    }
+
+    private function _get_mime($file)
+    {
+        if (preg_match('~\.gif$~i', $file)) {
+            return 'image/gif';
+        } else if (preg_match('~\.jpe?g$~i', $file)) {
+            return 'image/jpeg';
+        } else if (preg_match('~\.png$~i', $file)) {
+            return 'image/png';
+        } else {
+            throw new Exception("Invalid extension of " . $file);
+        }
+    }
+
+    private function _download_file($url)
+    {
+        $result = array(
+            'result_file' => false,
+            'result_size' => 0
+        );
+
+        $download = $this->_smush_api(array($this, '_curl_download'), array($this, '_file_download'), $url);
+
+        $this->_is_readable($download);
+
+        $result['result_file'] = $download;
+        $result['result_size'] = filesize($download);
+
+        return $result;
+    }
+
+    private function _file_api($args)
+    {
+        $source = $args['source'];
+        $quality = $args['quality'];
+
+        $data = "";
+
+        $boundary = "---------------------" . substr(md5(mt_rand(0, 32000)), 0, 10);
+
+        $data .= "--" . $boundary . "\n";
+
+        $data .= "Content-Disposition: form-data; name=\"quality\"\n\n";
+        $data .= $quality . "\n";
+        $data .= "--" . $boundary . "\n";
+
+        $fileContents = file_get_contents($source);
+
+        $data .= "Content-Disposition: form-data; name=\"image\"; filename=\"" . basename($source) . "\"\n";
+        $data .= "Content-Type: " . $this->_get_mime($source) . "\n";
+        $data .= "Content-Transfer-Encoding: binary\n\n";
+        $data .= $fileContents . "\n";
+
+        $data .= "--" . $boundary . "\n";
+
+        $params = array('http' => array(
+            'method' => 'POST',
+            'header' => 'Content-Type: multipart/form-data; boundary=' . $boundary,
+            'content' => $data
+        ));
+
+        $url = $this->_api['http_url'];
+
+        $ctx = stream_context_create($params);
+        $fp = fopen($url, 'rb', false, $ctx);
+
+        if (!$fp) {
+            throw new Exception("There was a problem with $url");
+        }
+
+        $json = @stream_get_contents($fp);
+
+        fclose($fp);
+
+        if ($json === false) {
+            throw new Exception("Problem reading data from $url");
+        }
+
+        $response = json_decode($json, true);
+
+        if (!empty($response['error'])) {
+            throw new Exception($response['error']);
+        }
+
+        return $this->_download_file($response['result_file']);
+    }
+
+    private function _curl_download($file)
+    {
+        $destination = $this->_temp_path('downloaded');
+
+        $ch = curl_init($file);
+
+        touch($destination);
+        $this->_is_writable($destination);
+        $fh = fopen($destination, 'wb');
+
+        curl_setopt_array($ch, array(
+            CURLOPT_FILE => $fh
+        ));
+
+        curl_exec($ch);
+
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($code != 200) {
+            fclose($fh);
+            curl_close($ch);
+            throw new Exception("Response code is " . $code . " for file " . $file);
+        }
+
+        fclose($fh);
+
+        if (filesize($destination) == 0) {
+            throw new Exception("An error has been encountered while downloading " . $file);
+        }
+
+        curl_close($ch);
+
+        return $destination;
+    }
+
+    private function _file_download($file)
+    {
+        $destination = $this->_temp_path('downloaded');
+
+        touch($destination);
+        $this->_is_writable($destination);
+
+        file_put_contents($destination, file_get_contents($file));
+
+        return $destination;
+    }
+
+    private function _escapeshellarg($text)
+    {
+        if (preg_match('~[^\w\/\\\]{1}~u', $text)) {
+            return "'" . $text . "'";
+        } else {
+            return escapeshellarg($text);
+        }
     }
 }
 

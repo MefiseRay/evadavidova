@@ -1,4 +1,4 @@
-<?php 
+<?php
 if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
 $config_local = dirname(__FILE__) . DS . 'config_local.php';

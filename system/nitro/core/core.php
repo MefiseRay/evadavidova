@@ -4,23 +4,28 @@ require_once NITRO_CORE_FOLDER . 'nitro_db.php';
 require_once NITRO_CORE_FOLDER . 'top.php';
 
 if (!function_exists('np')) {
-    function np($var, $exit = false, $file = false) {
+    function np($var, $exit = false, $file = false)
+    {
         if ($file) {
             file_put_contents(NITRO_NP_FILE, var_export($var, true) . PHP_EOL . PHP_EOL, $file);
         } else {
-            echo '<pre>'; var_dump($var); echo '</pre>';
+            echo '<pre>';
+            var_dump($var);
+            echo '</pre>';
         }
 
         if ($exit) exit;
     }
 }
 
-function clearRAMCache() {
+function clearRAMCache()
+{
     require_once(NITRO_LIB_FOLDER . 'NitroDbCache.php');
     NitroDbCache::clear();
 }
 
-function &nitroGetSession() {
+function &nitroGetSession()
+{
     if (!defined('VERSION')) {
         define('VERSION', nitroGetVersion());
     }
@@ -36,14 +41,15 @@ function &nitroGetSession() {
     return $_SESSION;
 }
 
-function getSupportedCookiesPrefix() {
+function getSupportedCookiesPrefix()
+{
     $cookies = getSupportedCookies();
     $str = '';
 
-    foreach ($_COOKIE as $cookieName=>$cookieValue) {
+    foreach ($_COOKIE as $cookieName => $cookieValue) {
         foreach ($cookies as $cookie) {
             if (preg_match('~' . str_replace(array('~', '#asterisk#'), array('\~', '.*'), preg_quote(str_replace('*', '#asterisk#', $cookie))) . '~', $cookieName)) {
-                $str .= $cookieName.'='.$cookieValue.';';
+                $str .= $cookieName . '=' . $cookieValue . ';';
             }
         }
     }
@@ -51,7 +57,8 @@ function getSupportedCookiesPrefix() {
     return substr(md5($str), 0, 16);
 }
 
-function getWebshopUrl() {
+function getWebshopUrl()
+{
     global $registry;
 
     if (isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) {
@@ -65,11 +72,13 @@ function getWebshopUrl() {
     return rtrim(preg_replace('~^https?\:~i', '', $webshopUrl), '/');
 }
 
-function getDomainPrefix() {
+function getDomainPrefix()
+{
     return md5(getWebshopUrl()) . "-";
 }
 
-function getMobilePrefix($returnTrueValue = false) {
+function getMobilePrefix($returnTrueValue = false)
+{
     $mergeDeviceCache = $returnTrueValue == false ? getNitroPersistence("PageCache.MergeDeviceCache") : false;
     $resp = $mergeDeviceCache ? 0 : mobileCheck();
     $prefix = "";
@@ -78,19 +87,22 @@ function getMobilePrefix($returnTrueValue = false) {
     return $prefix;
 }
 
-function nitroGetLanguage() {
+function nitroGetLanguage()
+{
     $session = &nitroGetSession();
     $default_language = !empty($_COOKIE['language']) ? $_COOKIE['language'] : '0';
-    return strtolower((!empty($session['language']) && is_string($session['language'])) ? $session['language'] : $default_language); 
+    return strtolower((!empty($session['language']) && is_string($session['language'])) ? $session['language'] : $default_language);
 }
 
-function nitroGetCurrency() {
+function nitroGetCurrency()
+{
     $session = &nitroGetSession();
     $default_currency = !empty($_COOKIE['currency']) ? $_COOKIE['currency'] : '0';
-    return strtolower((!empty($session['currency']) && is_string($session['currency'])) ? $session['currency'] : $default_currency); 
+    return strtolower((!empty($session['currency']) && is_string($session['currency'])) ? $session['currency'] : $default_currency);
 }
 
-function generateNameOfCacheFile() {
+function generateNameOfCacheFile()
+{
     if (!empty($GLOBALS['nitro.pagecache.file'])) {
         return $GLOBALS['nitro.pagecache.file'];
     }
@@ -169,7 +181,7 @@ function generateNameOfCacheFile() {
 
     $filename = getFullURL();
 
-    $filename = str_replace(array('/','?',':',';','=','&amp;','&','.','--','%','~','-amp-'),'-',$filename);
+    $filename = str_replace(array('/', '?', ':', ';', '=', '&amp;', '&', '.', '--', '%', '~', '-amp-'), '-', $filename);
 
     $language = nitroGetLanguage();
     $currency = nitroGetCurrency();
@@ -177,9 +189,9 @@ function generateNameOfCacheFile() {
     $cookie_prefix = getSupportedCookiesPrefix();
 
     if (NITRO_DEBUG_MODE) {
-        $cached_filename = $filename.'-'.$language.'-'.$currency.'-'.$cookie_prefix.'.html';
+        $cached_filename = $filename . '-' . $language . '-' . $currency . '-' . $cookie_prefix . '.html';
     } else {
-        $cached_filename = md5($filename.'-'.$language.'-'.$currency.'-'.$cookie_prefix).'.html';
+        $cached_filename = md5($filename . '-' . $language . '-' . $currency . '-' . $cookie_prefix) . '.html';
     }
 
     $cached_filename = getSSLCachePrefix() . getMobilePrefix() . $cached_filename;
@@ -199,21 +211,24 @@ function generateNameOfCacheFile() {
     return $GLOBALS['nitro.pagecache.file'];
 }
 
-function nitroGetTempRoutes() {
+function nitroGetTempRoutes()
+{
     return array(
         "product/search",
         "product/isearch"
     );
 }
 
-function explodeTrim($delimiter, $string) {
-    return 
-        !empty($string) ? 
-        array_filter(array_map('trim', explode($delimiter, $string))) : 
-        array();
+function explodeTrim($delimiter, $string)
+{
+    return
+        !empty($string) ?
+            array_filter(array_map('trim', explode($delimiter, $string))) :
+            array();
 }
 
-function getSpecialHeaders() {
+function getSpecialHeaders()
+{
     $important_headers = array(//if the key is present and the value is not, then the headers will be saved
         'content-type' => 'html'
     );
@@ -226,7 +241,7 @@ function getSpecialHeaders() {
 
     if (!empty($headers)) {
         foreach ($headers as $header) {
-            foreach ($important_headers as $h=>$v) {
+            foreach ($important_headers as $h => $v) {
                 if (strpos(strtolower($header), $h) !== false && strpos(strtolower($header), $v) === false) {
                     return implode("\n", $headers);
                 }
@@ -236,7 +251,8 @@ function getSpecialHeaders() {
     return '';
 }
 
-function getIgnoredUrls() {
+function getIgnoredUrls()
+{
     $ignoredUrls = explodeTrim("\n", getNitroPersistence('DisabledURLs'));
 
     $predefinedIgnoredUrls = array('/admin/', 'isearch', 'api/*');
@@ -244,7 +260,7 @@ function getIgnoredUrls() {
     $dir = basename(DIR_APPLICATION);
 
     if (!in_array($dir, array('admin', 'catalog'))) {
-        $predefinedIgnoredUrls[] = '/'.$dir.'/';
+        $predefinedIgnoredUrls[] = '/' . $dir . '/';
     }
 
     $ignoredUrls = array_merge($predefinedIgnoredUrls, $ignoredUrls);
@@ -252,7 +268,8 @@ function getIgnoredUrls() {
     return $ignoredUrls;
 }
 
-function nitroEnableSession() {
+function nitroEnableSession()
+{
     global $registry;
 
     if (defined("VERSION") && VERSION > "2") {
@@ -271,20 +288,23 @@ function nitroEnableSession() {
     }
 }
 
-function isAdminLogged() {
+function isAdminLogged()
+{
     nitroEnableSession();
 
     $session = &nitroGetSession();
     return !empty($session['user_id']);
 }
 
-function getFullURL() {
+function getFullURL()
+{
     $host = (!empty($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : '';
     $request_uri = (!empty($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : '';
     return $host . $request_uri;
 }
 
-function areWeInIgnoredUrl() {
+function areWeInIgnoredUrl()
+{
     if (basename(DIR_APPLICATION) != 'catalog') return true;
 
     $url = getFullURL();
@@ -306,14 +326,15 @@ function areWeInIgnoredUrl() {
     return false;
 }
 
-function initNitroProductCacheDb() {
+function initNitroProductCacheDb()
+{
     if (
         (
-            !getNitroPersistence('Enabled') || 
-            !getNitroPersistence('PageCache.ClearCacheOnProductEdit') || 
+            !getNitroPersistence('Enabled') ||
+            !getNitroPersistence('PageCache.ClearCacheOnProductEdit') ||
             !getNitroPersistence('PageCache.Enabled')
         ) && !(
-            !empty($_POST['Nitro']['PageCache']['ClearCacheOnProductEdit']) && 
+            !empty($_POST['Nitro']['PageCache']['ClearCacheOnProductEdit']) &&
             $_POST['Nitro']['PageCache']['ClearCacheOnProductEdit'] == 'yes'
         )
     ) return;
@@ -329,7 +350,8 @@ function initNitroProductCacheDb() {
     NitroDb::$created_nitro_product_cache = true;
 }
 
-function setNitroProductCache($product_id, $cachefile) {
+function setNitroProductCache($product_id, $cachefile)
+{
     if (!passesPageCacheValidation() || !getNitroPersistence('Enabled') || !getNitroPersistence('PageCache.ClearCacheOnProductEdit') || !getNitroPersistence('PageCache.Enabled')) return;
 
     initNitroProductCacheDb();
@@ -339,7 +361,8 @@ function setNitroProductCache($product_id, $cachefile) {
     $db->query("INSERT INTO `" . DB_PREFIX . "nitro_product_cache` SET product_id='" . (int)$product_id . "', cachefile = '" . $cachefile . "', expires='" . date('Y-m-d H:i:s', time() + getPageCacheTime()) . "' ON DUPLICATE KEY UPDATE `expires` = '" . date('Y-m-d H:i:s', time() + getPageCacheTime()) . "'");
 }
 
-function setNitroCategoryCache($category_id, $cachefile) {
+function setNitroCategoryCache($category_id, $cachefile)
+{
     if (!passesPageCacheValidation() || !getNitroPersistence('Enabled') || !getNitroPersistence('PageCache.ClearCacheOnProductEdit') || !getNitroPersistence('PageCache.Enabled')) return;
 
     initNitroProductCacheDb();
@@ -349,7 +372,8 @@ function setNitroCategoryCache($category_id, $cachefile) {
     $db->query("INSERT INTO `" . DB_PREFIX . "nitro_category_cache` SET category_id='" . (int)$category_id . "', cachefile = '" . $cachefile . "', expires='" . date('Y-m-d H:i:s', time() + getPageCacheTime()) . "' ON DUPLICATE KEY UPDATE `expires` = '" . date('Y-m-d H:i:s', time() + getPageCacheTime()) . "'");
 }
 
-function getOpenCartSetting($key, $store_id = 0) {
+function getOpenCartSetting($key, $store_id = 0)
+{
     if (isset($GLOBALS["nitro.opencart_setting.$store_id.$key"])) return $GLOBALS["nitro.opencart_setting.$store_id.$key"];
 
     $db = NitroDb::getInstance();
@@ -370,20 +394,24 @@ function getOpenCartSetting($key, $store_id = 0) {
     return null;
 }
 
-function inMaintenanceMode() {
+function inMaintenanceMode()
+{
     return getOpenCartSetting('config_maintenance') == '1';
 }
 
-function isNitroTempDisabled() {
+function isNitroTempDisabled()
+{
     $lock_file = NITRO_FOLDER . 'nitro.lock';
     return file_exists($lock_file) && (time() - filemtime($lock_file) < 60);
 }
 
-function isNitroEnabled() {
+function isNitroEnabled()
+{
     return getNitroPersistence('Enabled') && !areWeInIgnoredUrl() && !inMaintenanceMode() && !isNitroTempDisabled();
 }
 
-function mobileCheck() {
+function mobileCheck()
+{
     $categorizr = DIR_SYSTEM . 'library/categorizr.php';
     $device = DIR_SYSTEM . 'library/device.php';
     $resp = 0;
@@ -397,19 +425,20 @@ function mobileCheck() {
         if (isset($_COOKIE['is_mobile']) && (int)$_COOKIE['is_mobile'] == 1) return 1;
 
         if (!function_exists('deviceIsMobile')) {
-            function deviceIsMobile() {
+            function deviceIsMobile()
+            {
                 $mobile = false;
 
-                if(isset($_SERVER['HTTP_USER_AGENT'])) {
+                if (isset($_SERVER['HTTP_USER_AGENT'])) {
 
-                    $mobile_agents = array('iPod','iPhone','webOS','BlackBerry','windows phone','symbian','vodafone','opera mini','windows ce','smartphone','palm','midp');
+                    $mobile_agents = array('iPod', 'iPhone', 'webOS', 'BlackBerry', 'windows phone', 'symbian', 'vodafone', 'opera mini', 'windows ce', 'smartphone', 'palm', 'midp');
 
-                    foreach($mobile_agents as $mobile_agent){
-                        if(stripos($_SERVER['HTTP_USER_AGENT'],$mobile_agent)){
+                    foreach ($mobile_agents as $mobile_agent) {
+                        if (stripos($_SERVER['HTTP_USER_AGENT'], $mobile_agent)) {
                             $mobile = true;
                         }
                     }
-                    if(stripos($_SERVER['HTTP_USER_AGENT'],"Android") && stripos($_SERVER['HTTP_USER_AGENT'],"mobile")){
+                    if (stripos($_SERVER['HTTP_USER_AGENT'], "Android") && stripos($_SERVER['HTTP_USER_AGENT'], "mobile")) {
                         $mobile = true;
                     }
 
@@ -419,20 +448,21 @@ function mobileCheck() {
         }
 
         if (!function_exists('deviceIsTablet')) {
-            function deviceIsTablet() {
+            function deviceIsTablet()
+            {
                 $tablet = false;
 
-                if(isset($_SERVER['HTTP_USER_AGENT'])) {
+                if (isset($_SERVER['HTTP_USER_AGENT'])) {
 
-                    $tablet_agents = array('iPad','RIM Tablet','hp-tablet','Kindle Fire','Android');
+                    $tablet_agents = array('iPad', 'RIM Tablet', 'hp-tablet', 'Kindle Fire', 'Android');
 
-                    foreach($tablet_agents as $tablet_agent){
-                        if(stripos($_SERVER['HTTP_USER_AGENT'],$tablet_agent)){
+                    foreach ($tablet_agents as $tablet_agent) {
+                        if (stripos($_SERVER['HTTP_USER_AGENT'], $tablet_agent)) {
                             $tablet = true;
                         }
                     }
 
-                    if(stripos($_SERVER['HTTP_USER_AGENT'],"Android") && stripos($_SERVER['HTTP_USER_AGENT'],"mobile")){
+                    if (stripos($_SERVER['HTTP_USER_AGENT'], "Android") && stripos($_SERVER['HTTP_USER_AGENT'], "mobile")) {
                         $tablet = false;
                     }
                 }
@@ -447,7 +477,8 @@ function mobileCheck() {
     return $resp;
 }
 
-function refreshNitroPersistenceGlobal($file = 'persistence.tpl') {
+function refreshNitroPersistenceGlobal($file = 'persistence.tpl')
+{
     $persistence_file = NITRO_PERSISTENCE_FOLDER . $file;
     $settings_key = 'nitro.persistence.' . $file;
 
@@ -460,7 +491,8 @@ function refreshNitroPersistenceGlobal($file = 'persistence.tpl') {
     return $returnData;
 }
 
-function getNitroPersistence($key = '', $file = 'persistence.tpl') {
+function getNitroPersistence($key = '', $file = 'persistence.tpl')
+{
     $persistence_file = NITRO_PERSISTENCE_FOLDER . $file;
     $settings_key = 'nitro.persistence.' . $file;
 
@@ -470,7 +502,7 @@ function getNitroPersistence($key = '', $file = 'persistence.tpl') {
         if (!empty($GLOBALS[$settings_key])) {
             $returnData = $GLOBALS[$settings_key];
         } else {
-            $returnData = false;	
+            $returnData = false;
         }
     }
 
@@ -502,8 +534,12 @@ function getNitroPersistence($key = '', $file = 'persistence.tpl') {
         }
 
         switch ($returnData) {
-        case 'yes' : $returnData = true; break;
-        case 'no' : $returnData = false; break;
+            case 'yes' :
+                $returnData = true;
+                break;
+            case 'no' :
+                $returnData = false;
+                break;
         }
 
         $result = $returnData;
@@ -515,13 +551,15 @@ function getNitroPersistence($key = '', $file = 'persistence.tpl') {
     return $result;
 }
 
-function nitroCheckFolder($folder) {
+function nitroCheckFolder($folder)
+{
     if (!is_dir($folder)) {
-        mkdir($folder, NITRO_FOLDER_PERMISSIONS);	
+        mkdir($folder, NITRO_FOLDER_PERMISSIONS);
     }
 }
 
-function setNitroPersistence($data, $file = 'persistence.tpl') {
+function setNitroPersistence($data, $file = 'persistence.tpl')
+{
     $persistence_file = NITRO_PERSISTENCE_FOLDER . $file;
 
     nitroCheckFolder(NITRO_FOLDER . 'data');
@@ -535,14 +573,16 @@ function setNitroPersistence($data, $file = 'persistence.tpl') {
     return true;
 }
 
-function applyNitroRecommendedSettings($file = 'persistence.tpl') {
+function applyNitroRecommendedSettings($file = 'persistence.tpl')
+{
     $current_settings = getNitroPersistence('', $file);
     $recommended_settings = getNitroPersistence('', 'persistence_recommended.tpl');
 
     return setNitroPersistence($current_settings, $file);
 }
 
-function getNitroSmushitPersistence() {
+function getNitroSmushitPersistence()
+{
     $file = NITRO_SMUSHIT_PERSISTENCE;
 
     $data = array(
@@ -562,7 +602,8 @@ function getNitroSmushitPersistence() {
     return $data;
 }
 
-function setNitroSmushitPersistence($data) {
+function setNitroSmushitPersistence($data)
+{
     if (is_array($data)) {
         $file = NITRO_SMUSHIT_PERSISTENCE;
         $old_data = getNitroSmushitPersistence();
@@ -574,16 +615,18 @@ function setNitroSmushitPersistence($data) {
     return false;
 }
 
-function setGooglePageSpeedReport($data, $strategy) {
+function setGooglePageSpeedReport($data, $strategy)
+{
     nitroCheckFolder(NITRO_FOLDER . 'data');
 
-    file_put_contents(NITRO_FOLDER . 'data' . DS .'googlepagespeed-' . $strategy . '.tpl', base64_encode($data));
+    file_put_contents(NITRO_FOLDER . 'data' . DS . 'googlepagespeed-' . $strategy . '.tpl', base64_encode($data));
 
     return true;
 }
 
-function refreshGooglePageSpeedReport($strategies = array('mobile', 'desktop')) {
-    foreach($strategies as $strategy) {
+function refreshGooglePageSpeedReport($strategies = array('mobile', 'desktop'))
+{
+    foreach ($strategies as $strategy) {
         if (file_exists(NITRO_FOLDER . 'data/googlepagespeed-' . $strategy . '.tpl')) {
             if (!unlink(NITRO_FOLDER . 'data/googlepagespeed-' . $strategy . '.tpl')) {
                 return 'There was a permission issue - please make sure the file system/nitro/data/googlepagespeed-' . $strategy . '.tpl has at least 644 permissions!';
@@ -594,7 +637,8 @@ function refreshGooglePageSpeedReport($strategies = array('mobile', 'desktop')) 
     return 'Google Page Speed Report was refreshed!';
 }
 
-function getGooglePageSpeedReport($setting = null, $strategies = array('mobile', 'desktop')) {
+function getGooglePageSpeedReport($setting = null, $strategies = array('mobile', 'desktop'))
+{
     $returnData = false;
 
     foreach ($strategies as $strategy) {
@@ -611,12 +655,13 @@ function getGooglePageSpeedReport($setting = null, $strategies = array('mobile',
     return $returnData;
 }
 
-function fetchRemoteContent($url, $timeout = 15) {
+function fetchRemoteContent($url, $timeout = 15)
+{
     if (strpos($url, '//') === 0) {
         if (isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) {
-            $url = 'https:'.$url;
+            $url = 'https:' . $url;
         } else {
-            $url = 'http:'.$url;
+            $url = 'http:' . $url;
         }
     }
 
@@ -635,18 +680,19 @@ function fetchRemoteContent($url, $timeout = 15) {
         $browser->fetch();
         $content = $browser->getStatusCode() == 200 ? $browser->getBody() : '';
         return $content;
-    } catch(Exception $e) {
+    } catch (Exception $e) {
         if (ini_get('allow_url_fopen')) {
             if (!function_exists('nitro_error_handler')) {
-                function nitro_error_handler($errno, $errstr, $errfile, $errline) {
+                function nitro_error_handler($errno, $errstr, $errfile, $errline)
+                {
                     return true;
                 }
             }
             set_error_handler('nitro_error_handler');
             try {
                 $opts = array(
-                    'http'=>array(
-                        'method'=>"GET",
+                    'http' => array(
+                        'method' => "GET",
                         'timeout' => $timeout
                     )
                 );
@@ -657,11 +703,12 @@ function fetchRemoteContent($url, $timeout = 15) {
 
                 $context = stream_context_create($opts);
                 $content = file_get_contents($url, false, $context);
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
             restore_error_handler();
 
             if (!$content) {
-                return ''; 
+                return '';
             }
             return $content;
         } else {
@@ -683,31 +730,35 @@ function fetchRemoteContent($url, $timeout = 15) {
     return false;
 }
 
-function getPageCacheTime() {
+function getPageCacheTime()
+{
     $pagecache_time = getNitroPersistence('PageCache.ExpireTime');
 
     return !empty($pagecache_time) && is_numeric($pagecache_time) ? (int)$pagecache_time : NITRO_PAGECACHE_TIME;
 }
 
-function minifyHTML($html) {
+function minifyHTML($html)
+{
     require_once NITRO_FOLDER . 'lib' . DS . 'minifier' . DS . 'HTMLMin.php';
 
     $htmlMinifier = new Nitro_Minify_HTML($html, array(
-        'jsCleanComments' => false,
-        'keepHTMLComments' => getNitroPersistence('Mini.HTMLComments')
-    )
-);
+            'jsCleanComments' => false,
+            'keepHTMLComments' => getNitroPersistence('Mini.HTMLComments')
+        )
+    );
 
-    $html =  $htmlMinifier->process();
+    $html = $htmlMinifier->process();
 
     return $html;
 }
 
-function getSSLCachePrefix() {
+function getSSLCachePrefix()
+{
     return isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1')) ? '1-' : '0-';
 }
 
-function isExecEnabled() {
+function isExecEnabled()
+{
     $command = function_exists('exec') &&
         !in_array('exec', array_map('trim', explode(',', ini_get('disable_functions')))) &&
         !in_array('exec', array_map('trim', explode(',', ini_get('suhosin.executor.func.blacklist')))) &&
@@ -721,11 +772,13 @@ function isExecEnabled() {
     return false;
 }
 
-function isCli() {
+function isCli()
+{
     return NITRO_FORCE_ENABLE_CLI || php_sapi_name() == 'cli' || defined('STDIN');
 }
 
-function sendNitroMail($to, $subject, $message) {
+function sendNitroMail($to, $subject, $message)
+{
     if (NITRO_FORCE_STANDARD_MAIL) {
         mail($to, $subject, $message);
         return;
@@ -764,7 +817,8 @@ function sendNitroMail($to, $subject, $message) {
     $mail->send();
 }
 
-function truncateNitroProductCache() {
+function truncateNitroProductCache()
+{
     $db = NitroDb::getInstance();
     if (!empty($db->query("SHOW TABLES LIKE '" . DB_PREFIX . "nitro_product_cache'")->num_rows)) {
         $db->query("TRUNCATE TABLE " . DB_PREFIX . "nitro_product_cache");
@@ -775,7 +829,8 @@ function truncateNitroProductCache() {
     }
 }
 
-function deleteExpiredNitroProductCache() {
+function deleteExpiredNitroProductCache()
+{
     $db = NitroDb::getInstance();
     if (!empty($db->query("SHOW TABLES LIKE '" . DB_PREFIX . "nitro_product_cache'")->num_rows)) {
         $db->query("DELETE FROM " . DB_PREFIX . "nitro_product_cache WHERE expires <= NOW()");
@@ -786,7 +841,8 @@ function deleteExpiredNitroProductCache() {
     }
 }
 
-function cleanNitroCacheFolders($touch = false, $time = false) {
+function cleanNitroCacheFolders($touch = false, $time = false)
+{
     cleanFolder(NITRO_PAGECACHE_FOLDER, $touch, $time);
     cleanFolder(NITRO_DBCACHE_FOLDER, $touch, $time);
     cleanFolder(NITRO_FOLDER . 'temp' . DS, $touch, $time);
@@ -798,7 +854,8 @@ function cleanNitroCacheFolders($touch = false, $time = false) {
     deleteExpiredNitroProductCache();
 }
 
-function folderEmpty($dir, $time) {
+function folderEmpty($dir, $time)
+{
     require_once NITRO_LIB_FOLDER . 'NitroFiles.php';
 
     $config = array(
@@ -818,7 +875,8 @@ function folderEmpty($dir, $time) {
     return $files->isEmpty();
 }
 
-function cleanNitroFiles($dir, $time) {
+function cleanNitroFiles($dir, $time)
+{
     require_once NITRO_LIB_FOLDER . 'NitroFiles.php';
 
     $config = array(
@@ -837,7 +895,8 @@ function cleanNitroFiles($dir, $time) {
     $files->delete();
 }
 
-function cleanFolder($dir, $touch = false, $time = false) {
+function cleanFolder($dir, $touch = false, $time = false)
+{
     if (!is_dir($dir)) return;
 
     if (isExecEnabled()) {
@@ -853,14 +912,16 @@ function cleanFolder($dir, $touch = false, $time = false) {
     }
 }
 
-function loadNitroLib($lib) {
+function loadNitroLib($lib)
+{
     $target = NITRO_LIB_FOLDER . preg_replace('/\.php$/', '', $lib) . '.php';
     if (file_exists($target)) {
         require_once $target;
     }
 }
 
-function getQuickCacheRefreshFilename($fullpath = true) {
+function getQuickCacheRefreshFilename($fullpath = true)
+{
     if ($fullpath) {
         return NITRO_PAGECACHE_FOLDER . 'clearcache';
     }
@@ -868,7 +929,8 @@ function getQuickCacheRefreshFilename($fullpath = true) {
     return 'clearcache';
 }
 
-function getQuickImageCacheRefreshFilename($fullpath = true) {
+function getQuickImageCacheRefreshFilename($fullpath = true)
+{
     if ($fullpath) {
         return NITRO_DATA_FOLDER . 'clearimagecache';
     }
@@ -876,12 +938,13 @@ function getQuickImageCacheRefreshFilename($fullpath = true) {
     return 'clearimagecache';
 }
 
-function clearProductCache($product_id) {
+function clearProductCache($product_id)
+{
     if (!getNitroPersistence('PageCache.ClearCacheOnProductEdit')) return;
 
     clearRAMCache();
     cleanFolder(NITRO_DBCACHE_FOLDER, 'index.html', false);
-    
+
     initNitroProductCacheDb();
 
     $db = NitroDb::getInstance();
@@ -919,12 +982,13 @@ function clearProductCache($product_id) {
     }
 }
 
-function clearCategoryCache($category_id) {
+function clearCategoryCache($category_id)
+{
     if (!getNitroPersistence('PageCache.ClearCacheOnProductEdit')) return;
 
     clearRAMCache();
     cleanFolder(NITRO_DBCACHE_FOLDER, 'index.html', false);
-    
+
     initNitroProductCacheDb();
 
     $db = NitroDb::getInstance();
@@ -954,7 +1018,8 @@ function clearCategoryCache($category_id) {
     $db->query("DELETE FROM " . DB_PREFIX . "nitro_category_cache WHERE category_id='" . (int)$category_id . "'");
 }
 
-function getCurrentRoute() {
+function getCurrentRoute()
+{
     global $registry;
 
     if (!empty($registry)) {
@@ -966,7 +1031,8 @@ function getCurrentRoute() {
     return $current_route;
 }
 
-function nitroGetBaseCSSFile() {
+function nitroGetBaseCSSFile()
+{
     $current_route = getCurrentRoute();
 
     $base_css_file = NULL;

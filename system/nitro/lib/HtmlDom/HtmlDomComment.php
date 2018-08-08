@@ -1,8 +1,11 @@
 <?php
-class HtmlDomComment {
+
+class HtmlDomComment
+{
     public $text;
 
-    public function __construct($txt) {
+    public function __construct($txt)
+    {
         $this->text = $txt;
     }
 }

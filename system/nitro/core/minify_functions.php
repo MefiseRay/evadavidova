@@ -1,7 +1,8 @@
 <?php
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'core.php';//core.php includes top.php
 
-function optimizeCSS($styles, $excludes = array(), $excludes_meta = array()) {
+function optimizeCSS($styles, $excludes = array(), $excludes_meta = array())
+{
     if (!isNitroEnabled() || !getNitroPersistence('Mini.Enabled')) {
         return $styles;
     }
@@ -15,32 +16,32 @@ function optimizeCSS($styles, $excludes = array(), $excludes_meta = array()) {
     $css_groups = array();
     $mergeMedias = getNitroPersistence("Mini.MergeCSSMedia");
 
-    foreach($styles as $hash=>$style) {
+    foreach ($styles as $hash => $style) {
         $style["media"] = strtolower($style["media"]);
 
         if ($mergeMedias && $style["media"] == "screen") {
             $style["media"] = "all";
         }
 
-        if (empty($css_groups[$style['rel'].'/nitro_divider/'.$style['media']])) $css_groups[$style['rel'].'/nitro_divider/'.$style['media']] = array();
-        $css_groups[$style['rel'].'/nitro_divider/'.$style['media']][$hash] = $style['href'];
+        if (empty($css_groups[$style['rel'] . '/nitro_divider/' . $style['media']])) $css_groups[$style['rel'] . '/nitro_divider/' . $style['media']] = array();
+        $css_groups[$style['rel'] . '/nitro_divider/' . $style['media']][$hash] = $style['href'];
     }
 
     if (getNitroPersistence('Mini.CSS')) {
-        foreach ($css_groups as $key=>$files) {
+        foreach ($css_groups as $key => $files) {
             $css_groups[$key] = minify_file('css', $files, $excludes, $excludes_meta);
         }
     }
 
     if (getNitroPersistence('Mini.CSSCombine')) {
-        foreach ($css_groups as $key=>$files) {
+        foreach ($css_groups as $key => $files) {
             $css_groups[$key] = combine('css', $files, $excludes, $excludes_meta);
         }
     }
 
     $styles = array();
 
-    foreach ($css_groups as $key=>$files) {
+    foreach ($css_groups as $key => $files) {
         list($rel, $media) = explode('/nitro_divider/', $key);
         foreach ($files as $file) {
             $styles[md5($file)] = array(
@@ -54,7 +55,8 @@ function optimizeCSS($styles, $excludes = array(), $excludes_meta = array()) {
     return nitroCDNResolve($styles);
 }
 
-function optimizeJS($scripts, $excludes = array(), $excludes_meta = array()) {
+function optimizeJS($scripts, $excludes = array(), $excludes_meta = array())
+{
     if (!isNitroEnabled() || !getNitroPersistence('Mini.Enabled')) {
         return $scripts;
     }
@@ -81,7 +83,8 @@ function optimizeJS($scripts, $excludes = array(), $excludes_meta = array()) {
     return nitroCDNResolve($scripts);
 }
 
-function is_url(&$string) {
+function is_url(&$string)
+{
     $standard_match = preg_match('@^(https?:)?//.*$@', $string);
 
     if (!$standard_match) {
@@ -97,7 +100,8 @@ function is_url(&$string) {
     return !!$standard_match;
 }
 
-function encode_filename($filename) {
+function encode_filename($filename)
+{
     if (NITRO_DEBUG_MODE) {
         if (!is_url($filename) && is_readable($filename)) {
             return preg_replace('/\W+$/', '_', str_replace(DS, '-', str_replace(NITRO_SITE_ROOT, '', $filename))) . '-' . hash_file('md5', $filename);
@@ -113,7 +117,8 @@ function encode_filename($filename) {
     }
 }
 
-function clean_file_paths(&$files, &$excludes) {
+function clean_file_paths(&$files, &$excludes)
+{
     $oc_root = str_replace('/', DS, dirname(DIR_APPLICATION));
 
     $autoExclude = getNitroPersistence('Mini.AutoExclude');
@@ -129,10 +134,10 @@ function clean_file_paths(&$files, &$excludes) {
         $localpath = '/';
     }
 
-    foreach($files as $hash=>$file) {
+    foreach ($files as $hash => $file) {
         $file = trim($file);
         $files[$hash] = html_entity_decode($file);
-        $filename = $oc_root.DS.ltrim(str_replace('/', DS, $file), DS);
+        $filename = $oc_root . DS . ltrim(str_replace('/', DS, $file), DS);
 
         if (is_readable($filename)) {
             $files[$hash] = ltrim(str_replace('/', DS, $file), DS);
@@ -152,12 +157,12 @@ function clean_file_paths(&$files, &$excludes) {
                 $excludes[] = html_entity_decode(basename($file));
             }
         } else {
-            $path = preg_replace('@^'.$localpath.'/?@', '/', $path);
+            $path = preg_replace('@^' . $localpath . '/?@', '/', $path);
             $ext = substr(strrchr($path, '.'), 1);
 
 
             if (in_array($ext, array('js', 'css'))) {
-                $filename_tmp = $oc_root . DS . preg_replace('@^'.DS.'(\w)@', '$1', str_replace('/', DS, $path));
+                $filename_tmp = $oc_root . DS . preg_replace('@^' . DS . '(\w)@', '$1', str_replace('/', DS, $path));
                 if (is_readable($filename_tmp)) {
                     $files[$hash] = ltrim(str_replace('/', DS, $path), DS);
                     continue;
@@ -171,7 +176,8 @@ function clean_file_paths(&$files, &$excludes) {
     }
 }
 
-function minify_file($type, $files, $excludes, $excludes_meta = array()) {
+function minify_file($type, $files, $excludes, $excludes_meta = array())
+{
     if (!in_array($type, array('css', 'js'))) return $files;
 
     //extract local fylesystem path
@@ -183,37 +189,37 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
 
     $position_excluded_files = 'before';
     switch ($type) {
-    case 'css':
-        if (getNitroPersistence('Mini.ExcludedCSSPosition') == 'after') {
-            $position_excluded_files = 'after';
-        }
-        break;
-    case 'js';
-        if (getNitroPersistence('Mini.ExcludedJSPosition') == 'after') {
-            $position_excluded_files = 'after';
-        }
-        break;
+        case 'css':
+            if (getNitroPersistence('Mini.ExcludedCSSPosition') == 'after') {
+                $position_excluded_files = 'after';
+            }
+            break;
+        case 'js';
+            if (getNitroPersistence('Mini.ExcludedJSPosition') == 'after') {
+                $position_excluded_files = 'after';
+            }
+            break;
     }
 
     if (!defined('DS')) {
         define('DS', DIRECTORY_SEPARATOR);
     }
 
-    if (!file_exists($oc_root.DS.'assets')) {
-        mkdir($oc_root.DS.'assets');
+    if (!file_exists($oc_root . DS . 'assets')) {
+        mkdir($oc_root . DS . 'assets');
     }
 
-    if (!file_exists($oc_root.DS.'assets'.DS.$type)) {
-        mkdir($oc_root.DS.'assets'.DS.$type);
+    if (!file_exists($oc_root . DS . 'assets' . DS . $type)) {
+        mkdir($oc_root . DS . 'assets' . DS . $type);
     }
 
     switch ($type) {
-    case 'js':
-        include_once NITRO_LIB_FOLDER.'minifier'.DS.'JSShrink.php';
-        break;
-    case 'css':
-        include_once NITRO_LIB_FOLDER.'minifier'.DS.'CSSMin.php';
-        break;
+        case 'js':
+            include_once NITRO_LIB_FOLDER . 'minifier' . DS . 'JSShrink.php';
+            break;
+        case 'css':
+            include_once NITRO_LIB_FOLDER . 'minifier' . DS . 'CSSMin.php';
+            break;
     }
 
     $webshopUrl = getWebshopUrl();
@@ -229,14 +235,14 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
         'after' => array()
     );
 
-    foreach ($files as $hash=>$file) {
+    foreach ($files as $hash => $file) {
         $recache = false;
 
         if (!is_excluded_file($file, $excludes, $excludes_meta)) {
-            $filename = $oc_root.DS.trim(str_replace('/', DS, $file), DS);
-            $basefilename = basename($file, '.'.$type);
-            $target = '/assets/'.$type.'/'.getSSLCachePrefix().getMobilePrefix().getDomainPrefix().'nitro-mini-' . getSupportedCookiesPrefix() . '-' . encode_filename($filename) . '.'.$type;
-            $targetAbsolutePath = $oc_root.DS.trim(str_replace('/', DS, $target), DS);
+            $filename = $oc_root . DS . trim(str_replace('/', DS, $file), DS);
+            $basefilename = basename($file, '.' . $type);
+            $target = '/assets/' . $type . '/' . getSSLCachePrefix() . getMobilePrefix() . getDomainPrefix() . 'nitro-mini-' . getSupportedCookiesPrefix() . '-' . encode_filename($filename) . '.' . $type;
+            $targetAbsolutePath = $oc_root . DS . trim(str_replace('/', DS, $target), DS);
 
 
             $url_info = parse_url('http://' . preg_replace('/^(https?:)?\/\//', '', $file));
@@ -248,7 +254,7 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
 
             if (is_readable($filename)) {
                 if (strpos($filename, 'system/nitro/temp') === false) {
-                    $urlToCurrentDir = $webshopUrl.dirname('/'.trim($file, '/'));
+                    $urlToCurrentDir = $webshopUrl . dirname('/' . trim($file, '/'));
                 } else {
                     $urlToCurrentDir = $webshopUrl;
                 }
@@ -258,8 +264,8 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
                 }
             } else {
                 if ($host == $localhost || empty($host)) {
-                    $path = preg_replace('@^'.$localpath.'/?@', '/', $path);
-                    $urlToCurrentDir = $webshopUrl.$path;
+                    $path = preg_replace('@^' . $localpath . '/?@', '/', $path);
+                    $urlToCurrentDir = $webshopUrl . $path;
                 } else {
                     $urlToCurrentDir = dirname($file);
                 }
@@ -276,26 +282,26 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
                 $content = is_readable($filename) ? file_get_contents($filename) : (is_url($file) ? fetchRemoteContent($file) : '');
                 $isMinified = is_readable($filename) ? preg_match('/\.min\.' . $type . '$/i', $filename) : preg_match('/\.min\.' . $type . '($|\?)/', $file);
 
-                switch($type) {
-                case 'js':
-                    try {
-                        if (!(NITRO_DONT_MINIFY_MINIFIED_RESOURCES && $isMinified)) {
-                            $content = Minifier::minify($content, array('flaggedComments' => false));
+                switch ($type) {
+                    case 'js':
+                        try {
+                            if (!(NITRO_DONT_MINIFY_MINIFIED_RESOURCES && $isMinified)) {
+                                $content = Minifier::minify($content, array('flaggedComments' => false));
+                            }
+                        } catch (Exception $e) {
+                            if (NITRO_DEBUG_MODE) {
+                                $log = new Log(date('Y-m-d') . "_nitro_minify_error.txt");
+                                $log->write($e->getMessage() . ' in file: ' . $filename);
+                            }
                         }
-                    } catch (Exception $e) {
-                        if (NITRO_DEBUG_MODE) {
-                            $log = new Log(date('Y-m-d') . "_nitro_minify_error.txt");
-                            $log->write($e->getMessage() . ' in file: ' . $filename);
-                        }
-                    }
-                    break;
-                case 'css':
-                    $content = preg_replace('/(url\()(?![\'\"]?(?:(?:https?\:\/\/)|(?:data\:)|(?:\/)))([\'\"]?)\/?(?!\/)/', '$1$2'.$urlToCurrentDir.'/', $content);
+                        break;
+                    case 'css':
+                        $content = preg_replace('/(url\()(?![\'\"]?(?:(?:https?\:\/\/)|(?:data\:)|(?:\/)))([\'\"]?)\/?(?!\/)/', '$1$2' . $urlToCurrentDir . '/', $content);
 
-                    if (!(NITRO_DONT_MINIFY_MINIFIED_RESOURCES && $isMinified)) {
-                        $content = Nitro_Minify_CSS_Compressor::process($content);
-                    }
-                    break;
+                        if (!(NITRO_DONT_MINIFY_MINIFIED_RESOURCES && $isMinified)) {
+                            $content = Nitro_Minify_CSS_Compressor::process($content);
+                        }
+                        break;
                 }
 
                 file_put_contents($targetAbsolutePath, $content);
@@ -314,7 +320,8 @@ function minify_file($type, $files, $excludes, $excludes_meta = array()) {
     return array_merge($asset_files['before'], $asset_files['middle'], $asset_files['after']);
 }
 
-function is_excluded_file($path, $excludes, &$excludes_meta = array()) {
+function is_excluded_file($path, $excludes, &$excludes_meta = array())
+{
     foreach ($excludes as $e) {
         if (strpos($path, $e) !== false) {
             if (!empty($excludes_meta[$e])) {
@@ -326,7 +333,8 @@ function is_excluded_file($path, $excludes, &$excludes_meta = array()) {
     return false;
 }
 
-function get_file_explicit_pos($path, $excludes_meta, $default = 'before') {
+function get_file_explicit_pos($path, $excludes_meta, $default = 'before')
+{
     if (isset($excludes_meta[$path]) && !empty($excludes_meta[$path]['position'])) {
         return $excludes_meta[$path]['position'];
     }
@@ -334,7 +342,8 @@ function get_file_explicit_pos($path, $excludes_meta, $default = 'before') {
     return $default;
 }
 
-function combine($type, $files, $excludes, $excludes_meta) {
+function combine($type, $files, $excludes, $excludes_meta)
+{
     if (!in_array($type, array('css', 'js'))) return $files;
 
     //extract local fylesystem path
@@ -346,16 +355,16 @@ function combine($type, $files, $excludes, $excludes_meta) {
 
     $position_excluded_files = 'before';
     switch ($type) {
-    case 'css':
-        if (getNitroPersistence('Mini.ExcludedCSSPosition') == 'after') {
-            $position_excluded_files = 'after';
-        }
-        break;
+        case 'css':
+            if (getNitroPersistence('Mini.ExcludedCSSPosition') == 'after') {
+                $position_excluded_files = 'after';
+            }
+            break;
         case 'js';
-        if (getNitroPersistence('Mini.ExcludedJSPosition') == 'after') {
-            $position_excluded_files = 'after';
-        }
-        break;
+            if (getNitroPersistence('Mini.ExcludedJSPosition') == 'after') {
+                $position_excluded_files = 'after';
+            }
+            break;
     }
 
     if (!defined('DS')) {
@@ -369,7 +378,7 @@ function combine($type, $files, $excludes, $excludes_meta) {
     );
     $includedFiles = 0;
 
-    foreach ($files as $hash=>$file) {
+    foreach ($files as $hash => $file) {
         if (!is_excluded_file($file, $excludes, $excludes_meta)) {
             $comboHash .= $hash;
             if (!is_url($file) && is_readable($file)) {
@@ -383,8 +392,8 @@ function combine($type, $files, $excludes, $excludes_meta) {
     }
 
     $comboHash = md5($comboHash);
-    $target = '/assets/'.$type.'/'.getSSLCachePrefix().getMobilePrefix().getDomainPrefix().'nitro-combined-' . $comboHash . '.'.$type;
-    $targetAbsolutePath = $oc_root.DS.trim(str_replace('/', DS, $target), DS);
+    $target = '/assets/' . $type . '/' . getSSLCachePrefix() . getMobilePrefix() . getDomainPrefix() . 'nitro-combined-' . $comboHash . '.' . $type;
+    $targetAbsolutePath = $oc_root . DS . trim(str_replace('/', DS, $target), DS);
 
     $webshopUrl = getWebshopUrl();
     $localhost = !empty($webshopUrl) ? parse_url('http://' . preg_replace('/^(https?:)?\/\//', '', $webshopUrl), PHP_URL_HOST) : '';
@@ -398,9 +407,9 @@ function combine($type, $files, $excludes, $excludes_meta) {
     if (!file_exists($targetAbsolutePath)) {
         $recache = true;
     } else {
-        foreach ($files as $hash=>$file) {
+        foreach ($files as $hash => $file) {
             if (!is_excluded_file($file, $excludes, $excludes_meta)) {
-                $filename = $oc_root.DS.trim(str_replace('/', DS, $file), DS);
+                $filename = $oc_root . DS . trim(str_replace('/', DS, $file), DS);
 
                 if (is_readable($filename) && filemtime($filename) > filemtime($targetAbsolutePath)) {
                     $recache = true;
@@ -417,12 +426,12 @@ function combine($type, $files, $excludes, $excludes_meta) {
 
     if ($recache) {
         $counter = 0;
-        foreach ($files as $hash=>$file) {
+        foreach ($files as $hash => $file) {
             if (!is_excluded_file($file, $excludes, $excludes_meta)) {
-                $filename = $oc_root.DS.trim(str_replace('/', DS, $file), DS);
+                $filename = $oc_root . DS . trim(str_replace('/', DS, $file), DS);
 
                 $content = is_readable($filename) ? file_get_contents($filename) : (is_url($file) ? fetchRemoteContent($file) : '');
-                
+
                 if (!empty($content)) {
                     if ($type == 'js') {
                         if (NITRO_TRY_CATCH_WRAP) {
@@ -441,29 +450,29 @@ function combine($type, $files, $excludes, $excludes_meta) {
                         }
 
                         if (is_readable($filename)) {
-                            $urlToCurrentDir = $webshopUrl.dirname('/'.trim($file, '/'));
+                            $urlToCurrentDir = $webshopUrl . dirname('/' . trim($file, '/'));
                         } else {
                             if ($host == $localhost || empty($host)) {
-                                $path = preg_replace('@^'.$localpath.'/?@', '/', $path);
-                                $urlToCurrentDir = $webshopUrl.$path;
+                                $path = preg_replace('@^' . $localpath . '/?@', '/', $path);
+                                $urlToCurrentDir = $webshopUrl . $path;
                             } else {
                                 $urlToCurrentDir = dirname($file);
                             }
                         }
 
                         $urlToCurrentDir = str_replace(DIRECTORY_SEPARATOR, '/', $urlToCurrentDir);//convert Windows style paths, to web style
-                        
-                        $content = preg_replace('/(url\()(?![\'\"]?(?:(?:https?\:\/\/)|(?:data\:)|(?:\/)))([\'\"]?)\/?(?!\/)/', '$1$2'.$urlToCurrentDir.'/', $content);
+
+                        $content = preg_replace('/(url\()(?![\'\"]?(?:(?:https?\:\/\/)|(?:data\:)|(?:\/)))([\'\"]?)\/?(?!\/)/', '$1$2' . $urlToCurrentDir . '/', $content);
                     }
-                    
+
                     $combinedContent .= (($counter > 0) ? PHP_EOL : '') . $content;
-                    
+
                     unset($content);
                     $counter++;
                 }
             }
         }
-        
+
         if ($type == 'css') {
             /* pull imports to the top and include their content if possible */
             $imports = array();
@@ -485,9 +494,9 @@ function combine($type, $files, $excludes, $excludes_meta) {
                     }
 
                     if (!empty($tmpImportContent)) {
-                        $combinedContent = $tmpImportContent.str_replace($import, '', $combinedContent);
+                        $combinedContent = $tmpImportContent . str_replace($import, '', $combinedContent);
                     } else {
-                        $combinedContent = $import.str_replace($import, '', $combinedContent);
+                        $combinedContent = $import . str_replace($import, '', $combinedContent);
                     }
                 }
             }

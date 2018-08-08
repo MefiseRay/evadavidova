@@ -1,5 +1,7 @@
 <?php
-class NitroBrowser {
+
+class NitroBrowser
+{
     public static $connections = array();
     public $hosts_cache = array();
     public $URL;
@@ -29,7 +31,8 @@ class NitroBrowser {
     private $cookies = array();
     private $cookie_jar = "";
 
-    public function __construct($URL, $cookie_jar = NULL) {
+    public function __construct($URL, $cookie_jar = NULL)
+    {
         $this->setURL($URL);
 
         $this->timeout = 5;//in seconds
@@ -42,113 +45,14 @@ class NitroBrowser {
         }
     }
 
-    public function __destruct() {
-        //$this->disconnect(); this is commented so we can keep the connection-alive
-    }
-
-    public function disconnect() {
-        if (is_resource($this->sock)) {
-            fclose($this->sock);
-        }
-    }
-
-    public function setURL($URL) {
+    public function setURL($URL)
+    {
         $this->URL = $URL;
         $this->parseURL();
     }
 
-    public function setPostData($data) {
-        $this->post_data = !empty($data) ? http_build_query($data) : "";
-    }
-
-    /**
-     * Set a callback function which will be called while receiving data chunks
-     * This callback will not be called while receiving headers - only for data after the headers
-     * The callback receives 1 parameter - the received data
-     * The callback is not expected to return anything
-     * */
-    public function setDataCallback($callback) {
-        if (is_callable($callback)) {
-            $this->data_callback = $callback;
-        } else {
-            $this->data_callback = NULL;
-        }
-    }
-
-    /**
-     * Set a callback function which will be called when following Location redirects automatically
-     * The callback receives 1 parameter - the next URL
-     * The callback is expected to return a URL. The returned URL will be used for the next request
-     * */
-    public function setRedirectCallback($callback) {
-        if (is_callable($callback)) {
-            $this->redirect_callback = $callback;
-        } else {
-            $this->redirect_callback = NULL;
-        }
-    }
-
-    public function setDataDrainFile($file) {
-        if (is_resource($file)) {
-            $this->data_drain_file = $file;
-            stream_set_blocking($this->data_drain_file, false);
-        } else if (is_string($file)) {
-            $dir = dirname($file);
-            if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
-                $this->data_drain_file = NULL;
-                return;
-            }
-            $this->data_drain_file = fopen($file, "w");
-            stream_set_blocking($this->data_drain_file, false);
-        } else {
-            $this->data_drain_file = NULL;
-        }
-    }
-
-    public function setCookie($name, $value, $domain = null) {
-        if (!$domain && $this->host) {
-            $domain = $this->host;
-        }
-
-        if ($domain) {
-            if (empty($this->cookies[$domain])) {
-                $this->cookies[$domain] = array();
-            }
-            $this->cookies[$domain][$name] = $value;
-        }
-
-        if ($this->cookie_jar) {
-            file_put_contents($this->cookie_jar, json_encode($this->cookies));
-        }
-    }
-
-    public function removeCookie($name, $domain = null) {
-        if (!$domain && $this->host) {
-            $domain = $this->host;
-        }
-
-        if ($domain) {
-            if (!empty($this->cookies[$domain][$name])) {
-                unset($this->cookies[$domain][$name]);
-            }
-        }
-
-        if ($this->cookie_jar) {
-            file_put_contents($this->cookie_jar, json_encode($this->cookies));
-        }
-    }
-
-    public function clearCookies($domain) {
-        if (isset($this->cookies[$domain])) {
-            unset($this->cookies[$domain]);
-        }
-
-        if ($this->cookie_jar) {
-            file_put_contents($this->cookie_jar, json_encode($this->cookies));
-        }
-    }
-
-    public function parseURL() {
+    public function parseURL()
+    {
         if (!empty($this->URL)) {
             $this->URL = $this->encodeURL($this->URL);
             $info = parse_url($this->URL);
@@ -175,7 +79,7 @@ class NitroBrowser {
                     throw new URLUnsupportedProtocolException('Unsupported protocol');
                 }
 
-                $this->port = !empty($info['port']) ? $info['port'] : ( (!empty($info['scheme']) && $info['scheme'] == 'https') ? 443 : 80 );
+                $this->port = !empty($info['port']) ? $info['port'] : ((!empty($info['scheme']) && $info['scheme'] == 'https') ? 443 : 80);
 
                 $this->path = !empty($info['path']) ? $info['path'] : '/';
 
@@ -189,7 +93,7 @@ class NitroBrowser {
                 $path_parts = explode('/', $this->path);
                 $final_parts = array();
 
-                foreach($path_parts as $part) {
+                foreach ($path_parts as $part) {
                     if ($part == '..') {
                         array_pop($final_parts);
                     } else {
@@ -205,7 +109,8 @@ class NitroBrowser {
         }
     }
 
-    private function encodeURL($URL) {
+    private function encodeURL($URL)
+    {
         $url_length = strlen($URL);
         $x = 0;
 
@@ -213,22 +118,22 @@ class NitroBrowser {
             $char = $URL[$x];
             if (ord($char) > 127) {
 
-                if($char < 224){
+                if ($char < 224) {
                     $bytes = 2;
-                }elseif($char < 240){
+                } elseif ($char < 240) {
                     $bytes = 3;
-                }elseif($char < 248){
+                } elseif ($char < 248) {
                     $bytes = 4;
-                }elseif($char == 252){
+                } elseif ($char == 252) {
                     $bytes = 5;
-                }else{
+                } else {
                     $bytes = 6;
                 }
 
-                $str =  substr($URL, $x, $bytes);
+                $str = substr($URL, $x, $bytes);
 
                 $encoded = rawurlencode($str);
-                $URL = substr($URL, 0, $x) . $encoded . substr($URL, $x+$bytes);
+                $URL = substr($URL, 0, $x) . $encoded . substr($URL, $x + $bytes);
                 $x += strlen($encoded);
                 $url_length = strlen($URL);
             } else {
@@ -239,7 +144,8 @@ class NitroBrowser {
         return $URL;
     }
 
-    public function gethostbyname($host) {
+    public function gethostbyname($host)
+    {
         if (!isset($this->hosts_cache[$host])) {
             $this->hosts_cache[$host] = gethostbyname($host);
         }
@@ -247,7 +153,76 @@ class NitroBrowser {
         return $this->hosts_cache[$host];
     }
 
-    public function fetch($follow_redirects = true, $method = "GET") {
+    public function __destruct()
+    {
+        //$this->disconnect(); this is commented so we can keep the connection-alive
+    }
+
+    public function setPostData($data)
+    {
+        $this->post_data = !empty($data) ? http_build_query($data) : "";
+    }
+
+    /**
+     * Set a callback function which will be called while receiving data chunks
+     * This callback will not be called while receiving headers - only for data after the headers
+     * The callback receives 1 parameter - the received data
+     * The callback is not expected to return anything
+     * */
+    public function setDataCallback($callback)
+    {
+        if (is_callable($callback)) {
+            $this->data_callback = $callback;
+        } else {
+            $this->data_callback = NULL;
+        }
+    }
+
+    /**
+     * Set a callback function which will be called when following Location redirects automatically
+     * The callback receives 1 parameter - the next URL
+     * The callback is expected to return a URL. The returned URL will be used for the next request
+     * */
+    public function setRedirectCallback($callback)
+    {
+        if (is_callable($callback)) {
+            $this->redirect_callback = $callback;
+        } else {
+            $this->redirect_callback = NULL;
+        }
+    }
+
+    public function setDataDrainFile($file)
+    {
+        if (is_resource($file)) {
+            $this->data_drain_file = $file;
+            stream_set_blocking($this->data_drain_file, false);
+        } else if (is_string($file)) {
+            $dir = dirname($file);
+            if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
+                $this->data_drain_file = NULL;
+                return;
+            }
+            $this->data_drain_file = fopen($file, "w");
+            stream_set_blocking($this->data_drain_file, false);
+        } else {
+            $this->data_drain_file = NULL;
+        }
+    }
+
+    public function clearCookies($domain)
+    {
+        if (isset($this->cookies[$domain])) {
+            unset($this->cookies[$domain]);
+        }
+
+        if ($this->cookie_jar) {
+            file_put_contents($this->cookie_jar, json_encode($this->cookies));
+        }
+    }
+
+    public function fetch($follow_redirects = true, $method = "GET")
+    {
         if ($this->data_drain_file) {
             ftruncate($this->data_drain_file, 0);
             fseek($this->data_drain_file, 0, SEEK_SET);
@@ -298,38 +273,17 @@ class NitroBrowser {
         }
     }
 
-    public function setHeader($header, $value) {
-        $this->request_headers[$header] = $value;
-    }
-
-    public function removeHeader($header) {
-        if (isset($this->request_headers[$header])) {
-            unset($this->request_headers[$header]);
-        }
-    }
-
-    public function getHeaders() {
-        return $this->headers;
-    }
-
-    public function getBody() {
-        return $this->body;
-    }
-
-    public function getStatusCode() {
-        return $this->status_code;
-    }
-
-    public function connect() {
-        if (isset(self::$connections[$this->addr.':'.$this->port])) {
-            $this->sock = self::$connections[$this->addr.':'.$this->port];
+    public function connect()
+    {
+        if (isset(self::$connections[$this->addr . ':' . $this->port])) {
+            $this->sock = self::$connections[$this->addr . ':' . $this->port];
             if (is_resource($this->sock) && !feof($this->sock)) {// check if the connection is still alive
                 return;
             }
         }
 
         if (stripos(ini_get('disable_functions'), 'stream_socket_client') !== FALSE) {
-            throw new RuntimeException("stream_socket_client is disabled.");    
+            throw new RuntimeException("stream_socket_client is disabled.");
         }
 
         $ctx = stream_context_create(array(
@@ -346,8 +300,8 @@ class NitroBrowser {
         $errno = $errorMessage = NULL;
         $this->sock = stream_socket_client("tcp://$this->addr:$this->port", $errno, $errorMessage, $this->timeout, STREAM_CLIENT_CONNECT, $ctx);
 
-        if($this->sock === false) {
-            throw new SocketOpenException('Unable to open socket to: ' . $this->host .' on port ' . $this->port);
+        if ($this->sock === false) {
+            throw new SocketOpenException('Unable to open socket to: ' . $this->host . ' on port ' . $this->port);
         }
 
         $crypto_method = STREAM_CRYPTO_METHOD_TLS_CLIENT;
@@ -361,15 +315,16 @@ class NitroBrowser {
         if ($this->port == 443) {
             if (!@stream_socket_enable_crypto($this->sock, true, $crypto_method)) {
                 restore_error_handler();
-                throw new SocketOpenException('Unable to establish secure connection to: ' . $this->host .' on port ' . $this->port);
+                throw new SocketOpenException('Unable to establish secure connection to: ' . $this->host . ' on port ' . $this->port);
             }
         }
         restore_error_handler();
 
-        self::$connections[$this->addr.':'.$this->port] = $this->sock;
+        self::$connections[$this->addr . ':' . $this->port] = $this->sock;
     }
 
-    public function sendRequest($request) {
+    public function sendRequest($request)
+    {
         stream_set_blocking($this->sock, false);
         $startTime = microtime(true);
         do {
@@ -387,11 +342,50 @@ class NitroBrowser {
             }
 
             $request = substr($request, $wrote);
-        } while($request);
+        } while ($request);
         stream_set_blocking($this->sock, true);
     }
 
-    public function download() {
+    public function getRequestHeaders()
+    {
+        $headers = array();
+        $headers[] = $this->http_method . " " . $this->path . " HTTP/1.1";
+        $headers[] = "Host: " . $this->host;
+
+        if ($this->accept_deflate) {
+            $headers[] = "Accept-Encoding: gzip";
+        }
+
+        $cookies_combined = array();
+        foreach ($this->cookies as $domain => $cookies) {
+            if (preg_match("/" . preg_quote(ltrim($domain, ".")) . "$/", $this->host)) {
+                foreach ($cookies as $name => $value) {
+                    $cookies_combined[] = $name . "=" . $value;
+                }
+            }
+        }
+
+        if (!empty($cookies_combined)) {
+            $headers[] = "Cookie: " . implode("; ", $cookies_combined);
+        }
+
+        if (!empty($this->request_headers)) {
+            foreach ($this->request_headers as $name => $value) {
+                $headers[] = $name . ": " . $value;
+            }
+        }
+
+        if ($this->post_data && $this->http_method == "POST") {
+            $headers[] = "Content-Type: application/x-www-form-urlencoded";
+            $headers[] = "Content-Length: " . strlen($this->post_data);
+            return implode("\r\n", $headers) . "\r\n\r\n" . $this->post_data;
+        } else {
+            return implode("\r\n", $headers) . "\r\n\r\n";
+        }
+    }
+
+    public function download()
+    {
         stream_set_blocking($this->sock, false);
         $this->headers = array();
         $data_len = $this->max_response_size;
@@ -408,7 +402,7 @@ class NitroBrowser {
             $data = fread($this->sock, $chunk);
             if (strlen($data)) {
                 $this->data_size += strlen($data);
-                
+
                 if ($this->headers && !$is_chunked && (!$this->is_gzipped || !$this->auto_deflate)) {
                     if ($this->data_drain_file) {
                         fwrite($this->data_drain_file, $data);
@@ -493,62 +487,15 @@ class NitroBrowser {
         }
     }
 
-    private function hasStreamEnded() {
-        return $this->end_of_chunks && strpos($this->buffer, "\r\n\r\n") !== false;
-    }
-
-    private function parseChunks() {
-        while(strlen($this->buffer)) {
-            if (!$this->chunk_remainder) {
-                $chunk_header_end = strpos($this->buffer, "\r\n");
-
-                if ($chunk_header_end !== false) {
-                    $chunk_header_str = substr($this->buffer, 0, $chunk_header_end);
-                    $chunk_size = hexdec($chunk_header_str);
-
-                    if ($chunk_size == 0) {
-                        $this->end_of_chunks = true;
-                        break;
-                    }
-
-                    $this->buffer = strlen($this->buffer) > $chunk_header_end + 2 ? substr($this->buffer, $chunk_header_end+2) : "";
-                    $this->chunk_remainder = $chunk_size + 2;
-                } else {
-                    break;
-                }
-            } else {
-                if ($this->buffer) {
-                    $data = substr($this->buffer, 0, $this->chunk_remainder);
-                    $read_len = strlen($data);
-                    if ($read_len == $this->chunk_remainder) {
-                        $data = substr($data, 0, -2);
-                    }
-
-                    $this->chunk_remainder -= $read_len;
-                    $this->buffer = strlen($this->buffer) > $read_len ? substr($this->buffer, $read_len) : "";
-
-                    if ($this->data_drain_file && (!$this->is_gzipped || !$this->auto_deflate)) {
-                        fwrite($this->data_drain_file, $data);
-                    } else {
-                        $this->body .= $data;
-                    }
-
-                    if ($this->data_callback) {
-                        $this->data_callback($data);
-                    }
-                }
-            }
-        }
-    }
-
-    public function extractHeaders() {
+    public function extractHeaders()
+    {
         if ($this->headers) return true;
 
         $headers_end = strpos($this->buffer, "\r\n\r\n");
 
         if ($headers_end) {
             $headers_str = substr($this->buffer, 0, $headers_end);
-            $this->buffer = strlen($this->buffer) > $headers_end + 4 ? substr($this->buffer, $headers_end+4) : "";
+            $this->buffer = strlen($this->buffer) > $headers_end + 4 ? substr($this->buffer, $headers_end + 4) : "";
             $this->data_size = strlen($this->buffer);
             preg_match_all('/^(.*)/mi', $headers_str, $headers);
             foreach ($headers[1] as $header) {
@@ -564,7 +511,7 @@ class NitroBrowser {
                     $cookie_value = "";
                     $cookie_exp_time = 0;
 
-                    foreach ($cookie_parts as $i=>$part) {
+                    foreach ($cookie_parts as $i => $part) {
                         $part_exploded = explode("=", $part);
                         $key = array_shift($part_exploded);
                         $part_value = implode("=", $part_exploded);
@@ -574,12 +521,12 @@ class NitroBrowser {
                             $cookie_value = $part_value;
                         } else {
                             switch (strtolower($key)) {
-                            case "domain":
-                                $cookie_domain = $part_value;
-                                break;
-                            case "expires":
-                                $cookie_exp_time = @strtotime($part_value);
-                                break;
+                                case "domain":
+                                    $cookie_domain = $part_value;
+                                    break;
+                                case "expires":
+                                    $cookie_exp_time = @strtotime($part_value);
+                                    break;
                             }
                         }
                     }
@@ -609,51 +556,158 @@ class NitroBrowser {
         return false;
     }
 
-    public function getRequestHeaders() {
-        $headers = array();
-        $headers[] = $this->http_method . " " . $this->path . " HTTP/1.1";
-        $headers[] = "Host: " . $this->host;
-
-        if ($this->accept_deflate) {
-            $headers[] = "Accept-Encoding: gzip";
+    public function removeCookie($name, $domain = null)
+    {
+        if (!$domain && $this->host) {
+            $domain = $this->host;
         }
 
-        $cookies_combined = array();
-        foreach ($this->cookies as $domain=>$cookies) {
-            if (preg_match("/".preg_quote(ltrim($domain, "."))."$/", $this->host)) {
-                foreach ($cookies as $name=>$value) {
-                    $cookies_combined[] = $name."=".$value;
-                }
+        if ($domain) {
+            if (!empty($this->cookies[$domain][$name])) {
+                unset($this->cookies[$domain][$name]);
             }
         }
 
-        if (!empty($cookies_combined)) {
-            $headers[] = "Cookie: " . implode("; ", $cookies_combined);
-        }
-
-        if (!empty($this->request_headers)) {
-            foreach ($this->request_headers as $name => $value) {
-                $headers[] =  $name . ": " . $value;
-            }
-        }
-
-        if ($this->post_data && $this->http_method == "POST") {
-            $headers[] = "Content-Type: application/x-www-form-urlencoded";
-            $headers[] = "Content-Length: " . strlen($this->post_data);
-            return implode("\r\n", $headers) . "\r\n\r\n" . $this->post_data;
-        } else {
-            return implode("\r\n", $headers) . "\r\n\r\n";
+        if ($this->cookie_jar) {
+            file_put_contents($this->cookie_jar, json_encode($this->cookies));
         }
     }
 
-    private function error_sink($errno, $errstr) {}
+    public function setCookie($name, $value, $domain = null)
+    {
+        if (!$domain && $this->host) {
+            $domain = $this->host;
+        }
+
+        if ($domain) {
+            if (empty($this->cookies[$domain])) {
+                $this->cookies[$domain] = array();
+            }
+            $this->cookies[$domain][$name] = $value;
+        }
+
+        if ($this->cookie_jar) {
+            file_put_contents($this->cookie_jar, json_encode($this->cookies));
+        }
+    }
+
+    private function parseChunks()
+    {
+        while (strlen($this->buffer)) {
+            if (!$this->chunk_remainder) {
+                $chunk_header_end = strpos($this->buffer, "\r\n");
+
+                if ($chunk_header_end !== false) {
+                    $chunk_header_str = substr($this->buffer, 0, $chunk_header_end);
+                    $chunk_size = hexdec($chunk_header_str);
+
+                    if ($chunk_size == 0) {
+                        $this->end_of_chunks = true;
+                        break;
+                    }
+
+                    $this->buffer = strlen($this->buffer) > $chunk_header_end + 2 ? substr($this->buffer, $chunk_header_end + 2) : "";
+                    $this->chunk_remainder = $chunk_size + 2;
+                } else {
+                    break;
+                }
+            } else {
+                if ($this->buffer) {
+                    $data = substr($this->buffer, 0, $this->chunk_remainder);
+                    $read_len = strlen($data);
+                    if ($read_len == $this->chunk_remainder) {
+                        $data = substr($data, 0, -2);
+                    }
+
+                    $this->chunk_remainder -= $read_len;
+                    $this->buffer = strlen($this->buffer) > $read_len ? substr($this->buffer, $read_len) : "";
+
+                    if ($this->data_drain_file && (!$this->is_gzipped || !$this->auto_deflate)) {
+                        fwrite($this->data_drain_file, $data);
+                    } else {
+                        $this->body .= $data;
+                    }
+
+                    if ($this->data_callback) {
+                        $this->data_callback($data);
+                    }
+                }
+            }
+        }
+    }
+
+    private function hasStreamEnded()
+    {
+        return $this->end_of_chunks && strpos($this->buffer, "\r\n\r\n") !== false;
+    }
+
+    public function disconnect()
+    {
+        if (is_resource($this->sock)) {
+            fclose($this->sock);
+        }
+    }
+
+    public function setHeader($header, $value)
+    {
+        $this->request_headers[$header] = $value;
+    }
+
+    public function removeHeader($header)
+    {
+        if (isset($this->request_headers[$header])) {
+            unset($this->request_headers[$header]);
+        }
+    }
+
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+
+    public function getBody()
+    {
+        return $this->body;
+    }
+
+    public function getStatusCode()
+    {
+        return $this->status_code;
+    }
+
+    private function error_sink($errno, $errstr)
+    {
+    }
 }
 
-class URLException extends Exception {}
-class URLEmptyException extends Exception {}
-class URLInvalidException extends Exception {}
-class URLUnsupportedProtocolException extends Exception {}
-class SocketOpenException extends Exception {}
-class SocketWriteException extends Exception {}
-class SocketConTimedOutException extends Exception {}
-class ResponseTooLargeException extends Exception {}
+class URLException extends Exception
+{
+}
+
+class URLEmptyException extends Exception
+{
+}
+
+class URLInvalidException extends Exception
+{
+}
+
+class URLUnsupportedProtocolException extends Exception
+{
+}
+
+class SocketOpenException extends Exception
+{
+}
+
+class SocketWriteException extends Exception
+{
+}
+
+class SocketConTimedOutException extends Exception
+{
+}
+
+class ResponseTooLargeException extends Exception
+{
+}

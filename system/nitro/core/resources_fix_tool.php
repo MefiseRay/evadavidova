@@ -1,12 +1,13 @@
 <?php
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'core.php';//core.php includes top.php
-require_once NITRO_CORE_FOLDER.'minify_functions.php';
+require_once NITRO_CORE_FOLDER . 'minify_functions.php';
 
-function extractHardcodedResources($content) {
+function extractHardcodedResources($content)
+{
     if (!isNitroEnabled() || !getNitroPersistence('Mini.Enabled')) {
         return $content;
     }
-    
+
     loadNitroLib('HtmlDom');
     $dom = HtmlDom::fromString($content);
 
@@ -26,8 +27,8 @@ function extractHardcodedResources($content) {
     $cssExtractEnabled = false;
     $jsExtractEnabled = false;
 
-    require_once(DIR_SYSTEM.'nitro'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'core.php');
-    require_once(DIR_SYSTEM.'nitro'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'cdn.php');
+    require_once(DIR_SYSTEM . 'nitro' . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR . 'core.php');
+    require_once(DIR_SYSTEM . 'nitro' . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR . 'cdn.php');
 
     if (getNitroPersistence('Mini.CSSExtract')) {
         $cssExtractEnabled = true;
@@ -35,7 +36,7 @@ function extractHardcodedResources($content) {
         if (getNitroPersistence('Mini.CSSExclude')) {
             $cssExclude = trim(getNitroPersistence('Mini.CSSExclude'), "\n\r ");
             $cssExclude = explode("\n", $cssExclude);
-            foreach ($cssExclude as $k=>$stylename) {
+            foreach ($cssExclude as $k => $stylename) {
                 $stylename = html_entity_decode(trim($stylename, "\n\r "));
                 if (!empty($stylename)) {
                     if (preg_match('/(.*?){{(NitroPack.*?)}}$/', $stylename, $matches)) {
@@ -74,7 +75,7 @@ function extractHardcodedResources($content) {
                             'extract' => true,
                             'position' => getNitroPersistence('Mini.ExcludedCSSPosition')
                         );
-                        
+
                         $cssLineExclude[] = $style;
                     }
                 }
@@ -136,7 +137,7 @@ function extractHardcodedResources($content) {
     $extractedJSFiles = array();
     $extractedJSScripts = array();
     $extractedCSSFiles = array();
-        
+
     foreach ($elements as $el) {
         switch ($el->tagName) {
             case 'script':
@@ -196,7 +197,7 @@ function extractHardcodedResources($content) {
                 $attr = $el->getAttribute('href');
                 if ($attr && !empty($attr->value)) {
                     if ((!nitroIsIgnoredUrl($attr->value, $cssExclude, $cssExcludeMeta) ||
-                          nitroIsUrlToBeExtracted($attr->value, $cssExcludeMeta))) {
+                        nitroIsUrlToBeExtracted($attr->value, $cssExcludeMeta))) {
                         $extractedCSSFiles[] = $el;
                         $el->remove();
                     } else {
@@ -286,9 +287,9 @@ function extractHardcodedResources($content) {
             }
         }
 
-        foreach($minCSS as $css_file) {
+        foreach ($minCSS as $css_file) {
             if ($position == 'top') {
-                if (strpos($css_file['href'], 'system/nitro') !== false) { 
+                if (strpos($css_file['href'], 'system/nitro') !== false) {
                     $node = new HtmlDomNode('style');
                     $node->setAttribute('type', 'text/css');
                     $node->html(file_get_contents($css_file['href']));
@@ -306,9 +307,9 @@ function extractHardcodedResources($content) {
                 }
             } else if ($position == 'bottom') {
                 if (NITRO_BASE_CSS_AUTO_REMOVE) {
-                    $js = 'document.addEventListener("DOMContentLoaded",function(){var link=document.createElement("link");link.onload=function(){var baseCSS=document.getElementById("nitro-base-css");if(baseCSS){baseCSS.remove();}};link.type="text/css";link.rel="'.$css_file['rel'].'";link.media="'.$css_file['media'].'";link.href="'.preg_replace('/^https?:/', '', $css_file['href']).'";document.getElementsByTagName("body")[0].appendChild(link);});';
+                    $js = 'document.addEventListener("DOMContentLoaded",function(){var link=document.createElement("link");link.onload=function(){var baseCSS=document.getElementById("nitro-base-css");if(baseCSS){baseCSS.remove();}};link.type="text/css";link.rel="' . $css_file['rel'] . '";link.media="' . $css_file['media'] . '";link.href="' . preg_replace('/^https?:/', '', $css_file['href']) . '";document.getElementsByTagName("body")[0].appendChild(link);});';
                 } else {
-                    $js = 'document.addEventListener("DOMContentLoaded",function(){var link=document.createElement("link");link.type="text/css";link.rel="'.$css_file['rel'].'";link.media="'.$css_file['media'].'";link.href="'.preg_replace('/^https?:/', '', $css_file['href']).'";document.getElementsByTagName("body")[0].appendChild(link);});';
+                    $js = 'document.addEventListener("DOMContentLoaded",function(){var link=document.createElement("link");link.type="text/css";link.rel="' . $css_file['rel'] . '";link.media="' . $css_file['media'] . '";link.href="' . preg_replace('/^https?:/', '', $css_file['href']) . '";document.getElementsByTagName("body")[0].appendChild(link);});';
                 }
                 $node = new HtmlDomNode('script');
                 $node->html($js);
@@ -316,8 +317,8 @@ function extractHardcodedResources($content) {
             }
         }
     }
-    
-    
+
+
     $minJS = optimizeJS(generateJSMinificatorScripts($extractedJSFiles), $jsExclude, $jsExcludeMeta);
     $use_defer = getNitroPersistence('Mini.JSDefer');
 
@@ -337,7 +338,7 @@ function extractHardcodedResources($content) {
     }
 
     if ($insert_point) {
-        foreach($minJS as $js_file) {
+        foreach ($minJS as $js_file) {
             $node = new HtmlDomNode('script');
             $node->setAttribute('src', preg_replace('/^https?:/', '', $js_file));
             $node->setAttribute('type', 'text/javascript');
@@ -349,7 +350,7 @@ function extractHardcodedResources($content) {
             $insert_point->appendChild($node);
         }
 
-        foreach($extractedJSScripts as $script_code) {
+        foreach ($extractedJSScripts as $script_code) {
             $node = new HtmlDomNode('script');
             $node->setAttribute('type', 'text/javascript');
             $node->html($script_code);
@@ -363,43 +364,46 @@ function extractHardcodedResources($content) {
     return $dom->getHtml($include_comments, $minification_level);
 }
 
-function createTempScript($code) {
-    if (!file_exists(NITRO_FOLDER.'temp') || !is_dir(NITRO_FOLDER.'temp')) {
-        mkdir(NITRO_FOLDER.'temp');
+function createTempScript($code)
+{
+    if (!file_exists(NITRO_FOLDER . 'temp') || !is_dir(NITRO_FOLDER . 'temp')) {
+        mkdir(NITRO_FOLDER . 'temp');
     }
-    
-    if (!file_exists(NITRO_FOLDER.'temp'.DS.'js') || !is_dir(NITRO_FOLDER.'temp'.DS.'js')) {
-        mkdir(NITRO_FOLDER.'temp'.DS.'js');
+
+    if (!file_exists(NITRO_FOLDER . 'temp' . DS . 'js') || !is_dir(NITRO_FOLDER . 'temp' . DS . 'js')) {
+        mkdir(NITRO_FOLDER . 'temp' . DS . 'js');
     }
-    
+
     $scriptname = md5($code) . '.js';
-    $script_path = NITRO_FOLDER.'temp'.DS.'js'.DS.$scriptname;
+    $script_path = NITRO_FOLDER . 'temp' . DS . 'js' . DS . $scriptname;
     $code = str_replace(array('<!--', '-->'), '', $code);
     file_put_contents($script_path, $code);
     $script_path = str_replace(array('/', '\\'), array(DS, DS), $script_path);
-    return str_replace(str_replace('/', DS, dirname(DIR_APPLICATION).DS), '', $script_path);
+    return str_replace(str_replace('/', DS, dirname(DIR_APPLICATION) . DS), '', $script_path);
 }
 
-function createTempStyle($code) {
-    if (!file_exists(NITRO_FOLDER.'temp') || !is_dir(NITRO_FOLDER.'temp')) {
-        mkdir(NITRO_FOLDER.'temp');
+function createTempStyle($code)
+{
+    if (!file_exists(NITRO_FOLDER . 'temp') || !is_dir(NITRO_FOLDER . 'temp')) {
+        mkdir(NITRO_FOLDER . 'temp');
     }
-    
-    if (!file_exists(NITRO_FOLDER.'temp'.DS.'css') || !is_dir(NITRO_FOLDER.'temp'.DS.'css')) {
-        mkdir(NITRO_FOLDER.'temp'.DS.'css');
+
+    if (!file_exists(NITRO_FOLDER . 'temp' . DS . 'css') || !is_dir(NITRO_FOLDER . 'temp' . DS . 'css')) {
+        mkdir(NITRO_FOLDER . 'temp' . DS . 'css');
     }
-    
+
     $scriptname = md5($code) . '.css';
-    $script_path = NITRO_FOLDER.'temp'.DS.'css'.DS.$scriptname;
+    $script_path = NITRO_FOLDER . 'temp' . DS . 'css' . DS . $scriptname;
     file_put_contents($script_path, $code);
     $script_path = str_replace(array('/', '\\'), array(DS, DS), $script_path);
-    return str_replace(str_replace('/', DS, dirname(DIR_APPLICATION).DS), '', $script_path);
+    return str_replace(str_replace('/', DS, dirname(DIR_APPLICATION) . DS), '', $script_path);
 }
 
-function nitroIsIgnoredUrl($url, $ignored_urls, &$ignored_urls_meta = NULL) {
+function nitroIsIgnoredUrl($url, $ignored_urls, &$ignored_urls_meta = NULL)
+{
     if (!empty($ignored_urls)) {
-        foreach($ignored_urls as $ignoredUrl) {
-            if (!empty($ignoredUrl) && is_string($ignoredUrl)) { 
+        foreach ($ignored_urls as $ignoredUrl) {
+            if (!empty($ignoredUrl) && is_string($ignoredUrl)) {
                 if (strpos($url, $ignoredUrl) !== false) {
                     if ($ignored_urls_meta && !empty($ignored_urls_meta[$ignoredUrl])) {
                         $ignored_urls_meta[$url] = $ignored_urls_meta[$ignoredUrl];
@@ -409,36 +413,39 @@ function nitroIsIgnoredUrl($url, $ignored_urls, &$ignored_urls_meta = NULL) {
             }
         }
     }
-    
+
     return false;
 }
 
-function nitroIsUrlToBeExtracted($url, $ignored_urls_meta) {
+function nitroIsUrlToBeExtracted($url, $ignored_urls_meta)
+{
     if (!empty($ignored_urls_meta[$url])) {
         return $ignored_urls_meta[$url]['extract'];
     }
-    
+
     return false;
 }
 
-function generateCSSMinificatorStyles($styles) {
+function generateCSSMinificatorStyles($styles)
+{
     $formatted_styles = array();
     foreach ($styles as $style) {
         $href = $style->getAttribute('href')->value;
         $rel = $style->getAttribute('rel');
         $media = $style->getAttribute('media');
         $formatted_styles[md5($href)] = array(
-            'href'  => $href,
-            'rel'   => $rel ? $rel->value : 'stylesheet',
+            'href' => $href,
+            'rel' => $rel ? $rel->value : 'stylesheet',
             'media' => $media ? $media->value : 'all'
         );
     }
     return $formatted_styles;
 }
 
-function generateJSMinificatorScripts($scripts) {
+function generateJSMinificatorScripts($scripts)
+{
     $formatted_scripts = array();
-    
+
     foreach ($scripts as $script) {
         $formatted_scripts[md5($script)] = $script;
     }

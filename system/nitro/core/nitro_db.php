@@ -1,15 +1,13 @@
 <?php
-class NitroDb {
+
+class NitroDb
+{
     public static $singleton;
     public static $created_nitro_product_cache = false;
     private $link = false;
-    
-    public static function getInstance() {
-        if (empty(self::$singleton)) self::$singleton = new NitroDb();
-        return self::$singleton->getLink();
-    }
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $class = 'DB\\' . DB_DRIVER;
 
         if (!class_exists($class)) {
@@ -24,6 +22,15 @@ class NitroDb {
             $this->link = new $class(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
         }
     }
-    
-    public function getLink() { return $this->link; }
+
+    public static function getInstance()
+    {
+        if (empty(self::$singleton)) self::$singleton = new NitroDb();
+        return self::$singleton->getLink();
+    }
+
+    public function getLink()
+    {
+        return $this->link;
+    }
 }

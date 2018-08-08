@@ -1,9 +1,12 @@
 <?php
-class HtmlDomSelectorPatternAttributeValue {
+
+class HtmlDomSelectorPatternAttributeValue
+{
     public $mode;
     public $value;
 
-    public function __construct($mode, $val) {
+    public function __construct($mode, $val)
+    {
         switch ($mode) {
             case '^':
                 $this->mode = HtmlDomSelectorPatternMode::STARTS_WITH;

@@ -5,7 +5,7 @@ error_reporting(E_ALL ^ E_WARNING);
 if ($argc >= 2) {
     $_SERVER["HTTP_HOST"] = $argv[1];
     $_SERVER["SERVER_NAME"] = $argv[1];
-    putenv("SERVER_NAME=". $argv[1]);
+    putenv("SERVER_NAME=" . $argv[1]);
 } else {
     $_SERVER["HTTP_HOST"] = "localhost";
     $_SERVER["SERVER_NAME"] = "localhost";
@@ -34,72 +34,72 @@ if (!getNitroPersistence('CRON.Local.PreCache') && !getNitroPersistence('CRON.Lo
 $tasks = array();
 
 if (getNitroPersistence('CRON.Local.Delete')) {
-  $period = getNitroPersistence('PageCache.ExpireTime');
-  $period = !empty($period) ? $period : NITRO_PAGECACHE_TIME;
-  
-  $tasks[] = '- Delete files older than ' . date('Y-m-d H:i:s', $now - $period);
+    $period = getNitroPersistence('PageCache.ExpireTime');
+    $period = !empty($period) ? $period : NITRO_PAGECACHE_TIME;
 
-  cleanNitroCacheFolders('index.html', $period);
+    $tasks[] = '- Delete files older than ' . date('Y-m-d H:i:s', $now - $period);
+
+    cleanNitroCacheFolders('index.html', $period);
 }
 
 if (getNitroPersistence('CRON.Local.PreCache')) {
-  $precache_progress = '- Precache sitemap files.';
-  
-  $token = getNitroPersistence('CRON.Remote.Token');
-  $url = HTTP_SERVER . 'index.php?route=tool/nitro/get_pagecache_stack&cron_token=' . $token;
+    $precache_progress = '- Precache sitemap files.';
 
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_HEADER, false);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-  $data = curl_exec($ch);
+    $token = getNitroPersistence('CRON.Remote.Token');
+    $url = HTTP_SERVER . 'index.php?route=tool/nitro/get_pagecache_stack&cron_token=' . $token;
 
-  curl_close($ch);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    $data = curl_exec($ch);
 
-  if (!empty($data)) {
-    $urls = json_decode($data);
+    curl_close($ch);
 
-    $total = count($urls);
+    if (!empty($data)) {
+        $urls = json_decode($data);
 
-    $currency = strtoupper(getOpenCartSetting('config_currency'));
-    $language = getOpenCartSetting('config_language');
+        $total = count($urls);
 
-    foreach ($urls as $target) {
-      $ch = curl_init($target);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_HEADER, false);
-      curl_setopt($ch, CURLOPT_USERAGENT, 'Nitro-Precache');
-      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $currency = strtoupper(getOpenCartSetting('config_currency'));
+        $language = getOpenCartSetting('config_language');
 
-      $headers = array(
-        'Nitro-Precache: 1',
-        'Cache-Control: no-cache',
-        'Pragma: no-cache',
-        'Connection: keep-alive'
-      );
+        foreach ($urls as $target) {
+            $ch = curl_init($target);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Nitro-Precache');
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-      $cookie = 'currency=' . $currency . '; language=' . $language . ';';
+            $headers = array(
+                'Nitro-Precache: 1',
+                'Cache-Control: no-cache',
+                'Pragma: no-cache',
+                'Connection: keep-alive'
+            );
 
-      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-      curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-      curl_exec($ch);
-      curl_close($ch);
+            $cookie = 'currency=' . $currency . '; language=' . $language . ';';
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+
+        $precache_progress .= ' Precached ' . $total . ' pages';
+    } else {
+        $precache_progress .= ' Pre-cache data not found. URL: ' . $url . PHP_EOL;
     }
 
-    $precache_progress .= ' Precached ' . $total . ' pages';
-  } else {
-    $precache_progress .=  ' Pre-cache data not found. URL: ' . $url . PHP_EOL;
-  }
-
-  $tasks[] = $precache_progress;
+    $tasks[] = $precache_progress;
 }
 
 if (getNitroPersistence('CRON.Local.SendEmail')) {
-  $subject =  'NitroPack Local CRON job';
-  $message =  'Time of execution: ' . date('Y-m-d H:i:s', $now) . PHP_EOL . PHP_EOL;
-  $message .= 'Executed tasks: ' . PHP_EOL . implode(PHP_EOL, $tasks) . PHP_EOL . PHP_EOL;
-  
-  sendNitroMail(getOpenCartSetting('config_email'), $subject, $message);
+    $subject = 'NitroPack Local CRON job';
+    $message = 'Time of execution: ' . date('Y-m-d H:i:s', $now) . PHP_EOL . PHP_EOL;
+    $message .= 'Executed tasks: ' . PHP_EOL . implode(PHP_EOL, $tasks) . PHP_EOL . PHP_EOL;
+
+    sendNitroMail(getOpenCartSetting('config_email'), $subject, $message);
 }
