@@ -6,7 +6,7 @@ use YaMoney\Model\PaymentMethod\AbstractPaymentMethod;
 
 /**
  * Interface PaymentInterface
- * 
+ *
  * @package YaMoney\Model
  *
  * @property-read string $id Идентификатор платежа

@@ -93,21 +93,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     private $_nextPage;
 
     /**
+     * Возвращает инстанс билдера объектов запросов списка платежей магазина
+     * @return PaymentsRequestBuilder Билдер объектов запросов списка платежей
+     */
+    public static function builder()
+    {
+        return new PaymentsRequestBuilder();
+    }
+
+    /**
      * Возвращает идентификатор платежа если он задан или null
      * @return string|null Идентификатор платежа
      */
     public function getPaymentId()
     {
         return $this->_paymentId;
-    }
-
-    /**
-     * Проверяет, был ли задан идентификатор платежа
-     * @return bool True если идентификатор был задан, false если нет
-     */
-    public function hasPaymentId()
-    {
-        return $this->_paymentId !== null;
     }
 
     /**
@@ -138,21 +138,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет, был ли задан идентификатор платежа
+     * @return bool True если идентификатор был задан, false если нет
+     */
+    public function hasPaymentId()
+    {
+        return $this->_paymentId !== null;
+    }
+
+    /**
      * Возвращает идентификатор магазина, если он был задан
      * @return string|null Идентификатор магазина
      */
     public function getAccountId()
     {
         return $this->_accountId;
-    }
-
-    /**
-     * Проверяет, был ли установлен идентификатор магазина
-     * @return bool True если идентификатор магазина был установлен, false если нет
-     */
-    public function hasAccountId()
-    {
-        return $this->_accountId !== null;
     }
 
     /**
@@ -175,21 +175,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет, был ли установлен идентификатор магазина
+     * @return bool True если идентификатор магазина был установлен, false если нет
+     */
+    public function hasAccountId()
+    {
+        return $this->_accountId !== null;
+    }
+
+    /**
      * Возвращает идентификатор шлюза
      * @return string|null Идентификатор шлюза
      */
     public function getGatewayId()
     {
         return $this->_gatewayId;
-    }
-
-    /**
-     * Проверяет был ли установлен идентификатор шлюза
-     * @return bool True если идентификатор шлюза был установлен, false если нет
-     */
-    public function hasGatewayId()
-    {
-        return $this->_gatewayId !== null;
     }
 
     /**
@@ -212,21 +212,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет был ли установлен идентификатор шлюза
+     * @return bool True если идентификатор шлюза был установлен, false если нет
+     */
+    public function hasGatewayId()
+    {
+        return $this->_gatewayId !== null;
+    }
+
+    /**
      * Возвращает дату создания от которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время создания, от (включительно)
      */
     public function getCreatedGte()
     {
         return $this->_createdGte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания от которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedGte()
-    {
-        return $this->_createdGte !== null;
     }
 
     /**
@@ -258,21 +258,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата создания от которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedGte()
+    {
+        return $this->_createdGte !== null;
+    }
+
+    /**
      * Возвращает дату создания от которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время создания, от (не включая)
      */
     public function getCreatedGt()
     {
         return $this->_createdGt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания от которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedGt()
-    {
-        return $this->_createdGt !== null;
     }
 
     /**
@@ -304,21 +304,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата создания от которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedGt()
+    {
+        return $this->_createdGt !== null;
+    }
+
+    /**
      * Возвращает дату создания до которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время создания, до (включительно)
      */
     public function getCreatedLte()
     {
         return $this->_createdLte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания до которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedLte()
-    {
-        return $this->_createdLte !== null;
     }
 
     /**
@@ -350,21 +350,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата создания до которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedLte()
+    {
+        return $this->_createdLte !== null;
+    }
+
+    /**
      * Возвращает дату создания до которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время создания, до (не включая)
      */
     public function getCreatedLt()
     {
         return $this->_createdLt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания до которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedLt()
-    {
-        return $this->_createdLt !== null;
     }
 
     /**
@@ -396,21 +396,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата создания до которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedLt()
+    {
+        return $this->_createdLt !== null;
+    }
+
+    /**
      * Возвращает дату проведения от которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время проведения операции, от (включительно)
      */
     public function getAuthorizedGte()
     {
         return $this->_authorizedGte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения от которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedGte()
-    {
-        return $this->_authorizedGte !== null;
     }
 
     /**
@@ -443,21 +443,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата проведения от которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedGte()
+    {
+        return $this->_authorizedGte !== null;
+    }
+
+    /**
      * Возвращает дату проведения от которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время проведения операции, от (не включая)
      */
     public function getAuthorizedGt()
     {
         return $this->_authorizedGt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения от которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedGt()
-    {
-        return $this->_authorizedGt !== null;
     }
 
     /**
@@ -490,21 +490,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата проведения от которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedGt()
+    {
+        return $this->_authorizedGt !== null;
+    }
+
+    /**
      * Возвращает дату проведения до которой будут возвращены платежи или null если дата не была установлена
      * @return \DateTime|null Время проведения, до (включительно)
      */
     public function getAuthorizedLte()
     {
         return $this->_authorizedLte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения до которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedLte()
-    {
-        return $this->_authorizedLte !== null;
     }
 
     /**
@@ -536,21 +536,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата проведения до которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedLte()
+    {
+        return $this->_authorizedLte !== null;
+    }
+
+    /**
      * Возвращает дату проведения до которой будут возвращены платежи платежи или null если она не была установлена
      * @return \DateTime|null Время проведения, до (не включая)
      */
     public function getAuthorizedLt()
     {
         return $this->_authorizedLt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения до которой выбираются платежи
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedLt()
-    {
-        return $this->_authorizedLt !== null;
     }
 
     /**
@@ -582,21 +582,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет была ли установлена дата проведения до которой выбираются платежи
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedLt()
+    {
+        return $this->_authorizedLt !== null;
+    }
+
+    /**
      * Возвращает статус выбираемых платежей или null если он до этого не был установлен
      * @return string|null Статус выбираемых платежей
      */
     public function getStatus()
     {
         return $this->_status;
-    }
-
-    /**
-     * Проверяет был ли установлен статус выбираемых платежей
-     * @return bool True если статус был установлен, false если нет
-     */
-    public function hasStatus()
-    {
-        return $this->_status !== null;
     }
 
     /**
@@ -626,21 +626,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
     }
 
     /**
+     * Проверяет был ли установлен статус выбираемых платежей
+     * @return bool True если статус был установлен, false если нет
+     */
+    public function hasStatus()
+    {
+        return $this->_status !== null;
+    }
+
+    /**
      * Возвращает токен для получения следующей страницы выборки
      * @return string|null Токен для получения следующей страницы выборки
      */
     public function getNextPage()
     {
         return $this->_nextPage;
-    }
-
-    /**
-     * Проверяет был ли установлен токен следующей страницы
-     * @return bool True если токен был установлен, false если нет
-     */
-    public function hasNextPage()
-    {
-        return $this->_nextPage !== null;
     }
 
     /**
@@ -654,12 +654,21 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
         if ($value === null || $value === '') {
             $this->_nextPage = null;
         } elseif (TypeCast::canCastToString($value)) {
-            $this->_nextPage = (string) $value;
+            $this->_nextPage = (string)$value;
         } else {
             throw new InvalidPropertyValueTypeException(
                 'Invalid status value in PaymentsRequest', 0, 'PaymentsRequest.status', $value
             );
         }
+    }
+
+    /**
+     * Проверяет был ли установлен токен следующей страницы
+     * @return bool True если токен был установлен, false если нет
+     */
+    public function hasNextPage()
+    {
+        return $this->_nextPage !== null;
     }
 
     /**
@@ -673,14 +682,5 @@ class PaymentsRequest extends AbstractRequest implements PaymentsRequestInterfac
             return false;
         }
         return true;
-    }
-
-    /**
-     * Возвращает инстанс билдера объектов запросов списка платежей магазина
-     * @return PaymentsRequestBuilder Билдер объектов запросов списка платежей
-     */
-    public static function builder()
-    {
-        return new PaymentsRequestBuilder();
     }
 }

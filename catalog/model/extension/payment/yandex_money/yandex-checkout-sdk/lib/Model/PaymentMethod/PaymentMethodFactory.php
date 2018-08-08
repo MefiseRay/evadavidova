@@ -7,41 +7,25 @@ use YaMoney\Model\PaymentMethodType;
 class PaymentMethodFactory
 {
     private $typeClassMap = array(
-        PaymentMethodType::YANDEX_MONEY   => 'PaymentMethodYandexWallet',
-        PaymentMethodType::BANK_CARD      => 'PaymentMethodBankCard',
-        PaymentMethodType::SBERBANK       => 'PaymentMethodSberbank',
-        PaymentMethodType::CASH           => 'PaymentMethodCash',
+        PaymentMethodType::YANDEX_MONEY => 'PaymentMethodYandexWallet',
+        PaymentMethodType::BANK_CARD => 'PaymentMethodBankCard',
+        PaymentMethodType::SBERBANK => 'PaymentMethodSberbank',
+        PaymentMethodType::CASH => 'PaymentMethodCash',
         PaymentMethodType::MOBILE_BALANCE => 'PaymentMethodMobileBalance',
-        PaymentMethodType::APPLE_PAY      => 'PaymentMethodApplePay',
-        PaymentMethodType::ANDROID_PAY    => 'PaymentMethodAndroidPay',
-        PaymentMethodType::QIWI           => 'PaymentMethodQiwi',
-        PaymentMethodType::WEBMONEY       => 'PaymentMethodWebmoney',
-        PaymentMethodType::ALFABANK       => 'PaymentMethodAlfaBank',
+        PaymentMethodType::APPLE_PAY => 'PaymentMethodApplePay',
+        PaymentMethodType::ANDROID_PAY => 'PaymentMethodAndroidPay',
+        PaymentMethodType::QIWI => 'PaymentMethodQiwi',
+        PaymentMethodType::WEBMONEY => 'PaymentMethodWebmoney',
+        PaymentMethodType::ALFABANK => 'PaymentMethodAlfaBank',
     );
 
     private $optionsMap = array(
-        'card_type'      => 'cardType',
-        'expiry_month'   => 'expiryMonth',
-        'expiry_year'    => 'expiryYear',
-        'bind_id'        => 'bindId',
+        'card_type' => 'cardType',
+        'expiry_month' => 'expiryMonth',
+        'expiry_year' => 'expiryYear',
+        'bind_id' => 'bindId',
         'account_number' => 'accountNumber',
     );
-
-    /**
-     * @param string $type
-     * @return AbstractPaymentMethod
-     */
-    public function factory($type)
-    {
-        if (!is_string($type)) {
-            throw new \InvalidArgumentException('Invalid payment method type value in payment factory');
-        }
-        if (!array_key_exists($type, $this->typeClassMap)) {
-            throw new \InvalidArgumentException('Invalid payment method data type "'.$type.'"');
-        }
-        $className = __NAMESPACE__ . '\\' . $this->typeClassMap[$type];
-        return new $className();
-    }
 
     /**
      * @param array $data
@@ -70,5 +54,21 @@ class PaymentMethodFactory
             }
         }
         return $paymentData;
+    }
+
+    /**
+     * @param string $type
+     * @return AbstractPaymentMethod
+     */
+    public function factory($type)
+    {
+        if (!is_string($type)) {
+            throw new \InvalidArgumentException('Invalid payment method type value in payment factory');
+        }
+        if (!array_key_exists($type, $this->typeClassMap)) {
+            throw new \InvalidArgumentException('Invalid payment method data type "' . $type . '"');
+        }
+        $className = __NAMESPACE__ . '\\' . $this->typeClassMap[$type];
+        return new $className();
     }
 }

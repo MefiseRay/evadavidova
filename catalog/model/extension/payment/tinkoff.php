@@ -4,129 +4,97 @@ include('TinkoffMerchantAPI.php');
 
 class ModelExtensionPaymentTinkoff extends Model
 {
-    public function getMethod($address, $total)
-    {
-        $this->language->load('extension/payment/tinkoff');
-        return array(
-            'code' => 'tinkoff',
-            'terms' => "",
-            'title' => $this->language->get('text_title'),
-            'sort_order' => $this->config->get('sagepay_us_sort_order')
-        );
-    }
-
     /**
      * After calling initPayment()
      */
     const STATUS_NEW = 'NEW';
-
     /**
      * After calling cancelPayment()
      * Not Implemented here
      */
     const STATUS_CANCELED = 'CANCELED';
-
     /**
      * Intermediate status (transaction is in process)
      */
     const STATUS_PREAUTHORIZING = 'PREAUTHORIZING';
-
     /**
      * After showing payment form to the customer
      */
     const STATUS_FORMSHOWED = 'FORMSHOWED';
-
     /**
      * Intermediate status (transaction is in process)
      */
     const STATUS_AUTHORIZING = 'AUTHORIZING';
-
     /**
      * Intermediate status (transaction is in process)
      * Customer went to 3DS
      */
     const STATUS_THREEDSCHECKING = 'THREEDSCHECKING';
-
     /**
      * Payment rejected on 3DS
      */
     const STATUS_REJECTED = 'REJECTED';
-
     /**
      * Payment compete, money holded
      */
     const STATUS_AUTHORIZED = 'AUTHORIZED';
-
     /**
      * After calling reversePayment
      * Charge money back to customer
      * Not Implemented here
      */
     const STATUS_REVERSING = 'REVERSING';
-
     /**
      * Money charged back, transaction cmplete
      */
     const STATUS_REVERSED = 'REVERSED';
-
     /**
      * After calling confirmePayment()
      * Confirm money wright-off
      * Not Implemented here
      */
     const STATUS_CONFIRMING = 'CONFIRMING';
-
     /**
      * Money written off
      */
     const STATUS_CONFIRMED = 'CONFIRMED';
-
     /**
      * After calling refundPayment()
      * Retrive money back to customer
      * Not Implemented here
      */
     const STATUS_REFUNDING = 'REFUNDING';
-
     /**
      * Money is back on the customer account
      */
     const STATUS_REFUNDED = 'REFUNDED';
-
     const STATUS_UNKNOWN = 'UNKNOWN';
-
+    public $taxation;
     /**
      * Terminal id, bank give it to you
      * @var int
      */
     private $terminalId;
-
-    public $taxation;
-
     /**
      * Secret key, bank give it to you
      * @var string
      */
     private $secret;
-
     /**
      * Read API documentation
      * @var string
      */
     private $paymentUrl;
-
     /**
      * Current payment status
      * @var string
      */
     private $paymentStatus;
-
     /**
      * Payment id in bank system
      * @var int
      */
     private $paymentId;
-
     /**
      * Валята заказа (643 - рубли)
      * @var int
@@ -149,6 +117,17 @@ class ModelExtensionPaymentTinkoff extends Model
             $this->paymentUrl = $url;
         }
         $this->currency = $this->config->get('currency');
+    }
+
+    public function getMethod($address, $total)
+    {
+        $this->language->load('extension/payment/tinkoff');
+        return array(
+            'code' => 'tinkoff',
+            'terms' => "",
+            'title' => $this->language->get('text_title'),
+            'sort_order' => $this->config->get('sagepay_us_sort_order')
+        );
     }
 
     function getTaxClassNameById($tax_class_id)
@@ -278,15 +257,6 @@ class ModelExtensionPaymentTinkoff extends Model
     }
 
     /**
-     * есть ли небесплатная доставка у заказа
-     * @return bool
-     */
-    function hasShipping()
-    {
-        return $this->cart->session->data['shipping_method'] && $this->cart->session->data['shipping_method']['cost'];
-    }
-
-    /**
      * @param $amount
      * @param $products
      * @param $shipping
@@ -320,19 +290,6 @@ class ModelExtensionPaymentTinkoff extends Model
     }
 
     /**
-     * цена с ндс в копейках
-     * @param $price
-     * @param $taxClassId
-     * normalize coefficient @param $k
-     * @return float
-     */
-    function getRoundTaxPrice($price, $taxClassId, $k)
-    {
-        //сумма в копейках
-        return round($this->getVatPrice($price, $taxClassId) * $k, 2) * 100;
-    }
-
-    /**
      * сумма позиций в цеке (всех товаров и доставки)
      * @return int
      */
@@ -362,6 +319,28 @@ class ModelExtensionPaymentTinkoff extends Model
     public function getVatPrice($price, $vat)
     {
         return $this->cart->tax->calculate($price, $vat, true);
+    }
+
+    /**
+     * цена с ндс в копейках
+     * @param $price
+     * @param $taxClassId
+     * normalize coefficient @param $k
+     * @return float
+     */
+    function getRoundTaxPrice($price, $taxClassId, $k)
+    {
+        //сумма в копейках
+        return round($this->getVatPrice($price, $taxClassId) * $k, 2) * 100;
+    }
+
+    /**
+     * есть ли небесплатная доставка у заказа
+     * @return bool
+     */
+    function hasShipping()
+    {
+        return $this->cart->session->data['shipping_method'] && $this->cart->session->data['shipping_method']['cost'];
     }
 
     /**
@@ -405,26 +384,20 @@ class ModelExtensionPaymentTinkoff extends Model
     }
 
     /**
-     * Check if order is complete and money paid
+     * Checks request success
      *
-     * @return bool
+     * @param $success
      * @throws TinkoffException
      */
-    public function isOrderPaid()
+    private function isRequestSuccess($success)
     {
-        $this->checkStatus();
-
-        return in_array($this->paymentStatus, array(self::STATUS_CONFIRMED, self::STATUS_AUTHORIZED));
-    }
-
-    /**
-     * Checks if oreder is failed
-     *
-     * @return bool
-     */
-    public function isOrderFailed()
-    {
-        return in_array($this->paymentStatus, array(self::STATUS_CANCELED, self::STATUS_REJECTED, self::STATUS_REVERSED));
+        if ($success == false) {
+            $log = '[' . date('D M d H:i:s Y', time()) . '] ';
+            $log .= "Запрос к платежному сервису был отправлен некорректно";
+            $log .= "\r\n";
+            file_put_contents(dirname(__FILE__) . "/tinkoff_log.log", $log, FILE_APPEND);
+            die(sprintf('Запрос к платежному сервису был отправлен некорректно'));
+        }
     }
 
     public function saveOrder($orderId)
@@ -463,6 +436,19 @@ class ModelExtensionPaymentTinkoff extends Model
     }
 
     /**
+     * Check if order is complete and money paid
+     *
+     * @return bool
+     * @throws TinkoffException
+     */
+    public function isOrderPaid()
+    {
+        $this->checkStatus();
+
+        return in_array($this->paymentStatus, array(self::STATUS_CONFIRMED, self::STATUS_AUTHORIZED));
+    }
+
+    /**
      * Check is status variable is set
      *
      * @throws TinkoffException
@@ -478,6 +464,16 @@ class ModelExtensionPaymentTinkoff extends Model
             throw new TinkoffException(sprintf('Статус заказа не определён. Чтобы запросить статус вызовите метод getStatus'));
         }
 
+    }
+
+    /**
+     * Checks if oreder is failed
+     *
+     * @return bool
+     */
+    public function isOrderFailed()
+    {
+        return in_array($this->paymentStatus, array(self::STATUS_CANCELED, self::STATUS_REJECTED, self::STATUS_REVERSED));
     }
 
     /**
@@ -512,23 +508,6 @@ class ModelExtensionPaymentTinkoff extends Model
         $token = hash('sha256', $token);
 
         return $token;
-    }
-
-    /**
-     * Checks request success
-     *
-     * @param $success
-     * @throws TinkoffException
-     */
-    private function isRequestSuccess($success)
-    {
-        if ($success == false) {
-            $log = '[' . date('D M d H:i:s Y', time()) . '] ';
-            $log .= "Запрос к платежному сервису был отправлен некорректно";
-            $log .= "\r\n";
-            file_put_contents(dirname(__FILE__) . "/tinkoff_log.log", $log, FILE_APPEND);
-            die(sprintf('Запрос к платежному сервису был отправлен некорректно'));
-        }
     }
 }
 

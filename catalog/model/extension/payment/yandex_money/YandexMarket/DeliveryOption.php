@@ -36,6 +36,15 @@ class DeliveryOption
     }
 
     /**
+     * Возвращает стоимость доставки
+     * @return int Стоимость доставки
+     */
+    public function getCost()
+    {
+        return $this->cost;
+    }
+
+    /**
      * Устанавливает стоимость доставки
      * @param int $value Стоимость доставки
      * @return DeliveryOption Инстанс текущего объекта
@@ -51,12 +60,12 @@ class DeliveryOption
     }
 
     /**
-     * Возвращает стоимость доставки
-     * @return int Стоимость доставки
+     * Возвращает время доставки в днях
+     * @return int|string Время доставки в дных
      */
-    public function getCost()
+    public function getDays()
     {
-        return $this->cost;
+        return $this->days;
     }
 
     /**
@@ -71,12 +80,12 @@ class DeliveryOption
     }
 
     /**
-     * Возвращает время доставки в днях
-     * @return int|string Время доставки в дных
+     * Возвращает время в часах, до которого применяется текущая доставка
+     * @return int Время заказа в часах, до которого будет применена доставка
      */
-    public function getDays()
+    public function getOrderBefore()
     {
-        return $this->days;
+        return $this->orderBefore;
     }
 
     /**
@@ -88,15 +97,6 @@ class DeliveryOption
     {
         $this->orderBefore = $value;
         return $this;
-    }
-
-    /**
-     * Возвращает время в часах, до которого применяется текущая доставка
-     * @return int Время заказа в часах, до которого будет применена доставка
-     */
-    public function getOrderBefore()
-    {
-        return $this->orderBefore;
     }
 
     /**

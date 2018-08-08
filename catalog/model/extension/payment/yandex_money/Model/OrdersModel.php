@@ -35,12 +35,12 @@ class OrdersModel
         $product_array = $this->getOrderProducts($id);
         $ret = array();
         $data = '';
-        $ret['order_price'] = $order['total'].' '.$order['currency_code'];
+        $ret['order_price'] = $order['total'] . ' ' . $order['currency_code'];
         $ret['order_id'] = $order['order_id'];
         $ret['currency'] = $order['currency_code'];
         $ret['payment'] = $order['payment_method'];
         $products = array();
-        foreach($product_array as $k => $product) {
+        foreach ($product_array as $k => $product) {
             $products[$k]['id'] = $product['product_id'];
             $products[$k]['name'] = $product['name'];
             $products[$k]['quantity'] = $product['quantity'];
@@ -73,7 +73,7 @@ class OrdersModel
             $name = "Российская Федерация";
         }
         $query = $this->db->query(
-            "SELECT `country_id` `id` FROM `" . DB_PREFIX . "country` WHERE `name` ='".$name."'"
+            "SELECT `country_id` `id` FROM `" . DB_PREFIX . "country` WHERE `name` ='" . $name . "'"
         );
         if ($query && $query->num_rows) {
             return $query->row['id'];
@@ -83,9 +83,9 @@ class OrdersModel
 
     public function getQuoteShipping($shipping_id, $address)
     {
-        $for23 = (version_compare(VERSION, "2.3.0", '>='))?"extension/":"";
-        $this->load->model($for23.'shipping/'.$shipping_id);
-        $quote = $this->registry->{'model_'.str_replace("/", "_", $for23).'shipping_'.$shipping_id}->getQuote($address);
+        $for23 = (version_compare(VERSION, "2.3.0", '>=')) ? "extension/" : "";
+        $this->load->model($for23 . 'shipping/' . $shipping_id);
+        $quote = $this->registry->{'model_' . str_replace("/", "_", $for23) . 'shipping_' . $shipping_id}->getQuote($address);
         if ($quote) {
             return $quote['quote'][$shipping_id];
         }
@@ -95,7 +95,7 @@ class OrdersModel
     public function getZoneId($name, $country_id)
     {
         $query = $this->db->query(
-            "SELECT `zone_id` `id` FROM `" . DB_PREFIX . "zone` WHERE `name` LIKE ('%".$name."%') AND `country_id`='".$country_id."'"
+            "SELECT `zone_id` `id` FROM `" . DB_PREFIX . "zone` WHERE `name` LIKE ('%" . $name . "%') AND `country_id`='" . $country_id . "'"
         );
         return (isset($query->row['id'])) ? $query->row['id'] : 0;
     }
@@ -103,50 +103,7 @@ class OrdersModel
     public function getOrders()
     {
         $number = $this->config->get('yandex_money_pokupki_number');
-        return $data = $this->sendResponse('/campaigns/'.$number.'/orders', array(), array(), 'GET');
-    }
-
-    public function sendDelivery($delivery, $id)
-    {
-        $params = array(
-            'delivery' => $delivery
-        );
-        $number = $this->config->get('yandex_money_pokupki_number');
-        return $data = $this->sendResponse('/campaigns/'.$number.'/orders/'.$id.'/delivery', array(), $params, 'PUT');
-    }
-
-    public function getOutlets()
-    {
-        $number = $this->config->get('yandex_money_pokupki_number');
-        $data = $this->sendResponse('/campaigns/'.$number.'/outlets', array(), array(), 'GET');
-        $array = array('outlets' => array());
-        foreach ($data->outlets as $o) {
-            $array['outlets'][] = array('id' => (int)$o->shopOutletId);
-        }
-        return array(
-            'json' => $array,
-            'array' => $data->outlets
-        );
-    }
-
-    public function getOrder($id)
-    {
-        $number = $this->config->get('yandex_money_pokupki_number');
-        $data = $this->sendResponse('/campaigns/'.$number.'/orders/'.$id, array(), array(), 'GET');
-        return $data;
-    }
-
-    public function sendOrder($state, $id)
-    {
-        $params = array(
-            'order' => array(
-                'status' => $state,
-            )
-        );
-        $number = $this->config->get('yandex_money_pokupki_number');
-        if($state == 'CANCELLED') $params['order']['substatus'] = 'SHOP_FAILED';
-
-        return $data = $this->sendResponse('/campaigns/'.$number.'/orders/'.$id.'/status', array(), $params, 'PUT');
+        return $data = $this->sendResponse('/campaigns/' . $number . '/orders', array(), array(), 'GET');
     }
 
     public function sendResponse($to, $headers, $params, $type)
@@ -156,24 +113,16 @@ class OrdersModel
         //$login = $this->config->get('yandex_money_pokupki_login');
         //$app_pw = $this->config->get('yandex_money_pokupki_upw');
         $ya_token = $this->config->get('yandex_money_pokupki_gtoken');
-        $response = $this->post($url.$to.'.json?oauth_token='.$ya_token.'&oauth_client_id='.$app_id, $headers, $params, $type);
+        $response = $this->post($url . $to . '.json?oauth_token=' . $ya_token . '&oauth_client_id=' . $app_id, $headers, $params, $type);
         $data = json_decode($response->body);
         if (isset($data->error)) {
             $this->log_save($response->body);
         }
         if ($response->status_code == 200) {
             return $data;
-        }
-        else {
+        } else {
             die(print_r($response));
         }
-    }
-
-    public static function log_save($logtext)
-    {
-        $error_log = new \Log('error.log');
-        $error_log->write($logtext.PHP_EOL);
-        $error_log = null;
     }
 
     public static function post($url, $headers, $params, $type)
@@ -184,12 +133,12 @@ class OrdersModel
             CURLINFO_HEADER_OUT => 1,
         );
 
-        switch (strtoupper($type)){
+        switch (strtoupper($type)) {
             case 'DELETE':
                 $curlOpt[CURLOPT_CUSTOMREQUEST] = "DELETE";
             case 'GET':
                 if (!empty($params))
-                    $url .= (strpos($url, '?')===false ? '?' : '&') . http_build_query($params);
+                    $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($params);
                 break;
             case 'PUT':
                 $headers[] = 'Content-Type: application/json;';
@@ -216,5 +165,55 @@ class OrdersModel
         $result->body = $rbody;
         $result->error = $error;
         return $result;
+    }
+
+    public static function log_save($logtext)
+    {
+        $error_log = new \Log('error.log');
+        $error_log->write($logtext . PHP_EOL);
+        $error_log = null;
+    }
+
+    public function sendDelivery($delivery, $id)
+    {
+        $params = array(
+            'delivery' => $delivery
+        );
+        $number = $this->config->get('yandex_money_pokupki_number');
+        return $data = $this->sendResponse('/campaigns/' . $number . '/orders/' . $id . '/delivery', array(), $params, 'PUT');
+    }
+
+    public function getOutlets()
+    {
+        $number = $this->config->get('yandex_money_pokupki_number');
+        $data = $this->sendResponse('/campaigns/' . $number . '/outlets', array(), array(), 'GET');
+        $array = array('outlets' => array());
+        foreach ($data->outlets as $o) {
+            $array['outlets'][] = array('id' => (int)$o->shopOutletId);
+        }
+        return array(
+            'json' => $array,
+            'array' => $data->outlets
+        );
+    }
+
+    public function getOrder($id)
+    {
+        $number = $this->config->get('yandex_money_pokupki_number');
+        $data = $this->sendResponse('/campaigns/' . $number . '/orders/' . $id, array(), array(), 'GET');
+        return $data;
+    }
+
+    public function sendOrder($state, $id)
+    {
+        $params = array(
+            'order' => array(
+                'status' => $state,
+            )
+        );
+        $number = $this->config->get('yandex_money_pokupki_number');
+        if ($state == 'CANCELLED') $params['order']['substatus'] = 'SHOP_FAILED';
+
+        return $data = $this->sendResponse('/campaigns/' . $number . '/orders/' . $id . '/status', array(), $params, 'PUT');
     }
 }

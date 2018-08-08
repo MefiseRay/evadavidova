@@ -54,27 +54,27 @@ class ArbitraryYmlBuilder extends AbstractYmlBuilder
             $result .= '        <description><![CDATA[' . $this->prepareValue($offer->getDescription()) . ']]></description>' . PHP_EOL;
         }
         if ($offer->hasSalesNotes()) {
-            $result .= '        <sales_notes>'. $this->prepareValue($offer->getSalesNotes()) . '</sales_notes>' . PHP_EOL;
+            $result .= '        <sales_notes>' . $this->prepareValue($offer->getSalesNotes()) . '</sales_notes>' . PHP_EOL;
         }
         if ($offer->hasMinQuantity()) {
-            $result .= '        <min-quantity>'. $offer->getMinQuantity() . '</min-quantity>' . PHP_EOL;
+            $result .= '        <min-quantity>' . $offer->getMinQuantity() . '</min-quantity>' . PHP_EOL;
         }
         if ($offer->hasStepQuantity()) {
-            $result .= '        <step-quantity>'. $offer->getStepQuantity() . '</step-quantity>' . PHP_EOL;
+            $result .= '        <step-quantity>' . $offer->getStepQuantity() . '</step-quantity>' . PHP_EOL;
         }
         if ($offer->hasManufacturerWarranty()) {
-            $result .= '        <manufacturer_warranty>'. ($offer->getManufacturerWarranty() ? 'true' : 'false') . '</manufacturer_warranty>' . PHP_EOL;
+            $result .= '        <manufacturer_warranty>' . ($offer->getManufacturerWarranty() ? 'true' : 'false') . '</manufacturer_warranty>' . PHP_EOL;
         }
         if ($offer->hasCountryOfOrigin()) {
-            $result .= '        <country_of_origin>'. $this->prepareValue($offer->getCountryOfOrigin()) . '</country_of_origin>' . PHP_EOL;
+            $result .= '        <country_of_origin>' . $this->prepareValue($offer->getCountryOfOrigin()) . '</country_of_origin>' . PHP_EOL;
         }
         if ($offer->hasAdult()) {
-            $result .= '        <adult>'. ($offer->getAdult() ? 'true' : 'false') . '</adult>' . PHP_EOL;
+            $result .= '        <adult>' . ($offer->getAdult() ? 'true' : 'false') . '</adult>' . PHP_EOL;
         }
-        $result .= '        <model>'. $this->prepareValue($offer->getModel()) . '</model>' . PHP_EOL;
-        $result .= '        <vendor>'. $this->prepareValue($offer->getVendor()) . '</vendor>' . PHP_EOL;
+        $result .= '        <model>' . $this->prepareValue($offer->getModel()) . '</model>' . PHP_EOL;
+        $result .= '        <vendor>' . $this->prepareValue($offer->getVendor()) . '</vendor>' . PHP_EOL;
         if ($offer->hasVendorCode()) {
-            $result .= '        <vendorCode>'. $this->prepareValue($offer->getVendorCode()) . '</vendorCode>' . PHP_EOL;
+            $result .= '        <vendorCode>' . $this->prepareValue($offer->getVendorCode()) . '</vendorCode>' . PHP_EOL;
         }
 
         if ($offer->hasPictures()) {

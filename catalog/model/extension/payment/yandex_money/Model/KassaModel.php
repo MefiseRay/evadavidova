@@ -164,7 +164,7 @@ class KassaModel extends AbstractPaymentModel
         $templateData['kassa'] = $this;
         $templateData['image_base_path'] = HTTPS_SERVER . 'image/payment/yandex_money';
         $prefix = version_compare(VERSION, '2.3.0') >= 0 ? 'extension/' : '';
-        $templateData['validate_url'] = $controller->url->link($prefix.'payment/yandex_money/create', '', true);
+        $templateData['validate_url'] = $controller->url->link($prefix . 'payment/yandex_money/create', '', true);
 
         $templateData['amount'] = $orderInfo['total'];
         $templateData['comment'] = $orderInfo['comment'];

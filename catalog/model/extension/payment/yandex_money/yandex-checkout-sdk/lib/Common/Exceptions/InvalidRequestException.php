@@ -20,7 +20,7 @@ class InvalidRequestException extends \RuntimeException
     public function __construct($error, $code = 0, $previous = null)
     {
         if ($error instanceof AbstractRequest) {
-            $message = 'Failed to build request "'.get_class($error).'": "'.$error->getLastValidationError().'"';
+            $message = 'Failed to build request "' . get_class($error) . '": "' . $error->getLastValidationError() . '"';
             $this->errorRequest = $error;
         } else {
             $message = $error;

@@ -18,6 +18,15 @@ class CreateCaptureRequest extends AbstractRequest implements CreateCaptureReque
     private $_amount;
 
     /**
+     * Возвращает билдер объектов запросов на подтверждение оплаты
+     * @return CreateCaptureRequestBuilder Инстанс билдера
+     */
+    public static function builder()
+    {
+        return new CreateCaptureRequestBuilder();
+    }
+
+    /**
      * Возвращает подтвердаемую сумму оплаты
      * @return AmountInterface Подтверждаемая сумма оплаты
      */
@@ -27,21 +36,21 @@ class CreateCaptureRequest extends AbstractRequest implements CreateCaptureReque
     }
 
     /**
-     * Проверяет была ли установлена сумма оплаты
-     * @return bool True если сумма оплаты была установлена, false если нет
-     */
-    public function hasAmount()
-    {
-        return !empty($this->_amount);
-    }
-
-    /**
      * Устанавливает сумму оплаты
      * @param AmountInterface $value Подтверждаемая сумма оплаты
      */
     public function setAmount(AmountInterface $value)
     {
         $this->_amount = $value;
+    }
+
+    /**
+     * Проверяет была ли установлена сумма оплаты
+     * @return bool True если сумма оплаты была установлена, false если нет
+     */
+    public function hasAmount()
+    {
+        return !empty($this->_amount);
     }
 
     /**
@@ -60,14 +69,5 @@ class CreateCaptureRequest extends AbstractRequest implements CreateCaptureReque
             return false;
         }
         return true;
-    }
-
-    /**
-     * Возвращает билдер объектов запросов на подтверждение оплаты
-     * @return CreateCaptureRequestBuilder Инстанс билдера
-     */
-    public static function builder()
-    {
-        return new CreateCaptureRequestBuilder();
     }
 }

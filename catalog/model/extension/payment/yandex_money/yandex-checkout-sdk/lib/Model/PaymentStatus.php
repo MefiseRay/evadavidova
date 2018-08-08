@@ -12,7 +12,7 @@ use YaMoney\Common\AbstractEnum;
  * |waiting_for_capture|Успешно оплачен покупателем, ожидает подтверждения магазином (capture или aviso)|
  * |succeeded|Успешно оплачен и подтвержден магазином|
  * |canceled|Неуспех оплаты или отменен магазином (cancel)|
- * 
+ *
  */
 class PaymentStatus extends AbstractEnum
 {

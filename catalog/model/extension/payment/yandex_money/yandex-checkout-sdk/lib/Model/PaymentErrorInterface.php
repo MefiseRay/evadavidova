@@ -4,9 +4,9 @@ namespace YaMoney\Model;
 
 /**
  * Interface PaymentErrorInterface
- * 
+ *
  * @package YaMoney\Model
- * 
+ *
  * @property-read string $code Код ошибки
  * @property-read string $description Дополнительное текстовое пояснение ошибки
  */

@@ -19,15 +19,6 @@ class PaymentsRequestBuilder extends AbstractRequestBuilder
     protected $currentObject;
 
     /**
-     * Возвращает новый объект запроса для получения списка платежей, который в дальнейшем будет собираться в билдере
-     * @return PaymentsRequest Объект запроса списка платежей магазина
-     */
-    protected function initCurrentObject()
-    {
-        return new PaymentsRequest();
-    }
-
-    /**
      * Устанавливает идентификатор платежа
      * @param string|null $value Идентификатор платежа
      * @return PaymentsRequestBuilder Инстанс текущего билдера
@@ -232,5 +223,14 @@ class PaymentsRequestBuilder extends AbstractRequestBuilder
     public function build(array $options = null)
     {
         return parent::build($options);
+    }
+
+    /**
+     * Возвращает новый объект запроса для получения списка платежей, который в дальнейшем будет собираться в билдере
+     * @return PaymentsRequest Объект запроса списка платежей магазина
+     */
+    protected function initCurrentObject()
+    {
+        return new PaymentsRequest();
     }
 }

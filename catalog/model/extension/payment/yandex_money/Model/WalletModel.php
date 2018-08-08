@@ -50,7 +50,7 @@ class WalletModel extends AbstractPaymentModel
         $templateData['wallet'] = $this;
         $templateData['image_base_path'] = HTTPS_SERVER . 'image/payment/yandex_money';
         $prefix = version_compare(VERSION, '2.3.0') >= 0 ? 'extension/' : '';
-        $templateData['validate_url'] = $controller->url->link($prefix.'payment/yandex_money/validate', '', true);
+        $templateData['validate_url'] = $controller->url->link($prefix . 'payment/yandex_money/validate', '', true);
 
         $templateData['cmsname'] = 'opencart2';
 
@@ -64,7 +64,7 @@ class WalletModel extends AbstractPaymentModel
         $templateData['formcomment'] = '';
         $templateData['short_dest'] = '';
 
-        $templateData['action'] = 'https://'.($this->testMode ? 'demo' : '').'money.yandex.ru/quickpay/confirm.xml';
+        $templateData['action'] = 'https://' . ($this->testMode ? 'demo' : '') . 'money.yandex.ru/quickpay/confirm.xml';
 
         return 'payment/yandex_money/wallet_form';
     }

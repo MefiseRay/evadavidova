@@ -1,12 +1,16 @@
-<?php 
-class ModelExtensionPaymentOcstoreYk extends Model {
+<?php
+
+class ModelExtensionPaymentOcstoreYk extends Model
+{
     private static $_METHOD_CODE = 'ocstore_yk';
 
-    public function getMethod($address, $total) {
+    public function getMethod($address, $total)
+    {
         return array();
     }
 
-    public function getMethodData($address, $total, $method_code) {
+    public function getMethodData($address, $total, $method_code)
+    {
         if (!$this->config->get('ocstore_yk_type') && !in_array($method_code, array('ocstore_yk_physical_AC', 'ocstore_yk_physical_PC'))) {
             return array();
         }
@@ -18,8 +22,8 @@ class ModelExtensionPaymentOcstoreYk extends Model {
         if (($this->config->get($method_code . '_status')) && ($total) &&
             (!$this->config->get($method_code . '_minimal_order') || ($total >= (float)$this->config->get($method_code . '_minimal_order'))) &&
             (!$this->config->get($method_code . '_maximal_order') || ($total <= (float)$this->config->get($method_code . '_maximal_order')))) {
-              $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "zone_to_geo_zone WHERE geo_zone_id = '" . (int)$this->config->get($method_code . '_geo_zone_id') . "' AND country_id = '" . (int)$address['country_id'] . "' AND (zone_id = '" . (int)$address['zone_id'] . "' OR zone_id = '0')");
-          
+            $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "zone_to_geo_zone WHERE geo_zone_id = '" . (int)$this->config->get($method_code . '_geo_zone_id') . "' AND country_id = '" . (int)$address['country_id'] . "' AND (zone_id = '" . (int)$address['zone_id'] . "' OR zone_id = '0')");
+
             if (!$this->config->get($method_code . '_geo_zone_id')) {
                 $status = true;
             } elseif ($query->num_rows) {
@@ -27,98 +31,43 @@ class ModelExtensionPaymentOcstoreYk extends Model {
             } else {
                 $status = false;
             }
-          //hide_mode
-          if ($this->config->get('ocstore_yk_hide_mode')) {
-              $this->user = new Cart\User($this->registry);
-              if (!$this->user->isLogged()) {
-                  $status = false;
-              }
-          }
-      } else {
-          $status = false;
+            //hide_mode
+            if ($this->config->get('ocstore_yk_hide_mode')) {
+                $this->user = new Cart\User($this->registry);
+                if (!$this->user->isLogged()) {
+                    $status = false;
+                }
+            }
+        } else {
+            $status = false;
         }
 
-/*        if (!$this->config->get('ocstore_yk_type') && !$this->config->get('ocstore_yk_physical_enabled_methods')) {
-            $status = false;
-        }
-        if ($this->config->get('ocstore_yk_type') && !$this->config->get('ocstore_yk_company_enabled_methods')) {
-            $status = false;
-        }
-*/
+        /*        if (!$this->config->get('ocstore_yk_type') && !$this->config->get('ocstore_yk_physical_enabled_methods')) {
+                    $status = false;
+                }
+                if ($this->config->get('ocstore_yk_type') && !$this->config->get('ocstore_yk_company_enabled_methods')) {
+                    $status = false;
+                }
+        */
         $method_data = array();
 
         if ($status) {
             $title = $this->config->get($method_code . '_langdata');
 
             $method_data = array(
-                'code'        => $method_code,
-                'title'       => $title[$this->config->get('config_language_id')]['title'],
+                'code' => $method_code,
+                'title' => $title[$this->config->get('config_language_id')]['title'],
                 'description' => $this->makeDescriptions($method_code),
-                'terms'       => '',
-                'sort_order'  => $this->config->get($method_code . '_sort_order')
+                'terms' => '',
+                'sort_order' => $this->config->get($method_code . '_sort_order')
             );
         }
 
         return $method_data;
     }
 
-    public function checkLaterpay($order_id) {
-        $order_info = $this->getOrder($order_id);
-        
-        $result =  array(
-            'onpay'         => $this->isLaterpayButtonLK($order_info) || $this->isLaterpayMode($order_info),
-            'payment_code'  => $order_info ? $order_info['payment_code'] : ''
-         );
-         
-         return $result;
-    }
-
-    public function getOrderStatusById($order_status_id, $language_id = false) {
-        if (!$language_id) {
-          $language_id = (int)$this->config->get('config_language_id');
-        }
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_status WHERE order_status_id = '" . (int)$order_status_id . "' AND language_id = '" . $language_id . "'");
-        return $query->num_rows ? $query->row['name'] : '';
-    }
-
-    public function getCustomerGroup($customer_group_id) {
-        $query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "customer_group cg LEFT JOIN " . DB_PREFIX . "customer_group_description cgd ON (cg.customer_group_id = cgd.customer_group_id) WHERE cg.customer_group_id = '" . (int)$customer_group_id . "' AND cgd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
-        return $query->num_rows ? $query->row['name'] : '';
-    }
-
-
-    public function getOrder($order_id) {
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order` WHERE order_id = '" . (int)$order_id . "'");
-        return $query->num_rows ? $query->row : false;
-    }
-
-    protected function isLaterpayButtonLK($order_info) {
-        //Laterpay Button LK Enabled?
-        if ($this->config->get('ocstore_yk_laterpay_button_lk') && !$this->config->get('ocstore_yk_laterpay_mode')) {            
-            if (!$order_info || (strpos($order_info['payment_code'], self::$_METHOD_CODE) === false) || !$this->config->get($order_info['payment_code'] . '_status')) {
-                return false;
-            }
-
-            return ($order_info['order_status_id'] == $this->config->get('ocstore_yk_order_confirm_status_id')) || ($order_info['order_status_id'] == $this->config->get('ocstore_yk_order_fail_status_id'));
-        }
-
-        return false;
-    }
-
-    protected function isLaterpayMode($order_info) {
-        //Mode Laterpay Enabled?
-        if ($this->config->get('ocstore_yk_laterpay_mode') && ($this->config->get('ocstore_yk_order_later_status_id') != $this->config->get('ocstore_yk_order_confirm_status_id'))) {
-            if (!$order_info || (strpos($order_info['payment_code'], self::$_METHOD_CODE) === false) || !$this->config->get($order_info['payment_code'] . '_status')) {
-                return false;
-            }
-              
-            return $order_info['order_status_id'] == $this->config->get('ocstore_yk_order_later_status_id');
-        }
-
-        return false;
-    }
-
-    protected function makeDescriptions($method_code) {
+    protected function makeDescriptions($method_code)
+    {
         if (!$this->config->get($method_code . '_description')) {
             return '';
         }
@@ -152,5 +101,67 @@ class ModelExtensionPaymentOcstoreYk extends Model {
 
         return $result . $this->language->get('text_description_end');
     }
+
+    public function checkLaterpay($order_id)
+    {
+        $order_info = $this->getOrder($order_id);
+
+        $result = array(
+            'onpay' => $this->isLaterpayButtonLK($order_info) || $this->isLaterpayMode($order_info),
+            'payment_code' => $order_info ? $order_info['payment_code'] : ''
+        );
+
+        return $result;
+    }
+
+    public function getOrder($order_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order` WHERE order_id = '" . (int)$order_id . "'");
+        return $query->num_rows ? $query->row : false;
+    }
+
+    protected function isLaterpayButtonLK($order_info)
+    {
+        //Laterpay Button LK Enabled?
+        if ($this->config->get('ocstore_yk_laterpay_button_lk') && !$this->config->get('ocstore_yk_laterpay_mode')) {
+            if (!$order_info || (strpos($order_info['payment_code'], self::$_METHOD_CODE) === false) || !$this->config->get($order_info['payment_code'] . '_status')) {
+                return false;
+            }
+
+            return ($order_info['order_status_id'] == $this->config->get('ocstore_yk_order_confirm_status_id')) || ($order_info['order_status_id'] == $this->config->get('ocstore_yk_order_fail_status_id'));
+        }
+
+        return false;
+    }
+
+    protected function isLaterpayMode($order_info)
+    {
+        //Mode Laterpay Enabled?
+        if ($this->config->get('ocstore_yk_laterpay_mode') && ($this->config->get('ocstore_yk_order_later_status_id') != $this->config->get('ocstore_yk_order_confirm_status_id'))) {
+            if (!$order_info || (strpos($order_info['payment_code'], self::$_METHOD_CODE) === false) || !$this->config->get($order_info['payment_code'] . '_status')) {
+                return false;
+            }
+
+            return $order_info['order_status_id'] == $this->config->get('ocstore_yk_order_later_status_id');
+        }
+
+        return false;
+    }
+
+    public function getOrderStatusById($order_status_id, $language_id = false)
+    {
+        if (!$language_id) {
+            $language_id = (int)$this->config->get('config_language_id');
+        }
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_status WHERE order_status_id = '" . (int)$order_status_id . "' AND language_id = '" . $language_id . "'");
+        return $query->num_rows ? $query->row['name'] : '';
+    }
+
+    public function getCustomerGroup($customer_group_id)
+    {
+        $query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "customer_group cg LEFT JOIN " . DB_PREFIX . "customer_group_description cgd ON (cg.customer_group_id = cgd.customer_group_id) WHERE cg.customer_group_id = '" . (int)$customer_group_id . "' AND cgd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+        return $query->num_rows ? $query->row['name'] : '';
+    }
 }
+
 ?>

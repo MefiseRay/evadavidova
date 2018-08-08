@@ -146,15 +146,27 @@ class CurlClient implements ApiClientInterface
     }
 
     /**
-     * @param $optionName
-     * @param $optionValue
-     * @return bool
+     * @return mixed
      */
-    public function setCurlOption($optionName, $optionValue)
+    private function getUrl()
     {
-        return curl_setopt($this->curl, $optionName, $optionValue);
+        $config = $this->config;
+        return $config['url'];
     }
 
+    /**
+     * @param $headers
+     * @return array
+     */
+    private function prepareHeaders($headers)
+    {
+        $headers = array_merge($this->defaultHeaders, $headers);
+        $headers = array_map(function ($key, $value) {
+            return $key . ":" . $value;
+        }, array_keys($headers), $headers);
+
+        return $headers;
+    }
 
     /**
      * @return resource
@@ -169,32 +181,13 @@ class CurlClient implements ApiClientInterface
     }
 
     /**
-     * Close connection
+     * @param $optionName
+     * @param $optionValue
+     * @return bool
      */
-    public function closeCurlConnection()
+    public function setCurlOption($optionName, $optionValue)
     {
-        if ($this->curl !== null) {
-            curl_close($this->curl);
-        }
-    }
-
-    /**
-     * @return array
-     */
-    public function sendRequest()
-    {
-        $response = curl_exec($this->curl);
-        $httpHeaderSize = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
-        $httpHeaders = RawHeadersParser::parse(substr($response, 0, $httpHeaderSize));
-        $httpBody = substr($response, $httpHeaderSize);
-        $responseInfo = curl_getinfo($this->curl);
-        $curlError = curl_error($this->curl);
-        $curlErrno = curl_errno($this->curl);
-        if ($response === false) {
-            $this->handleCurlError($curlError, $curlErrno);
-        }
-
-        return array($httpHeaders, $httpBody, $responseInfo);
+        return curl_setopt($this->curl, $optionName, $optionValue);
     }
 
     /**
@@ -232,6 +225,59 @@ class CurlClient implements ApiClientInterface
                 break;
             default:
                 throw new ApiException('Invalid method verb: ' . $method);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function sendRequest()
+    {
+        $response = curl_exec($this->curl);
+        $httpHeaderSize = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
+        $httpHeaders = RawHeadersParser::parse(substr($response, 0, $httpHeaderSize));
+        $httpBody = substr($response, $httpHeaderSize);
+        $responseInfo = curl_getinfo($this->curl);
+        $curlError = curl_error($this->curl);
+        $curlErrno = curl_errno($this->curl);
+        if ($response === false) {
+            $this->handleCurlError($curlError, $curlErrno);
+        }
+
+        return array($httpHeaders, $httpBody, $responseInfo);
+    }
+
+    /**
+     * @param string $error
+     * @param int $errno
+     * @throws ApiConnectionException
+     */
+    private function handleCurlError($error, $errno)
+    {
+        switch ($errno) {
+            case CURLE_COULDNT_CONNECT:
+            case CURLE_COULDNT_RESOLVE_HOST:
+            case CURLE_OPERATION_TIMEOUTED:
+                $msg = "Could not connect to Yandex Money API. Please check your internet connection and try again.";
+                break;
+            case CURLE_SSL_CACERT:
+            case CURLE_SSL_PEER_CERTIFICATE:
+                $msg = "Could not verify SSL certificate.";
+                break;
+            default:
+                $msg = "Unexpected error communicating.";
+        }
+        $msg .= "\n\n(Network error [errno $errno]: $error)";
+        throw new ApiConnectionException($msg);
+    }
+
+    /**
+     * Close connection
+     */
+    public function closeCurlConnection()
+    {
+        if ($this->curl !== null) {
+            curl_close($this->curl);
         }
     }
 
@@ -304,39 +350,6 @@ class CurlClient implements ApiClientInterface
     }
 
     /**
-     * @param string $error
-     * @param int $errno
-     * @throws ApiConnectionException
-     */
-    private function handleCurlError($error, $errno)
-    {
-        switch ($errno) {
-            case CURLE_COULDNT_CONNECT:
-            case CURLE_COULDNT_RESOLVE_HOST:
-            case CURLE_OPERATION_TIMEOUTED:
-                $msg = "Could not connect to Yandex Money API. Please check your internet connection and try again.";
-                break;
-            case CURLE_SSL_CACERT:
-            case CURLE_SSL_PEER_CERTIFICATE:
-                $msg = "Could not verify SSL certificate.";
-                break;
-            default:
-                $msg = "Unexpected error communicating.";
-        }
-        $msg .= "\n\n(Network error [errno $errno]: $error)";
-        throw new ApiConnectionException($msg);
-    }
-
-    /**
-     * @return mixed
-     */
-    private function getUrl()
-    {
-        $config = $this->config;
-        return $config['url'];
-    }
-
-    /**
      * @param bool $keepAlive
      * @return CurlClient
      */
@@ -344,19 +357,5 @@ class CurlClient implements ApiClientInterface
     {
         $this->keepAlive = $keepAlive;
         return $this;
-    }
-
-    /**
-     * @param $headers
-     * @return array
-     */
-    private function prepareHeaders($headers)
-    {
-        $headers = array_merge($this->defaultHeaders, $headers);
-        $headers = array_map(function ($key, $value) {
-            return $key . ":" . $value;
-        }, array_keys($headers), $headers);
-
-        return $headers;
     }
 }

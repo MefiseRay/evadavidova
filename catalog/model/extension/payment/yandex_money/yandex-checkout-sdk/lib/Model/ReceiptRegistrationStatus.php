@@ -11,7 +11,7 @@ use YaMoney\Common\AbstractEnum;
  * |pending|Чек ожидает доставки|
  * |succeeded|Успешно доставлен|
  * |canceled|Чек не доставлен|
- * 
+ *
  */
 class ReceiptRegistrationStatus extends AbstractEnum
 {

@@ -8,7 +8,7 @@ use YaMoney\Model\PaymentMethodType;
 /**
  * PaymentDataBankCard
  * Платежные данные для проведения оплаты при помощи банковской карты
- * 
+ *
  * @property PaymentDataBankCardCard $bankCard Данные банковской карты
  */
 class PaymentDataBankCard extends AbstractPaymentData

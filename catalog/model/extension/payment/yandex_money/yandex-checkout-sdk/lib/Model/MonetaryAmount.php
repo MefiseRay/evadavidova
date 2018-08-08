@@ -73,11 +73,11 @@ class MonetaryAmount extends AbstractObject implements AmountInterface
             throw new InvalidPropertyValueTypeException('Invalid amount value type', 0, 'amount.value', $value);
         }
         if ($value <= 0.0) {
-            throw new InvalidPropertyValueException('Invalid amount value: "'.$value.'"', 0, 'amount.value', $value);
+            throw new InvalidPropertyValueException('Invalid amount value: "' . $value . '"', 0, 'amount.value', $value);
         }
         $castedValue = (int)round($value * 100.0);
         if ($castedValue <= 0.0) {
-            throw new InvalidPropertyValueException('Invalid amount value: "'.$value.'"', 0, 'amount.value', $value);
+            throw new InvalidPropertyValueException('Invalid amount value: "' . $value . '"', 0, 'amount.value', $value);
         }
         $this->_value = $castedValue;
     }

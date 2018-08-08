@@ -8,4 +8,5 @@ namespace YaMoney\Request\Refunds;
  * @package YaMoney\Request\Refunds
  */
 class CreateRefundResponse extends AbstractRefundResponse
-{}
+{
+}

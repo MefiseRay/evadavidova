@@ -48,21 +48,21 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
     private $_confirmationTypes;
 
     /**
+     * Возвращает инстанс билдера объектов запросов списока способов оплаты
+     * @return PaymentOptionsRequestBuilder Билдер запросов списока способов оплаты
+     */
+    public static function builder()
+    {
+        return new PaymentOptionsRequestBuilder();
+    }
+
+    /**
      * Возвращает идентификатор магазина для которого требуется провести платёж
      * @return string Идентификатор магазина
      */
     public function getAccountId()
     {
         return $this->_accountId;
-    }
-
-    /**
-     * Проверяет, был ли установлен идентификатор магазина
-     * @return bool True если идентификатор магазина был установлен, false если нет
-     */
-    public function hasAccountId()
-    {
-        return $this->_accountId !== null;
     }
 
     /**
@@ -81,21 +81,21 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
     }
 
     /**
+     * Проверяет, был ли установлен идентификатор магазина
+     * @return bool True если идентификатор магазина был установлен, false если нет
+     */
+    public function hasAccountId()
+    {
+        return $this->_accountId !== null;
+    }
+
+    /**
      * Возвращает идентификатор шлюза
      * @return string Идентификатор шлюза
      */
     public function getGatewayId()
     {
         return $this->_gatewayId;
-    }
-
-    /**
-     * Проверяет, был ли установлен идентификатор шлюза
-     * @return bool True если идентификатор шлюза был установлен, false если нет
-     */
-    public function hasGatewayId()
-    {
-        return !empty($this->_gatewayId);
     }
 
     /**
@@ -114,21 +114,21 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
     }
 
     /**
+     * Проверяет, был ли установлен идентификатор шлюза
+     * @return bool True если идентификатор шлюза был установлен, false если нет
+     */
+    public function hasGatewayId()
+    {
+        return !empty($this->_gatewayId);
+    }
+
+    /**
      * Возвращает сумму заказа
      * @return string Сумма заказа
      */
     public function getAmount()
     {
         return $this->_amount;
-    }
-
-    /**
-     * Проверяет, была ли установлена сумма заказа
-     * @return bool True если сумма заказа была установлена, false если нет
-     */
-    public function hasAmount()
-    {
-        return !empty($this->_amount);
     }
 
     /**
@@ -161,21 +161,21 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
     }
 
     /**
+     * Проверяет, была ли установлена сумма заказа
+     * @return bool True если сумма заказа была установлена, false если нет
+     */
+    public function hasAmount()
+    {
+        return !empty($this->_amount);
+    }
+
+    /**
      * Возвращает код валюты, в которой осуществляется покупка
      * @return string Код валюты
      */
     public function getCurrency()
     {
         return $this->_currency;
-    }
-
-    /**
-     * Проверяет был ли установлен код валюты
-     * @return bool True если код валюты был установлен, false если нет
-     */
-    public function hasCurrency()
-    {
-        return !empty($this->_currency);
     }
 
     /**
@@ -195,6 +195,15 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
         } else {
             throw new \InvalidArgumentException('Invalid currency value type: "' . gettype($value) . '"');
         }
+    }
+
+    /**
+     * Проверяет был ли установлен код валюты
+     * @return bool True если код валюты был установлен, false если нет
+     */
+    public function hasCurrency()
+    {
+        return !empty($this->_currency);
     }
 
     /**
@@ -244,14 +253,5 @@ class PaymentOptionsRequest extends AbstractRequest implements PaymentOptionsReq
             return false;
         }
         return true;
-    }
-
-    /**
-     * Возвращает инстанс билдера объектов запросов списока способов оплаты
-     * @return PaymentOptionsRequestBuilder Билдер запросов списока способов оплаты
-     */
-    public static function builder()
-    {
-        return new PaymentOptionsRequestBuilder();
     }
 }

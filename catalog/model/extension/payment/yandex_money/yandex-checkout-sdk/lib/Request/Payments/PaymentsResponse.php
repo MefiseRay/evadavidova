@@ -102,6 +102,17 @@ class PaymentsResponse
     }
 
     /**
+     * Фабричный метод для создания объектов методов оплаты
+     * @param array $options Массив настроек метода оплаты
+     * @return AbstractPaymentMethod Используемый способ оплаты
+     */
+    private function factoryPaymentMethod($options)
+    {
+        $factory = new PaymentMethodFactory();
+        return $factory->factoryFromArray($options);
+    }
+
+    /**
      * Возвращает список платежей
      * @return PaymentInterface[] Список платежей
      */
@@ -126,16 +137,5 @@ class PaymentsResponse
     public function hasNextPage()
     {
         return $this->nextPage !== null;
-    }
-
-    /**
-     * Фабричный метод для создания объектов методов оплаты
-     * @param array $options Массив настроек метода оплаты
-     * @return AbstractPaymentMethod Используемый способ оплаты
-     */
-    private function factoryPaymentMethod($options)
-    {
-        $factory = new PaymentMethodFactory();
-        return $factory->factoryFromArray($options);
     }
 }

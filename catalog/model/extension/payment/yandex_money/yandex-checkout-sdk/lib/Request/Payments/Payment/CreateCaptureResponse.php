@@ -10,4 +10,5 @@ use YaMoney\Request\Payments\AbstractPaymentResponse;
  * @package YaMoney\Request\Payments\Payment
  */
 class CreateCaptureResponse extends AbstractPaymentResponse
-{}
+{
+}

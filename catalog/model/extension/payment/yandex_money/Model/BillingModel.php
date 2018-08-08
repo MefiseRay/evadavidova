@@ -41,7 +41,7 @@ class BillingModel extends AbstractPaymentModel
         $templateData['billing'] = $this;
         $templateData['image_base_path'] = HTTPS_SERVER . 'image/payment/yandex_money';
         $prefix = version_compare(VERSION, '2.3.0') >= 0 ? 'extension/' : '';
-        $templateData['validate_url'] = $controller->url->link($prefix.'payment/yandex_money/confirm', '', true);
+        $templateData['validate_url'] = $controller->url->link($prefix . 'payment/yandex_money/confirm', '', true);
         $templateData['action'] = 'https://money.yandex.ru/fastpay/confirm';
 
         $fio = array();

@@ -4,9 +4,9 @@ namespace YaMoney\Model;
 
 /**
  * Interface ReceiptInterface
- * 
+ *
  * @package YaMoney\Model
- * 
+ *
  * @property-read ReceiptItemInterface[] $items Список товаров в заказе
  * @property-read int $taxSystemCode Код системы налогообложения. Число 1-6.
  * @property-read string $phone Номер телефона плательщика в формате ITU-T E.164 на который будет выслан чек.

@@ -15,40 +15,33 @@ use YaMoney\Common\ResponseObject;
 class StreamClient implements ApiClientInterface
 {
     /**
-     * @var resource
-     */
-    private $stream;
-
-    /**
-     * @var int
-     */
-    private $timeout = 30;
-
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * @var string
-     */
-    private $shopId;
-
-    /**
-     * @var string
-     */
-    private $shopPassword;
-
-    /**
      * @var string
      */
     public $responseHeaders;
-
     /**
      * @var string
      */
     public $responseBody;
-
+    /**
+     * @var resource
+     */
+    private $stream;
+    /**
+     * @var int
+     */
+    private $timeout = 30;
+    /**
+     * @var array
+     */
+    private $config;
+    /**
+     * @var string
+     */
+    private $shopId;
+    /**
+     * @var string
+     */
+    private $shopPassword;
     /**
      * @var LoggerInterface|null
      */
@@ -123,14 +116,12 @@ class StreamClient implements ApiClientInterface
     }
 
     /**
-     * @param $url
-     * @return bool
+     * @return string
      */
-    public function sendRequest($url)
+    private function getUrl()
     {
-        $response = $this->fileGetContents($url);
-        $this->setData($response);
-        return (bool)$response;
+        $config = $this->config;
+        return $config['url'];
     }
 
     /**
@@ -151,17 +142,25 @@ class StreamClient implements ApiClientInterface
     /**
      * @return array
      */
-    public function getConfig()
+    private function getDefaultHeaders()
     {
-        return $this->config;
+        return array(
+            'Authorization' => $this->generateAuth(),
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        );
     }
 
     /**
-     * @param array $config
+     * @return string
+     * @throws AuthorizeException
      */
-    public function setConfig($config)
+    private function generateAuth()
     {
-        $this->config = $config;
+        if (!$this->shopId || !$this->shopPassword) {
+            throw new AuthorizeException('shopId or shopPassword not set');
+        }
+        return 'Basic ' . base64_encode($this->shopId . $this->shopPassword);
     }
 
     /**
@@ -170,6 +169,17 @@ class StreamClient implements ApiClientInterface
     public function initStream($options)
     {
         $this->stream = stream_context_create($options);
+    }
+
+    /**
+     * @param $url
+     * @return bool
+     */
+    public function sendRequest($url)
+    {
+        $response = $this->fileGetContents($url);
+        $this->setData($response);
+        return (bool)$response;
     }
 
     /**
@@ -194,12 +204,19 @@ class StreamClient implements ApiClientInterface
     }
 
     /**
-     * @return string
+     * @return array
      */
-    private function getUrl()
+    public function getConfig()
     {
-        $config = $this->config;
-        return $config['url'];
+        return $this->config;
+    }
+
+    /**
+     * @param array $config
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
     }
 
     /**
@@ -236,30 +253,6 @@ class StreamClient implements ApiClientInterface
     {
         $this->shopPassword = $shopPassword;
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    private function getDefaultHeaders()
-    {
-        return array(
-            'Authorization' => $this->generateAuth(),
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json'
-        );
-    }
-
-    /**
-     * @return string
-     * @throws AuthorizeException
-     */
-    private function generateAuth()
-    {
-        if (!$this->shopId || !$this->shopPassword) {
-            throw new AuthorizeException('shopId or shopPassword not set');
-        }
-        return 'Basic ' . base64_encode($this->shopId . $this->shopPassword);
     }
 
     /**

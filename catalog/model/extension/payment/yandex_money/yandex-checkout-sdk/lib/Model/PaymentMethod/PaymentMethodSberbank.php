@@ -1,6 +1,7 @@
 <?php
 
 namespace YaMoney\Model\PaymentMethod;
+
 use YaMoney\Common\Exceptions\EmptyPropertyValueException;
 use YaMoney\Common\Exceptions\InvalidPropertyValueException;
 use YaMoney\Common\Exceptions\InvalidPropertyValueTypeException;

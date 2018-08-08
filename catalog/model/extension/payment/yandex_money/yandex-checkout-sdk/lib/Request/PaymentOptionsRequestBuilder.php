@@ -18,15 +18,6 @@ class PaymentOptionsRequestBuilder extends AbstractRequestBuilder
     protected $currentObject;
 
     /**
-     * Инициализирует пустой запрос
-     * @return PaymentOptionsRequest Инстанс запроса который будем собирать
-     */
-    protected function initCurrentObject()
-    {
-        return new PaymentOptionsRequest();
-    }
-
-    /**
      * Устанавливает идентификатор магазина
      * @param string|null $value Значение идентификатора магазина, null если требуется удалить значение
      * @return PaymentOptionsRequestBuilder Инстанс текущего билдера запросов
@@ -98,5 +89,14 @@ class PaymentOptionsRequestBuilder extends AbstractRequestBuilder
     public function build(array $options = null)
     {
         return parent::build($options);
+    }
+
+    /**
+     * Инициализирует пустой запрос
+     * @return PaymentOptionsRequest Инстанс запроса который будем собирать
+     */
+    protected function initCurrentObject()
+    {
+        return new PaymentOptionsRequest();
     }
 }

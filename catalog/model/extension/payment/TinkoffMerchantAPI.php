@@ -11,7 +11,7 @@
  * @link     http://tinkoff.ru
  */
 //namespace Tinkoff;
- 
+
 //use HttpException;
 
 /**
@@ -22,8 +22,8 @@
  * @author   Shuyskiy Sergey <s.shuyskiy@tinkoff.ru>
  * @license  http://opensource.org/licenses/MIT MIT license
  * @link     http://tinkoff.ru
- * @property integer     orderId
- * @property integer     Count
+ * @property integer orderId
+ * @property integer Count
  * @property bool|string error
  * @property bool|string response
  * @property bool|string customerKey
@@ -31,7 +31,6 @@
  * @property bool|string paymentUrl
  * @property bool|string paymentId
  */
-
 class TinkoffMerchantAPI
 {
     private $_api_url;
@@ -47,8 +46,8 @@ class TinkoffMerchantAPI
      * Constructor
      *
      * @param string $terminalKey Your Terminal name
-     * @param string $secretKey   Secret key for terminal
-     * @param string $api_url     Url for API
+     * @param string $secretKey Secret key for terminal
+     * @param string $api_url Url for API
      */
     public function __construct($terminalKey, $secretKey, $api_url)
     {
@@ -67,28 +66,28 @@ class TinkoffMerchantAPI
     public function __get($name)
     {
         switch ($name) {
-        case 'paymentId':
-            return $this->_paymentId;
-        case 'status':
-            return $this->_status;
-        case 'error':
-            return $this->_error;
-        case 'paymentUrl':
-            return $this->_paymentUrl;
-        case 'response':
-            return htmlentities($this->_response);
-        default:
-            if ($this->_response) {
-                if ($json = json_decode($this->_response, true)) {
-                    foreach ($json as $key => $value) {
-                        if (strtolower($name) == strtolower($key)) {
-                            return $json[$key];
+            case 'paymentId':
+                return $this->_paymentId;
+            case 'status':
+                return $this->_status;
+            case 'error':
+                return $this->_error;
+            case 'paymentUrl':
+                return $this->_paymentUrl;
+            case 'response':
+                return htmlentities($this->_response);
+            default:
+                if ($this->_response) {
+                    if ($json = json_decode($this->_response, true)) {
+                        foreach ($json as $key => $value) {
+                            if (strtolower($name) == strtolower($key)) {
+                                return $json[$key];
+                            }
                         }
                     }
                 }
-            }
 
-            return false;
+                return false;
         }
     }
 
@@ -102,6 +101,136 @@ class TinkoffMerchantAPI
     public function init($args)
     {
         return $this->buildQuery('Init', $args);
+    }
+
+    /**
+     * Builds a query string and call sendRequest method.
+     * Could be used to custom API call method.
+     *
+     * @param string $path API method name
+     * @param mixed $args query params
+     *
+     * @return mixed
+     * @throws HttpException
+     */
+    public function buildQuery($path, $args)
+    {
+        $url = $this->_api_url;
+        if (is_array($args)) {
+            if (!array_key_exists('TerminalKey', $args)) {
+                $args['TerminalKey'] = $this->_terminalKey;
+            }
+            if (!array_key_exists('Token', $args)) {
+                $args['Token'] = $this->_genToken($args);
+            }
+        }
+        $url = $this->_combineUrl($url, $path);
+
+        return $this->_sendRequest($url, $args);
+    }
+
+    /**
+     * Generates token
+     *
+     * @param array $args array of query params
+     *
+     * @return string
+     */
+    private function _genToken($args)
+    {
+        $args['Password'] = $this->_secretKey;
+        ksort($args);
+
+        $token = '';
+
+        foreach ($args as $arg) {
+            if (is_array($arg)) {
+                $arg = 'Array';
+            }
+            $token .= $arg;
+        }
+
+        $token = hash('sha256', $token);
+
+        return $token;
+    }
+
+    /**
+     * Combines parts of URL. Simply gets all parameters and puts '/' between
+     *
+     * @return string
+     */
+    private function _combineUrl()
+    {
+        $args = func_get_args();
+        $url = '';
+        foreach ($args as $arg) {
+            if (is_string($arg)) {
+                if ($arg[strlen($arg) - 1] !== '/') {
+                    $arg .= '/';
+                }
+                $url .= $arg;
+            } else {
+                continue;
+            }
+        }
+
+        return $url;
+    }
+
+    /**
+     * Main method. Call API with params
+     *
+     * @param string $api_url API Url
+     * @param array $args API params
+     *
+     * @return mixed
+     * @throws HttpException
+     */
+    private function _sendRequest($api_url, $args)
+    {
+        $this->_error = '';
+        //todo add string $args support
+
+        if (is_array($args)) {
+            $args = json_encode($args);
+        }
+
+        if ($curl = curl_init()) {
+            curl_setopt($curl, CURLOPT_URL, $api_url);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $args);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+            ));
+
+            $out = curl_exec($curl);
+            $this->_response = $out;
+
+            $json = json_decode($out);
+            if ($json) {
+                if (@$json->ErrorCode !== "0") {
+                    $this->_error = @$json->Details;
+                } else {
+                    $this->_paymentUrl = @$json->PaymentURL;
+                    $this->_paymentId = @$json->PaymentId;
+                    $this->_status = @$json->Status;
+                }
+            }
+
+            curl_close($curl);
+
+            return $out;
+
+        } else {
+            throw new HttpException(
+                'Can not create connection to ' . $api_url . ' with args '
+                . $args, 404
+            );
+        }
     }
 
     /**
@@ -209,135 +338,5 @@ class TinkoffMerchantAPI
     public function resend()
     {
         return $this->buildQuery('Resend', array());
-    }
-
-    /**
-     * Builds a query string and call sendRequest method.
-     * Could be used to custom API call method.
-     *
-     * @param string $path API method name
-     * @param mixed  $args query params
-     *
-     * @return mixed
-     * @throws HttpException
-     */
-    public function buildQuery($path, $args)
-    {
-        $url = $this->_api_url;
-        if (is_array($args)) {
-            if (! array_key_exists('TerminalKey', $args)) {
-                $args['TerminalKey'] = $this->_terminalKey;
-            }
-            if (! array_key_exists('Token', $args)) {
-                $args['Token'] = $this->_genToken($args);
-            }
-        }
-        $url = $this->_combineUrl($url, $path);
-
-        return $this->_sendRequest($url, $args);
-    }
-
-    /**
-     * Generates token
-     *
-     * @param array $args array of query params
-     *
-     * @return string
-     */
-    private function _genToken($args)
-    {
-        $args['Password'] = $this->_secretKey;
-        ksort($args);
-
-        $token = '';
-
-        foreach ($args as $arg) {
-            if (is_array($arg)) {
-                $arg = 'Array';
-            }
-            $token .= $arg;
-        }
-
-        $token = hash('sha256', $token);
-
-        return $token;
-    }
-
-    /**
-     * Combines parts of URL. Simply gets all parameters and puts '/' between
-     *
-     * @return string
-     */
-    private function _combineUrl()
-    {
-        $args = func_get_args();
-        $url = '';
-        foreach ($args as $arg) {
-            if (is_string($arg)) {
-                if ($arg[strlen($arg) - 1] !== '/') {
-                    $arg .= '/';
-                }
-                $url .= $arg;
-            } else {
-                continue;
-            }
-        }
-
-        return $url;
-    }
-
-    /**
-     * Main method. Call API with params
-     *
-     * @param string $api_url API Url
-     * @param array  $args    API params
-     *
-     * @return mixed
-     * @throws HttpException
-     */
-    private function _sendRequest($api_url, $args)
-    {
-        $this->_error = '';
-        //todo add string $args support
-
-        if (is_array($args)) {
-            $args = json_encode($args);
-        }
-
-        if ($curl = curl_init()) {
-            curl_setopt($curl, CURLOPT_URL, $api_url);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $args);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-            ));
-
-            $out = curl_exec($curl);
-            $this->_response = $out;
-
-            $json = json_decode($out);
-            if ($json) {
-                if (@$json->ErrorCode !== "0") {
-                    $this->_error = @$json->Details;
-                } else {
-                    $this->_paymentUrl = @$json->PaymentURL;
-                    $this->_paymentId = @$json->PaymentId;
-                    $this->_status = @$json->Status;
-                }
-            }
-
-            curl_close($curl);
-
-            return $out;
-
-        } else {
-            throw new HttpException(
-                'Can not create connection to ' . $api_url . ' with args '
-                . $args, 404
-            );
-        }
     }
 }

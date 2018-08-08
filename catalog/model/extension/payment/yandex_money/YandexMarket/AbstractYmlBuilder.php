@@ -53,6 +53,56 @@ class AbstractYmlBuilder
         return $document;
     }
 
+    /**
+     * @param string $value
+     * @return string
+     */
+    protected function prepareValue($value)
+    {
+        static $from = array('"', '&', '>', '<', '\'');
+        static $to = array('&quot;', '&amp;', '&gt;', '&lt;', '&apos;');
+        $value = str_replace($from, $to, $value);
+        $value = preg_replace('!<[^>]*?>!', ' ', $value);
+        // if ($this->from_charset!='windows-1251') $s = iconv($this->from_charset, 'windows-1251', $s);
+        $value = preg_replace('#[\x00-\x08\x0B-\x0C\x0E-\x1F]+#is', ' ', $value);
+        return $this->convertCharset(trim($value));
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     */
+    protected function convertCharset($value)
+    {
+        if ($this->charset !== $this->sourceCharset) {
+            return iconv('utf-8', $this->charset, $value);
+        }
+        return $value;
+    }
+
+    /**
+     * @param ShopInfo $shopInfo
+     * @param bool $offer
+     * @return string
+     */
+    protected function generateDeliveryOptions($shopInfo, $offer = true)
+    {
+        $prefix = '    ';
+        if ($offer) {
+            $prefix .= '    ';
+        }
+        $result = $prefix . '<delivery-options>' . PHP_EOL;
+        foreach ($shopInfo->getDeliveryOptions() as $option) {
+            $result .= $prefix . '  <option cost="' . $option->getCost() . '" days="' . $option->getDays() . '"';
+            if ($option->hasOrderBefore()) {
+                $result .= ' order-before="' . $option->getOrderBefore() . '"';
+            }
+            $result .= ' />' . PHP_EOL;
+        }
+        $result .= $prefix . '</delivery-options>' . PHP_EOL;
+        return $result;
+    }
+
     protected function generateCurrencies(ShopInfo $shopInfo)
     {
         $result = '    <currencies>' . PHP_EOL;
@@ -104,6 +154,58 @@ class AbstractYmlBuilder
         return $result;
     }
 
+    /**
+     * @param ParameterList[] $properties
+     * @return string[]
+     */
+    private function generateProperties($properties)
+    {
+        $map = array(
+            'color' => array(
+                'prefix' => 'c',
+                'name' => 'Цвет',
+            ),
+            'capacity' => array(
+                'prefix' => 'C',
+                'name' => 'Ёмкость',
+            ),
+            'weight' => array(
+                'prefix' => 'w',
+                'name' => 'Вес',
+            ),
+            'size' => array(
+                'prefix' => 's',
+                'name' => 'Размер',
+            ),
+        );
+
+        /** @var ParameterList $property */
+        $property = array_shift($properties);
+        if (!empty($properties)) {
+            $propStrings = $this->generateProperties($properties);
+        } else {
+            $propStrings = array('' => '');
+        }
+        $result = array();
+        $index = 0;
+        if (!isset($map[$property->getName()])) {
+            return empty($result) ? $result : $propStrings;
+        }
+        foreach ($property->getValues() as $value) {
+            $index++;
+            $idx = $map[$property->getName()]['prefix'] . $index;
+            $tmp = '        <param name="' . $map[$property->getName()]['name'] . '"';
+            if ($property->hasUnit()) {
+                $tmp .= ' unit="' . $property->getUnit() . '"';
+            }
+            $tmp .= '>' . $value . '</param>' . PHP_EOL;
+            foreach ($propStrings as $id => $str) {
+                $result[$id . $idx] = $str . $tmp;
+            }
+        }
+        return $result;
+    }
+
     protected function generateOffer(Offer $offer, $idPrefix = null, $properties = array())
     {
         $result = '      <offer id="' . $offer->getId() . $idPrefix . '"';
@@ -151,31 +253,31 @@ class AbstractYmlBuilder
             $result .= '        <description><![CDATA[' . $this->prepareValue($offer->getDescription()) . ']]></description>' . PHP_EOL;
         }
         if ($offer->hasSalesNotes()) {
-            $result .= '        <sales_notes>'. $this->prepareValue($offer->getSalesNotes()) . '</sales_notes>' . PHP_EOL;
+            $result .= '        <sales_notes>' . $this->prepareValue($offer->getSalesNotes()) . '</sales_notes>' . PHP_EOL;
         }
         if ($offer->hasMinQuantity()) {
-            $result .= '        <min-quantity>'. $offer->getMinQuantity() . '</min-quantity>' . PHP_EOL;
+            $result .= '        <min-quantity>' . $offer->getMinQuantity() . '</min-quantity>' . PHP_EOL;
         }
         if ($offer->hasStepQuantity()) {
-            $result .= '        <step-quantity>'. $offer->getStepQuantity() . '</step-quantity>' . PHP_EOL;
+            $result .= '        <step-quantity>' . $offer->getStepQuantity() . '</step-quantity>' . PHP_EOL;
         }
         if ($offer->hasManufacturerWarranty()) {
-            $result .= '        <manufacturer_warranty>'. ($offer->getManufacturerWarranty() ? 'true' : 'false') . '</manufacturer_warranty>' . PHP_EOL;
+            $result .= '        <manufacturer_warranty>' . ($offer->getManufacturerWarranty() ? 'true' : 'false') . '</manufacturer_warranty>' . PHP_EOL;
         }
         if ($offer->hasCountryOfOrigin()) {
-            $result .= '        <country_of_origin>'. $this->prepareValue($offer->getCountryOfOrigin()) . '</country_of_origin>' . PHP_EOL;
+            $result .= '        <country_of_origin>' . $this->prepareValue($offer->getCountryOfOrigin()) . '</country_of_origin>' . PHP_EOL;
         }
         if ($offer->hasAdult()) {
-            $result .= '        <adult>'. ($offer->getAdult() ? 'true' : 'false') . '</adult>' . PHP_EOL;
+            $result .= '        <adult>' . ($offer->getAdult() ? 'true' : 'false') . '</adult>' . PHP_EOL;
         }
         if ($offer->hasVendor()) {
-            $result .= '        <vendor>'. $this->prepareValue($offer->getVendor()) . '</vendor>' . PHP_EOL;
+            $result .= '        <vendor>' . $this->prepareValue($offer->getVendor()) . '</vendor>' . PHP_EOL;
         }
         if ($offer->hasVendorCode()) {
-            $result .= '        <vendorCode>'. $this->prepareValue($offer->getVendorCode()) . '</vendorCode>' . PHP_EOL;
+            $result .= '        <vendorCode>' . $this->prepareValue($offer->getVendorCode()) . '</vendorCode>' . PHP_EOL;
         }
         if ($offer->hasModel()) {
-            $result .= '        <model>'. $this->prepareValue($offer->getModel()) . '</model>' . PHP_EOL;
+            $result .= '        <model>' . $this->prepareValue($offer->getModel()) . '</model>' . PHP_EOL;
         }
         if ($offer->hasPictures()) {
             foreach ($offer->getPictures() as $picture) {
@@ -198,81 +300,6 @@ class AbstractYmlBuilder
         return $result;
     }
 
-    /**
-     * @param ParameterList[] $properties
-     * @return string[]
-     */
-    private function generateProperties($properties)
-    {
-        $map = array(
-            'color' => array(
-                'prefix' => 'c',
-                'name' => 'Цвет',
-            ),
-            'capacity' => array(
-                'prefix' => 'C',
-                'name' => 'Ёмкость',
-            ),
-            'weight' => array(
-                'prefix' => 'w',
-                'name' => 'Вес',
-            ),
-            'size' => array(
-                'prefix' => 's',
-                'name' => 'Размер',
-            ),
-        );
-
-        /** @var ParameterList $property */
-        $property = array_shift($properties);
-        if (!empty($properties)) {
-            $propStrings = $this->generateProperties($properties);
-        } else {
-            $propStrings = array('' => '');
-        }
-        $result = array();
-        $index = 0;
-        if (!isset($map[$property->getName()])) {
-            return empty($result) ? $result : $propStrings;
-        }
-        foreach ($property->getValues() as $value) {
-            $index++;
-            $idx = $map[$property->getName()]['prefix'] . $index;
-            $tmp = '        <param name="' . $map[$property->getName()]['name'] . '"';
-            if ($property->hasUnit()) {
-                $tmp .= ' unit="' . $property->getUnit() . '"';
-            }
-            $tmp .=  '>' . $value . '</param>' . PHP_EOL;
-            foreach ($propStrings as $id => $str) {
-                $result[$id . $idx] = $str . $tmp;
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * @param ShopInfo $shopInfo
-     * @param bool $offer
-     * @return string
-     */
-    protected function generateDeliveryOptions($shopInfo, $offer = true)
-    {
-        $prefix = '    ';
-        if ($offer) {
-            $prefix .= '    ';
-        }
-        $result = $prefix . '<delivery-options>' . PHP_EOL;
-        foreach ($shopInfo->getDeliveryOptions() as $option) {
-            $result .= $prefix . '  <option cost="' . $option->getCost() . '" days="' . $option->getDays() . '"';
-            if ($option->hasOrderBefore()) {
-                $result .= ' order-before="' . $option->getOrderBefore() . '"';
-            }
-            $result .= ' />' . PHP_EOL;
-        }
-        $result .= $prefix . '</delivery-options>' . PHP_EOL;
-        return $result;
-    }
-
     protected function generateOutlets(Offer $offer)
     {
         $result = '        <outlets>';
@@ -281,33 +308,6 @@ class AbstractYmlBuilder
         }
         $result .= '        </outlets>' . PHP_EOL;
         return $result;
-    }
-
-    /**
-     * @param string $value
-     * @return string
-     */
-    protected function prepareValue($value)
-    {
-        static $from = array('"', '&', '>', '<', '\'');
-        static $to = array('&quot;', '&amp;', '&gt;', '&lt;', '&apos;');
-        $value = str_replace($from, $to, $value);
-        $value = preg_replace('!<[^>]*?>!', ' ', $value);
-        // if ($this->from_charset!='windows-1251') $s = iconv($this->from_charset, 'windows-1251', $s);
-        $value = preg_replace('#[\x00-\x08\x0B-\x0C\x0E-\x1F]+#is', ' ', $value);
-        return $this->convertCharset(trim($value));
-    }
-
-    /**
-     * @param string $value
-     * @return string
-     */
-    protected function convertCharset($value)
-    {
-        if ($this->charset !== $this->sourceCharset) {
-            return iconv('utf-8', $this->charset, $value);
-        }
-        return $value;
     }
 
     protected function addTag($tag, $value, $attributes = array())

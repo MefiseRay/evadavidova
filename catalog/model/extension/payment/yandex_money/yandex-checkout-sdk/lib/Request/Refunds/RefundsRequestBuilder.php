@@ -19,15 +19,6 @@ class RefundsRequestBuilder extends AbstractRequestBuilder
     protected $currentObject;
 
     /**
-     * Инициализирует новый инстанс собираемого объекта
-     * @return RefundsRequest Инстанс собираемого запроса
-     */
-    protected function initCurrentObject()
-    {
-        return new RefundsRequest();
-    }
-
-    /**
      * Устанавливает идентификатор возврата
      * @param string $value Идентификатор возврата, который ищется в API
      * @return RefundsRequestBuilder Инстанс текущего объекта билдера
@@ -246,5 +237,14 @@ class RefundsRequestBuilder extends AbstractRequestBuilder
     public function build(array $options = null)
     {
         return parent::build($options);
+    }
+
+    /**
+     * Инициализирует новый инстанс собираемого объекта
+     * @return RefundsRequest Инстанс собираемого запроса
+     */
+    protected function initCurrentObject()
+    {
+        return new RefundsRequest();
     }
 }

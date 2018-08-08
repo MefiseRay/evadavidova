@@ -19,7 +19,7 @@ class CreateRefundRequestSerializer
         $result = array(
             'payment_id' => $request->getPaymentId(),
             'amount' => array(
-                'value'    => $request->getAmount()->getValue(),
+                'value' => $request->getAmount()->getValue(),
                 'currency' => $request->getAmount()->getCurrency(),
             ),
         );
@@ -36,12 +36,12 @@ class CreateRefundRequestSerializer
                 }
                 $result['receipt']['items'][] = array(
                     'description' => $item->getDescription(),
-                    'amount'      => array(
-                        'value'    => $item->getPrice()->getValue(),
+                    'amount' => array(
+                        'value' => $item->getPrice()->getValue(),
                         'currency' => $item->getPrice()->getCurrency(),
                     ),
-                    'quantity'    => $item->getQuantity(),
-                    'vat_code'    => $vatId,
+                    'quantity' => $item->getQuantity(),
+                    'vat_code' => $vatId,
                 );
             }
             $value = $receipt->getEmail();

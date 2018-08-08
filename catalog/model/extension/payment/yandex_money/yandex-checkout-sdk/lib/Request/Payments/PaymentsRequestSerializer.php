@@ -13,18 +13,18 @@ class PaymentsRequestSerializer
      * @var array Карта маппинга свойств объекта запроса на поля отправляемого запроса
      */
     private static $propertyMap = array(
-        'paymentId'      => 'payment_id',
-        'gatewayId'      => 'gateway_id',
-        'createdGte'     => 'created_gte',
-        'createdGt'      => 'created_gt',
-        'createdLte'     => 'created_lte',
-        'createdLt'      => 'created_lt',
-        'authorizedGte'  => 'authorized_gte',
-        'authorizedGt'   => 'authorized_gt',
-        'authorizedLte'  => 'authorized_lte',
-        'authorizedLt'   => 'authorized_lt',
-        'status'         => 'status',
-        'nextPage'       => 'next_page',
+        'paymentId' => 'payment_id',
+        'gatewayId' => 'gateway_id',
+        'createdGte' => 'created_gte',
+        'createdGt' => 'created_gt',
+        'createdLte' => 'created_lte',
+        'createdLt' => 'created_lt',
+        'authorizedGte' => 'authorized_gte',
+        'authorizedGt' => 'authorized_gt',
+        'authorizedLte' => 'authorized_lte',
+        'authorizedLt' => 'authorized_lt',
+        'status' => 'status',
+        'nextPage' => 'next_page',
     );
 
     /**

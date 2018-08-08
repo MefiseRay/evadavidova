@@ -11,7 +11,7 @@ use YaMoney\Common\AbstractEnum;
  * |pending|Ожидает обработки|
  * |succeeded|Успешно возвращен|
  * |canceled|В проведении возврата отказано|
- * 
+ *
  */
 class RefundStatus extends AbstractEnum
 {

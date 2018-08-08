@@ -19,24 +19,24 @@ use YaMoney\Model\PaymentMethodType;
 class CreatePaymentRequestSerializer
 {
     private static $propertyMap = array(
-        'reference_id'        => 'referenceId',
-        'payment_token'       => 'paymentToken',
-        'payment_method_id'   => 'paymentMethodId',
+        'reference_id' => 'referenceId',
+        'payment_token' => 'paymentToken',
+        'payment_method_id' => 'paymentMethodId',
         'save_payment_method' => 'savePaymentMethod',
-        'capture'             => 'capture',
-        'client_ip'           => 'clientIp',
+        'capture' => 'capture',
+        'client_ip' => 'clientIp',
     );
 
     private static $paymentDataSerializerMap = array(
-        PaymentMethodType::BANK_CARD      => 'serializePaymentDataBankCard',
-        PaymentMethodType::YANDEX_MONEY   => 'serializePaymentDataYandexWallet',
-        PaymentMethodType::APPLE_PAY      => 'serializePaymentDataMobile',
-        PaymentMethodType::ANDROID_PAY    => 'serializePaymentDataMobile',
-        PaymentMethodType::SBERBANK       => 'serializePaymentDataSberbank',
-        PaymentMethodType::ALFABANK       => 'serializePaymentDataAlfabank',
-        PaymentMethodType::WEBMONEY       => 'serializePaymentData',
-        PaymentMethodType::QIWI           => 'serializePaymentDataMobilePhone',
-        PaymentMethodType::CASH           => 'serializePaymentDataMobilePhone',
+        PaymentMethodType::BANK_CARD => 'serializePaymentDataBankCard',
+        PaymentMethodType::YANDEX_MONEY => 'serializePaymentDataYandexWallet',
+        PaymentMethodType::APPLE_PAY => 'serializePaymentDataMobile',
+        PaymentMethodType::ANDROID_PAY => 'serializePaymentDataMobile',
+        PaymentMethodType::SBERBANK => 'serializePaymentDataSberbank',
+        PaymentMethodType::ALFABANK => 'serializePaymentDataAlfabank',
+        PaymentMethodType::WEBMONEY => 'serializePaymentData',
+        PaymentMethodType::QIWI => 'serializePaymentDataMobilePhone',
+        PaymentMethodType::CASH => 'serializePaymentDataMobilePhone',
         PaymentMethodType::MOBILE_BALANCE => 'serializePaymentDataMobilePhone',
     );
 
@@ -56,9 +56,9 @@ class CreatePaymentRequestSerializer
                     }
                     $result['receipt']['items'][] = array(
                         'description' => $item->getDescription(),
-                        'amount'      => $this->serializeAmount($item->getPrice()),
-                        'quantity'    => $item->getQuantity(),
-                        'vat_code'    => $vatId,
+                        'amount' => $this->serializeAmount($item->getPrice()),
+                        'quantity' => $item->getQuantity(),
+                        'vat_code' => $vatId,
                     );
                 }
                 $value = $receipt->getEmail();
@@ -107,11 +107,11 @@ class CreatePaymentRequestSerializer
         }
         return $result;
     }
-    
+
     private function serializeAmount(AmountInterface $amount)
     {
         return array(
-            'value'    => $amount->getValue(),
+            'value' => $amount->getValue(),
             'currency' => $amount->getCurrency(),
         );
     }
@@ -186,7 +186,7 @@ class CreatePaymentRequestSerializer
     private function serializePaymentData(AbstractPaymentData $paymentData)
     {
         return array(
-            'type'  => $paymentData->getType(),
+            'type' => $paymentData->getType(),
         );
     }
 

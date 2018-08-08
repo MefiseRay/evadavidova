@@ -91,12 +91,36 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     private $_metadata;
 
     /**
+     * Возвращает билдер объектов запросов создания платежа
+     * @return CreatePaymentRequestBuilder Инстанс билдера объектов запрсов
+     */
+    public static function builder()
+    {
+        return new CreatePaymentRequestBuilder();
+    }
+
+    /**
      * Возвращает объект получателя платежа
      * @return RecipientInterface|null Объект с информацией о получателе платежа или null если получатель не задан
      */
     public function getRecipient()
     {
         return $this->_recipient;
+    }
+
+    /**
+     * Устанавливает объект с информацией о получателе платежа
+     * @param RecipientInterface|null $value Инстанс объекта информации о получателе платежа или null
+     */
+    public function setRecipient($value)
+    {
+        if ($value === null || $value === '') {
+            $this->_recipient = null;
+        } elseif (is_object($value) && $value instanceof RecipientInterface) {
+            $this->_recipient = $value;
+        } else {
+            throw new \InvalidArgumentException('Invalid recipient value type');
+        }
     }
 
     /**
@@ -162,36 +186,12 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
-     * Устанавливает объект с информацией о получателе платежа
-     * @param RecipientInterface|null $value Инстанс объекта информации о получателе платежа или null
-     */
-    public function setRecipient($value)
-    {
-        if ($value === null || $value === '') {
-            $this->_recipient = null;
-        } elseif (is_object($value) && $value instanceof RecipientInterface) {
-            $this->_recipient = $value;
-        } else {
-            throw new \InvalidArgumentException('Invalid recipient value type');
-        }
-    }
-
-    /**
      * Возвращает одноразовый токен для проведения оплаты
      * @return string Одноразовый токен для проведения оплаты, сформированный Yandex.Checkout JS widget
      */
     public function getPaymentToken()
     {
         return $this->_paymentToken;
-    }
-
-    /**
-     * Проверяет наличие одноразового токена для проведения оплаты
-     * @return bool True если токен установлен, false если нет
-     */
-    public function hasPaymentToken()
-    {
-        return !empty($this->_paymentToken);
     }
 
     /**
@@ -230,15 +230,6 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
-     * Проверяет наличие идентификатора записи о платёжных данных покупателя
-     * @return bool True если идентификатор задан, false если нет
-     */
-    public function hasPaymentMethodId()
-    {
-        return !empty($this->_paymentMethodId);
-    }
-
-    /**
      * Устанавливает идентификатор записи о сохранённых данных покупателя
      * @param string $value Идентификатор записи о сохраненных платежных данных покупателя
      *
@@ -267,15 +258,6 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     public function getPaymentMethodData()
     {
         return $this->_paymentMethodData;
-    }
-
-    /**
-     * Проверяет установлен ли объект с методом оплаты
-     * @return bool True если объект метода оплаты установлен, false если нет
-     */
-    public function hasPaymentMethodData()
-    {
-        return !empty($this->_paymentMethodData);
     }
 
     /**
@@ -310,15 +292,6 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
-     * Проверяет был ли установлен способ подтверждения платежа
-     * @return bool True если способ подтверждения платежа был установлен, false если нет
-     */
-    public function hasConfirmation()
-    {
-        return $this->_confirmation !== null;
-    }
-
-    /**
      * Устанавливает способ подтверждения платежа
      * @param AbstractConfirmationAttributes|null $value Способ подтверждения платежа
      *
@@ -342,21 +315,21 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
+     * Проверяет был ли установлен способ подтверждения платежа
+     * @return bool True если способ подтверждения платежа был установлен, false если нет
+     */
+    public function hasConfirmation()
+    {
+        return $this->_confirmation !== null;
+    }
+
+    /**
      * Возвращает флаг сохранения платёжных данных
      * @return bool Флаг сохранения платёжных данных
      */
     public function getSavePaymentMethod()
     {
         return $this->_savePaymentMethod;
-    }
-
-    /**
-     * Проверяет был ли установлен флаг сохранения платёжных данных
-     * @return bool True если флыг был установлен, false если нет
-     */
-    public function hasSavePaymentMethod()
-    {
-        return $this->_savePaymentMethod !== null;
     }
 
     /**
@@ -382,21 +355,21 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
+     * Проверяет был ли установлен флаг сохранения платёжных данных
+     * @return bool True если флыг был установлен, false если нет
+     */
+    public function hasSavePaymentMethod()
+    {
+        return $this->_savePaymentMethod !== null;
+    }
+
+    /**
      * Возвращает флаг автоматического принятия поступившей оплаты
      * @return bool True если требуется автоматически принять поступившую оплату, false если нет
      */
     public function getCapture()
     {
         return $this->_capture;
-    }
-
-    /**
-     * Проверяет был ли установлен флаг автоматического приняти поступившей оплаты
-     * @return bool True если флаг автоматического принятия оплаты был установлен, false если нет
-     */
-    public function hasCapture()
-    {
-        return $this->_capture !== null;
     }
 
     /**
@@ -419,21 +392,21 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
+     * Проверяет был ли установлен флаг автоматического приняти поступившей оплаты
+     * @return bool True если флаг автоматического принятия оплаты был установлен, false если нет
+     */
+    public function hasCapture()
+    {
+        return $this->_capture !== null;
+    }
+
+    /**
      * Возвращает IPv4 или IPv6-адрес покупателя
      * @return string IPv4 или IPv6-адрес покупателя
      */
     public function getClientIp()
     {
         return $this->_clientIp;
-    }
-
-    /**
-     * Проверяет был ли установлен IPv4 или IPv6-адрес покупателя
-     * @return bool True если IP адрес покупателя был установлен, false если нет
-     */
-    public function hasClientIp()
-    {
-        return $this->_clientIp !== null;
     }
 
     /**
@@ -456,21 +429,21 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
+     * Проверяет был ли установлен IPv4 или IPv6-адрес покупателя
+     * @return bool True если IP адрес покупателя был установлен, false если нет
+     */
+    public function hasClientIp()
+    {
+        return $this->_clientIp !== null;
+    }
+
+    /**
      * Возвращает данные оплаты установленные мерчантом
      * @return Metadata Метаданные, привязанные к платежу
      */
     public function getMetadata()
     {
         return $this->_metadata;
-    }
-
-    /**
-     * Проверяет были ли установлены метаданные заказа
-     * @return bool True если метаданные были установлены, false если нет
-     */
-    public function hasMetadata()
-    {
-        return !empty($this->_metadata) && $this->_metadata->count() > 0;
     }
 
     /**
@@ -496,6 +469,15 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
                 'Invalid metadata value type in CreatePaymentRequest', 0, 'CreatePaymentRequest.metadata', $value
             );
         }
+    }
+
+    /**
+     * Проверяет были ли установлены метаданные заказа
+     * @return bool True если метаданные были установлены, false если нет
+     */
+    public function hasMetadata()
+    {
+        return !empty($this->_metadata) && $this->_metadata->count() > 0;
     }
 
     /**
@@ -551,11 +533,29 @@ class CreatePaymentRequest extends AbstractRequest implements CreatePaymentReque
     }
 
     /**
-     * Возвращает билдер объектов запросов создания платежа
-     * @return CreatePaymentRequestBuilder Инстанс билдера объектов запрсов
+     * Проверяет наличие одноразового токена для проведения оплаты
+     * @return bool True если токен установлен, false если нет
      */
-    public static function builder()
+    public function hasPaymentToken()
     {
-        return new CreatePaymentRequestBuilder();
+        return !empty($this->_paymentToken);
+    }
+
+    /**
+     * Проверяет наличие идентификатора записи о платёжных данных покупателя
+     * @return bool True если идентификатор задан, false если нет
+     */
+    public function hasPaymentMethodId()
+    {
+        return !empty($this->_paymentMethodId);
+    }
+
+    /**
+     * Проверяет установлен ли объект с методом оплаты
+     * @return bool True если объект метода оплаты установлен, false если нет
+     */
+    public function hasPaymentMethodData()
+    {
+        return !empty($this->_paymentMethodData);
     }
 }

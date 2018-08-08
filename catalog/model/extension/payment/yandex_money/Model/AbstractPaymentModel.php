@@ -4,27 +4,23 @@ namespace YandexMoneyModule\Model;
 
 class AbstractPaymentModel
 {
-    /**
-     * @var \Config
-     */
-    private $config;
-
-    /**
-     * @var string
-     */
-    private $paymentType;
-
     protected $enabled;
     protected $successOrderStatus;
     protected $geoZone;
     protected $minPaymentAmount;
     protected $displayName;
-
     /** @var bool */
     protected $createOrderBeforeRedirect;
-
     /** @var bool */
     protected $clearCartAfterOrderCreation;
+    /**
+     * @var \Config
+     */
+    private $config;
+    /**
+     * @var string
+     */
+    private $paymentType;
 
     /**
      * AbstractPaymentModel constructor.
@@ -43,14 +39,14 @@ class AbstractPaymentModel
         $this->geoZone = (int)$this->getConfigValue('geo_zone');
     }
 
-    protected function getConfigKey($key)
-    {
-        return 'yandex_money_' . $this->paymentType . '_' . $key;
-    }
-
     protected function getConfigValue($key)
     {
         return $this->config->get($this->getConfigKey($key));
+    }
+
+    protected function getConfigKey($key)
+    {
+        return 'yandex_money_' . $this->paymentType . '_' . $key;
     }
 
     public function isEnabled()

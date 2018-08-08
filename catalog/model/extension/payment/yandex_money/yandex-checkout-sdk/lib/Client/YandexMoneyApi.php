@@ -175,6 +175,44 @@ class YandexMoneyApi
     }
 
     /**
+     * @param ResponseObject $response
+     * @throws BadApiRequestException
+     * @throws ForbiddenException
+     * @throws InternalServerError
+     * @throws UnauthorizedException
+     * @throws ApiException
+     */
+    private function handleError(ResponseObject $response)
+    {
+        switch ($response->getCode()) {
+            case BadApiRequestException::HTTP_CODE:
+                throw new BadApiRequestException($response->getHeaders(), $response->getBody());
+                break;
+            case ForbiddenException::HTTP_CODE:
+                throw new ForbiddenException($response->getHeaders(), $response->getBody());
+                break;
+            case UnauthorizedException::HTTP_CODE:
+                throw new UnauthorizedException($response->getHeaders(), $response->getBody());
+                break;
+            case InternalServerError::HTTP_CODE:
+                throw new InternalServerError($response->getHeaders(), $response->getBody());
+                break;
+            case NotFoundException::HTTP_CODE:
+                throw new NotFoundException($response->getHeaders(), $response->getBody());
+                break;
+            default:
+                if ($response->getCode() > 399) {
+                    throw new ApiException(
+                        'Unexpected response error code',
+                        $response->getCode(),
+                        $response->getHeaders(),
+                        $response->getBody()
+                    );
+                }
+        }
+    }
+
+    /**
      * Получить список платежей магазина.
      * @param PaymentsRequestInterface $payments
      * @return PaymentsResponse
@@ -237,6 +275,22 @@ class YandexMoneyApi
             $this->handleError($response);
         }
         return $paymentResponse;
+    }
+
+    /**
+     * @param $serializedData
+     * @return string
+     * @throws \Exception
+     */
+    private function encodeData($serializedData)
+    {
+        $result = json_encode($serializedData);
+        if ($result === false) {
+            $errorCode = json_last_error();
+            throw new JsonException("Failed serialize json.", $errorCode);
+        }
+
+        return $result;
     }
 
     /**
@@ -429,59 +483,5 @@ class YandexMoneyApi
     public function setConfig($config)
     {
         $this->config = $config;
-    }
-
-    /**
-     * @param $serializedData
-     * @return string
-     * @throws \Exception
-     */
-    private function encodeData($serializedData)
-    {
-        $result = json_encode($serializedData);
-        if ($result === false) {
-            $errorCode = json_last_error();
-            throw new JsonException("Failed serialize json.", $errorCode);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param ResponseObject $response
-     * @throws BadApiRequestException
-     * @throws ForbiddenException
-     * @throws InternalServerError
-     * @throws UnauthorizedException
-     * @throws ApiException
-     */
-    private function handleError(ResponseObject $response)
-    {
-        switch ($response->getCode()) {
-            case BadApiRequestException::HTTP_CODE:
-                throw new BadApiRequestException($response->getHeaders(), $response->getBody());
-                break;
-            case ForbiddenException::HTTP_CODE:
-                throw new ForbiddenException($response->getHeaders(), $response->getBody());
-                break;
-            case UnauthorizedException::HTTP_CODE:
-                throw new UnauthorizedException($response->getHeaders(), $response->getBody());
-                break;
-            case InternalServerError::HTTP_CODE:
-                throw new InternalServerError($response->getHeaders(), $response->getBody());
-                break;
-            case NotFoundException::HTTP_CODE:
-                throw new NotFoundException($response->getHeaders(), $response->getBody());
-                break;
-            default:
-                if ($response->getCode() > 399) {
-                    throw new ApiException(
-                        'Unexpected response error code',
-                        $response->getCode(),
-                        $response->getHeaders(),
-                        $response->getBody()
-                    );
-                }
-        }
     }
 }

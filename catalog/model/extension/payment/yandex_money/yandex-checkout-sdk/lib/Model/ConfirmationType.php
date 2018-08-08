@@ -12,7 +12,7 @@ use YaMoney\Common\AbstractEnum;
  * |external|Необходимо ождать пока плательщик самостоятельно подтвердит платеж|
  * |deeplink|Необходимо направить плательщика в приложение партнера|
  * |code_verification|Необходимо получить одноразовый код от плательщика для подтверждения платежа|
- * 
+ *
  */
 class ConfirmationType extends AbstractEnum
 {

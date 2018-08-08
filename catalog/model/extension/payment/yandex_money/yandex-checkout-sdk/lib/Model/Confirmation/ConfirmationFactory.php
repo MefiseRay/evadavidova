@@ -13,26 +13,10 @@ class ConfirmationFactory
 {
     private $typeClassMap = array(
         ConfirmationType::CODE_VERIFICATION => 'ConfirmationCodeVerification',
-        ConfirmationType::DEEPLINK          => 'ConfirmationDeepLink',
-        ConfirmationType::EXTERNAL          => 'ConfirmationExternal',
-        ConfirmationType::REDIRECT          => 'ConfirmationRedirect',
+        ConfirmationType::DEEPLINK => 'ConfirmationDeepLink',
+        ConfirmationType::EXTERNAL => 'ConfirmationExternal',
+        ConfirmationType::REDIRECT => 'ConfirmationRedirect',
     );
-
-    /**
-     * @param string $type
-     * @return AbstractConfirmation
-     */
-    public function factory($type)
-    {
-        if (!is_string($type)) {
-            throw new \InvalidArgumentException('Invalid confirmation value in confirmation factory');
-        }
-        if (!array_key_exists($type, $this->typeClassMap)) {
-            throw new \InvalidArgumentException('Invalid confirmation value type "'.$type.'"');
-        }
-        $className = __NAMESPACE__ . '\\' . $this->typeClassMap[$type];
-        return new $className();
-    }
 
     /**
      * @param array $data
@@ -58,5 +42,21 @@ class ConfirmationFactory
             }
         }
         return $confirmation;
+    }
+
+    /**
+     * @param string $type
+     * @return AbstractConfirmation
+     */
+    public function factory($type)
+    {
+        if (!is_string($type)) {
+            throw new \InvalidArgumentException('Invalid confirmation value in confirmation factory');
+        }
+        if (!array_key_exists($type, $this->typeClassMap)) {
+            throw new \InvalidArgumentException('Invalid confirmation value type "' . $type . '"');
+        }
+        $className = __NAMESPACE__ . '\\' . $this->typeClassMap[$type];
+        return new $className();
     }
 }

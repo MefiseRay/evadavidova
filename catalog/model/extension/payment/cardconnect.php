@@ -1,171 +1,187 @@
 <?php
-class ModelExtensionPaymentCardConnect extends Model {
-	public function getMethod($address, $total) {
-		$this->load->language('extension/payment/cardconnect');
 
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "zone_to_geo_zone` WHERE `geo_zone_id` = '" . (int)$this->config->get('cardconnect_geo_zone') . "' AND `country_id` = '" . (int)$address['country_id'] . "' AND (`zone_id` = '" . (int)$address['zone_id'] . "' OR `zone_id` = '0')");
+class ModelExtensionPaymentCardConnect extends Model
+{
+    public function getMethod($address, $total)
+    {
+        $this->load->language('extension/payment/cardconnect');
 
-		if ($this->config->get('cardconnect_total') > 0 && $this->config->get('cardconnect_total') > $total) {
-			$status = false;
-		} elseif (!$this->config->get('cardconnect_geo_zone')) {
-			$status = true;
-		} elseif ($query->num_rows) {
-			$status = true;
-		} else {
-			$status = false;
-		}
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "zone_to_geo_zone` WHERE `geo_zone_id` = '" . (int)$this->config->get('cardconnect_geo_zone') . "' AND `country_id` = '" . (int)$address['country_id'] . "' AND (`zone_id` = '" . (int)$address['zone_id'] . "' OR `zone_id` = '0')");
 
-		$method_data = array();
+        if ($this->config->get('cardconnect_total') > 0 && $this->config->get('cardconnect_total') > $total) {
+            $status = false;
+        } elseif (!$this->config->get('cardconnect_geo_zone')) {
+            $status = true;
+        } elseif ($query->num_rows) {
+            $status = true;
+        } else {
+            $status = false;
+        }
 
-		if ($status) {
-			$method_data = array(
-				'code'			=> 'cardconnect',
-				'title'			=> $this->language->get('text_title'),
-				'terms'			=> '',
-				'sort_order'	=> $this->config->get('cardconnect_sort_order')
-			);
-		}
+        $method_data = array();
 
-		return $method_data;
-	}
+        if ($status) {
+            $method_data = array(
+                'code' => 'cardconnect',
+                'title' => $this->language->get('text_title'),
+                'terms' => '',
+                'sort_order' => $this->config->get('cardconnect_sort_order')
+            );
+        }
 
-	public function getCardTypes() {
-		$cards = array();
+        return $method_data;
+    }
 
-		$cards[] = array(
-			'text'  => 'Visa',
-			'value' => 'VISA'
-		);
+    public function getCardTypes()
+    {
+        $cards = array();
 
-		$cards[] = array(
-			'text'  => 'MasterCard',
-			'value' => 'MASTERCARD'
-		);
+        $cards[] = array(
+            'text' => 'Visa',
+            'value' => 'VISA'
+        );
 
-		$cards[] = array(
-			'text'  => 'Discover Card',
-			'value' => 'DISCOVER'
-		);
+        $cards[] = array(
+            'text' => 'MasterCard',
+            'value' => 'MASTERCARD'
+        );
 
-		$cards[] = array(
-			'text'  => 'American Express',
-			'value' => 'AMEX'
-		);
+        $cards[] = array(
+            'text' => 'Discover Card',
+            'value' => 'DISCOVER'
+        );
 
-		return $cards;
-	}
+        $cards[] = array(
+            'text' => 'American Express',
+            'value' => 'AMEX'
+        );
 
-	public function getMonths() {
-		$months = array();
+        return $cards;
+    }
 
-		for ($i = 1; $i <= 12; $i++) {
-			$months[] = array(
-				'text'  => strftime('%B', mktime(0, 0, 0, $i, 1, 2000)),
-				'value' => sprintf('%02d', $i)
-			);
-		}
+    public function getMonths()
+    {
+        $months = array();
 
-		return $months;
-	}
+        for ($i = 1; $i <= 12; $i++) {
+            $months[] = array(
+                'text' => strftime('%B', mktime(0, 0, 0, $i, 1, 2000)),
+                'value' => sprintf('%02d', $i)
+            );
+        }
 
-	public function getYears() {
-		$years = array();
+        return $months;
+    }
 
-		$today = getdate();
+    public function getYears()
+    {
+        $years = array();
 
-		for ($i = $today['year']; $i < $today['year'] + 11; $i++) {
-			$years[] = array(
-				'text'  => strftime('%Y', mktime(0, 0, 0, 1, 1, $i)),
-				'value' => strftime('%y', mktime(0, 0, 0, 1, 1, $i))
-			);
-		}
+        $today = getdate();
 
-		return $years;
-	}
+        for ($i = $today['year']; $i < $today['year'] + 11; $i++) {
+            $years[] = array(
+                'text' => strftime('%Y', mktime(0, 0, 0, 1, 1, $i)),
+                'value' => strftime('%y', mktime(0, 0, 0, 1, 1, $i))
+            );
+        }
 
-	public function getCard($token, $customer_id) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "cardconnect_card` WHERE `token` = '" . $this->db->escape($token) . "' AND `customer_id` = '" . (int)$customer_id . "'");
+        return $years;
+    }
 
-		if ($query->num_rows) {
-			return $query->row;
-		} else {
-			return false;
-		}
-	}
+    public function getCard($token, $customer_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "cardconnect_card` WHERE `token` = '" . $this->db->escape($token) . "' AND `customer_id` = '" . (int)$customer_id . "'");
 
-	public function getCards($customer_id) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "cardconnect_card` WHERE `customer_id` = '" . (int)$customer_id . "'");
+        if ($query->num_rows) {
+            return $query->row;
+        } else {
+            return false;
+        }
+    }
 
-		return $query->rows;
-	}
+    public function getCards($customer_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "cardconnect_card` WHERE `customer_id` = '" . (int)$customer_id . "'");
 
-	public function addCard($cardconnect_order_id, $customer_id, $profileid, $token, $type, $account, $expiry) {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_card` SET `cardconnect_order_id` = '" . (int)$cardconnect_order_id . "', `customer_id` = '" . (int)$customer_id . "', `profileid` = '" . $this->db->escape($profileid) . "', `token` = '" . $this->db->escape($token) . "', `type` = '" . $this->db->escape($type) . "', `account` = '" . $this->db->escape($account) . "', `expiry` = '" . $this->db->escape($expiry) . "', `date_added` = NOW()");
-	}
+        return $query->rows;
+    }
 
-	public function deleteCard($token, $customer_id) {
-		$this->db->query("DELETE FROM `" . DB_PREFIX . "cardconnect_card` WHERE `token` = '" . $this->db->escape($token) . "' AND `customer_id` = '" . (int)$customer_id . "'");
-	}
+    public function addCard($cardconnect_order_id, $customer_id, $profileid, $token, $type, $account, $expiry)
+    {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_card` SET `cardconnect_order_id` = '" . (int)$cardconnect_order_id . "', `customer_id` = '" . (int)$customer_id . "', `profileid` = '" . $this->db->escape($profileid) . "', `token` = '" . $this->db->escape($token) . "', `type` = '" . $this->db->escape($type) . "', `account` = '" . $this->db->escape($account) . "', `expiry` = '" . $this->db->escape($expiry) . "', `date_added` = NOW()");
+    }
 
-	public function addOrder($order_info, $payment_method) {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_order` SET `order_id` = '" . (int)$order_info['order_id'] . "', `customer_id` = '" . (int)$this->customer->getId() . "', `payment_method` = '" . $this->db->escape($payment_method) . "', `retref` = '" . $this->db->escape($order_info['retref']) . "', `authcode` = '" . $this->db->escape($order_info['authcode']) . "', `currency_code` = '" . $this->db->escape($order_info['currency_code']) . "', `total` = '" . $this->currency->format($order_info['total'], $order_info['currency_code'], false, false) . "', `date_added` = NOW()");
+    public function deleteCard($token, $customer_id)
+    {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "cardconnect_card` WHERE `token` = '" . $this->db->escape($token) . "' AND `customer_id` = '" . (int)$customer_id . "'");
+    }
 
-		return $this->db->getLastId();
-	}
+    public function addOrder($order_info, $payment_method)
+    {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_order` SET `order_id` = '" . (int)$order_info['order_id'] . "', `customer_id` = '" . (int)$this->customer->getId() . "', `payment_method` = '" . $this->db->escape($payment_method) . "', `retref` = '" . $this->db->escape($order_info['retref']) . "', `authcode` = '" . $this->db->escape($order_info['authcode']) . "', `currency_code` = '" . $this->db->escape($order_info['currency_code']) . "', `total` = '" . $this->currency->format($order_info['total'], $order_info['currency_code'], false, false) . "', `date_added` = NOW()");
 
-	public function addTransaction($cardconnect_order_id, $type, $status, $order_info) {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_order_transaction` SET `cardconnect_order_id` = '" . (int)$cardconnect_order_id . "', `type` = '" . $this->db->escape($type) . "', `retref` = '" . $this->db->escape($order_info['retref']) . "', `amount` = '" . (float)$this->currency->format($order_info['total'], $order_info['currency_code'], false, false) . "', `status` = '" . $this->db->escape($status) . "', `date_modified` = NOW(), `date_added` = NOW()");
-	}
+        return $this->db->getLastId();
+    }
 
-	public function getSettlementStatuses($merchant_id, $date) {
-		$this->log('Getting settlement statuses from CardConnect');
+    public function addTransaction($cardconnect_order_id, $type, $status, $order_info)
+    {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "cardconnect_order_transaction` SET `cardconnect_order_id` = '" . (int)$cardconnect_order_id . "', `type` = '" . $this->db->escape($type) . "', `retref` = '" . $this->db->escape($order_info['retref']) . "', `amount` = '" . (float)$this->currency->format($order_info['total'], $order_info['currency_code'], false, false) . "', `status` = '" . $this->db->escape($status) . "', `date_modified` = NOW(), `date_added` = NOW()");
+    }
 
-		$url = 'https://' . $this->config->get('cardconnect_site') . '.cardconnect.com:' . (($this->config->get('cardconnect_environment') == 'live') ? 8443 : 6443) . '/cardconnect/rest/settlestat?merchid=' . $merchant_id . '&date=' . $date;
+    public function getSettlementStatuses($merchant_id, $date)
+    {
+        $this->log('Getting settlement statuses from CardConnect');
 
-		$header = array();
+        $url = 'https://' . $this->config->get('cardconnect_site') . '.cardconnect.com:' . (($this->config->get('cardconnect_environment') == 'live') ? 8443 : 6443) . '/cardconnect/rest/settlestat?merchid=' . $merchant_id . '&date=' . $date;
 
-		$header[] = 'Content-type: application/json';
-		$header[] = 'Authorization: Basic ' . base64_encode($this->config->get('cardconnect_api_username') . ':' . $this->config->get('cardconnect_api_password'));
+        $header = array();
 
-		$this->model_extension_payment_cardconnect->log('Header: ' . print_r($header, true));
+        $header[] = 'Content-type: application/json';
+        $header[] = 'Authorization: Basic ' . base64_encode($this->config->get('cardconnect_api_username') . ':' . $this->config->get('cardconnect_api_password'));
 
-		$this->model_extension_payment_cardconnect->log('URL: ' . $url);
+        $this->model_extension_payment_cardconnect->log('Header: ' . print_r($header, true));
 
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		$response_data = curl_exec($ch);
-		if (curl_errno($ch)) {
-			$this->model_extension_payment_cardconnect->log('cURL error: ' . curl_errno($ch));
-		}
-		curl_close($ch);
+        $this->model_extension_payment_cardconnect->log('URL: ' . $url);
 
-		$response_data = json_decode($response_data, true);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response_data = curl_exec($ch);
+        if (curl_errno($ch)) {
+            $this->model_extension_payment_cardconnect->log('cURL error: ' . curl_errno($ch));
+        }
+        curl_close($ch);
 
-		$this->log('Response: ' . print_r($response_data, true));
+        $response_data = json_decode($response_data, true);
 
-		return $response_data;
-	}
+        $this->log('Response: ' . print_r($response_data, true));
 
-	public function updateTransactionStatusByRetref($retref, $status) {
-		$this->db->query("UPDATE `" . DB_PREFIX . "cardconnect_order_transaction` SET `status` = '" . $this->db->escape($status) . "', `date_modified` = NOW() WHERE `retref` = '" . $this->db->escape($retref) . "'");
-	}
+        return $response_data;
+    }
 
-	public function updateCronRunTime() {
-		$this->db->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `key` = 'cardconnect_cron_time'");
+    public function log($data)
+    {
+        if ($this->config->get('cardconnect_logging')) {
+            $log = new Log('cardconnect.log');
 
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "setting` SET `store_id` = '0', `code` = 'cardconnect', `key` = 'cardconnect_cron_time', `value` = NOW(), `serialized` = '0'");
-	}
+            $log->write($data);
+        }
+    }
 
-	public function log($data) {
-		if ($this->config->get('cardconnect_logging')) {
-			$log = new Log('cardconnect.log');
+    public function updateTransactionStatusByRetref($retref, $status)
+    {
+        $this->db->query("UPDATE `" . DB_PREFIX . "cardconnect_order_transaction` SET `status` = '" . $this->db->escape($status) . "', `date_modified` = NOW() WHERE `retref` = '" . $this->db->escape($retref) . "'");
+    }
 
-			$log->write($data);
-		}
-	}
+    public function updateCronRunTime()
+    {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `key` = 'cardconnect_cron_time'");
+
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "setting` SET `store_id` = '0', `code` = 'cardconnect', `key` = 'cardconnect_cron_time', `value` = NOW(), `serialized` = '0'");
+    }
 }

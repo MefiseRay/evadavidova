@@ -169,37 +169,6 @@ class Receipt extends AbstractObject implements ReceiptInterface
     }
 
     /**
-     * Возвращает стоимость заказа исходя из состава чека
-     * @param bool $withShipping Добавить ли к стоимости заказа стоимость доставки
-     * @return int Общая стоимость заказа в центах/копейках
-     */
-    public function getAmountValue($withShipping = true)
-    {
-        $result = 0;
-        foreach ($this->_items as $item) {
-            if ($withShipping || !$item->isShipping()) {
-                $result += $item->getAmount();
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Возвращает стоимость доставки исходя из состава чека
-     * @return int Стоимость доставки из состава чека в центах/копейках
-     */
-    public function getShippingAmountValue()
-    {
-        $result = 0;
-        foreach ($this->_items as $item) {
-            if ($item->isShipping()) {
-                $result += $item->getAmount();
-            }
-        }
-        return $result;
-    }
-
-    /**
      * Подгоняет стоимость товаров в чеке к общей цене заказа
      * @param AmountInterface $orderAmount Общая стоимость заказа
      * @param bool $withShipping Поменять ли заодно и цену доставки
@@ -252,5 +221,36 @@ class Receipt extends AbstractObject implements ReceiptInterface
                 }
             }
         }
+    }
+
+    /**
+     * Возвращает стоимость доставки исходя из состава чека
+     * @return int Стоимость доставки из состава чека в центах/копейках
+     */
+    public function getShippingAmountValue()
+    {
+        $result = 0;
+        foreach ($this->_items as $item) {
+            if ($item->isShipping()) {
+                $result += $item->getAmount();
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Возвращает стоимость заказа исходя из состава чека
+     * @param bool $withShipping Добавить ли к стоимости заказа стоимость доставки
+     * @return int Общая стоимость заказа в центах/копейках
+     */
+    public function getAmountValue($withShipping = true)
+    {
+        $result = 0;
+        foreach ($this->_items as $item) {
+            if ($withShipping || !$item->isShipping()) {
+                $result += $item->getAmount();
+            }
+        }
+        return $result;
     }
 }

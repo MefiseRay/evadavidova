@@ -18,7 +18,7 @@ class CreateCaptureRequestSerializer
     {
         $result = array(
             'amount' => array(
-                'value'    => $request->getAmount()->getValue(),
+                'value' => $request->getAmount()->getValue(),
                 'currency' => $request->getAmount()->getCurrency(),
             ),
         );

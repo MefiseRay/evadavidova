@@ -35,18 +35,6 @@ class CreateRefundRequestBuilder extends AbstractRequestBuilder
     private $receipt;
 
     /**
-     * Возвращает новый объект для сборки
-     * @return CreateRefundRequest Собираемый объет запроса к API
-     */
-    protected function initCurrentObject()
-    {
-        $request = new CreateRefundRequest();
-        $this->amount = new MonetaryAmount();
-        $this->receipt = new Receipt();
-        return $request;
-    }
-
-    /**
      * Устанавливает айди платежа для которого создаётся возврат
      * @param string $value Айди платежа
      * @return CreateRefundRequestBuilder Инстанс текущего билдера
@@ -248,5 +236,17 @@ class CreateRefundRequestBuilder extends AbstractRequestBuilder
             $this->currentObject->setReceipt($this->receipt);
         }
         return parent::build();
+    }
+
+    /**
+     * Возвращает новый объект для сборки
+     * @return CreateRefundRequest Собираемый объет запроса к API
+     */
+    protected function initCurrentObject()
+    {
+        $request = new CreateRefundRequest();
+        $this->amount = new MonetaryAmount();
+        $this->receipt = new Receipt();
+        return $request;
     }
 }

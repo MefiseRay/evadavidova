@@ -4,9 +4,9 @@ namespace YaMoney\Request;
 
 /**
  * Интерфейс объекта запроса на получение списка возможных способов оплаты от API
- * 
+ *
  * @package YaMoney\Request
- * 
+ *
  * @property-read string $accountId Идентификатор магазина
  * @property-read string $gatewayId Идентификатор шлюза
  * @property-read string $amount Сумма заказа

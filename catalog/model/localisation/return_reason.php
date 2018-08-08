@@ -1,44 +1,47 @@
 <?php
-class ModelLocalisationReturnReason extends Model {
-	public function getReturnReasons($data = array()) {
-		if ($data) {
-			$sql = "SELECT * FROM " . DB_PREFIX . "return_reason WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
-			$sql .= " ORDER BY name";
+class ModelLocalisationReturnReason extends Model
+{
+    public function getReturnReasons($data = array())
+    {
+        if ($data) {
+            $sql = "SELECT * FROM " . DB_PREFIX . "return_reason WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
-			if (isset($data['return']) && ($data['return'] == 'DESC')) {
-				$sql .= " DESC";
-			} else {
-				$sql .= " ASC";
-			}
+            $sql .= " ORDER BY name";
 
-			if (isset($data['start']) || isset($data['limit'])) {
-				if ($data['start'] < 0) {
-					$data['start'] = 0;
-				}
+            if (isset($data['return']) && ($data['return'] == 'DESC')) {
+                $sql .= " DESC";
+            } else {
+                $sql .= " ASC";
+            }
 
-				if ($data['limit'] < 1) {
-					$data['limit'] = 20;
-				}
+            if (isset($data['start']) || isset($data['limit'])) {
+                if ($data['start'] < 0) {
+                    $data['start'] = 0;
+                }
 
-				$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
-			}
+                if ($data['limit'] < 1) {
+                    $data['limit'] = 20;
+                }
 
-			$query = $this->db->query($sql);
+                $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+            }
 
-			return $query->rows;
-		} else {
-			$return_reason_data = $this->cache->get('return_reason.' . (int)$this->config->get('config_language_id'));
+            $query = $this->db->query($sql);
 
-			if (!$return_reason_data) {
-				$query = $this->db->query("SELECT return_reason_id, name FROM " . DB_PREFIX . "return_reason WHERE language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY name");
+            return $query->rows;
+        } else {
+            $return_reason_data = $this->cache->get('return_reason.' . (int)$this->config->get('config_language_id'));
 
-				$return_reason_data = $query->rows;
+            if (!$return_reason_data) {
+                $query = $this->db->query("SELECT return_reason_id, name FROM " . DB_PREFIX . "return_reason WHERE language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY name");
 
-				$this->cache->set('return_reason.' . (int)$this->config->get('config_language_id'), $return_reason_data);
-			}
+                $return_reason_data = $query->rows;
 
-			return $return_reason_data;
-		}
-	}
+                $this->cache->set('return_reason.' . (int)$this->config->get('config_language_id'), $return_reason_data);
+            }
+
+            return $return_reason_data;
+        }
+    }
 }

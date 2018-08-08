@@ -14,10 +14,10 @@ class InternalServerError extends ApiException
     public function __construct($responseHeaders = array(), $responseBody = null)
     {
         $errorData = json_decode($responseBody, true);
-        $message   = '';
+        $message = '';
 
         if (isset($errorData['description'])) {
-            $message .= $errorData['description'].'.';
+            $message .= $errorData['description'] . '.';
         }
 
         if (isset($errorData['code'])) {

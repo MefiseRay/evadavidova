@@ -16,7 +16,7 @@ use YaMoney\Common\AbstractEnum;
  * |apple_pay|Платеж ApplePay|
  * |android_pay|Платеж AndroidPay|
  * |qiwi|Платеж из кошелька Qiwi|
- * 
+ *
  */
 class PaymentMethodType extends AbstractEnum
 {

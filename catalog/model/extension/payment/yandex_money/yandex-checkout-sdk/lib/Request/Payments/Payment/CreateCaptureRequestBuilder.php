@@ -24,15 +24,6 @@ class CreateCaptureRequestBuilder extends AbstractRequestBuilder
     private $amount;
 
     /**
-     * @return CreateCaptureRequest
-     */
-    protected function initCurrentObject()
-    {
-        $this->amount = new MonetaryAmount();
-        return new CreateCaptureRequest();
-    }
-
-    /**
      * Устанавливает сумму оплаты
      * @param AmountInterface|string $value Подтверждаемая сумма оплаты
      * @return CreateCaptureRequestBuilder Инстанс билдера запросов на подтверждение суммы оплаты
@@ -93,5 +84,14 @@ class CreateCaptureRequestBuilder extends AbstractRequestBuilder
         }
         $this->currentObject->setAmount($this->amount);
         return parent::build();
+    }
+
+    /**
+     * @return CreateCaptureRequest
+     */
+    protected function initCurrentObject()
+    {
+        $this->amount = new MonetaryAmount();
+        return new CreateCaptureRequest();
     }
 }

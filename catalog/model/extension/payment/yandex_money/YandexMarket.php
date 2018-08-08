@@ -22,7 +22,7 @@ class YandexMarket
         $from = array('"', '&', '>', '<', '\'');
         $to = array('&quot;', '&amp;', '&gt;', '&lt;', '&apos;');
         $s = str_replace($from, $to, $s);
-        $s=preg_replace('!<[^>]*?>!', ' ', $s);
+        $s = preg_replace('!<[^>]*?>!', ' ', $s);
         // if ($this->from_charset!='windows-1251') $s = iconv($this->from_charset, 'windows-1251', $s);
         $s = preg_replace('#[\x00-\x08\x0B-\x0C\x0E-\x1F]+#is', ' ', $s);
         return trim($s);

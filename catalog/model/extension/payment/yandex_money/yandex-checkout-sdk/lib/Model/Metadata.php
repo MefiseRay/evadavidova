@@ -8,7 +8,7 @@ use YaMoney\Common\AbstractObject;
  * Metadata - Метаданные платежа указанные мерчантом.
  * Мерчант может добавлять произвольные данные к платежам в виде набора пар ключ-значение.
  * Имена ключей уникальны.
- * 
+ *
  */
 class Metadata extends AbstractObject implements \IteratorAggregate, \Countable
 {

@@ -141,6 +141,16 @@ class Offer extends Object
     }
 
     /**
+     * Возвращает название товарного предложения
+     *
+     * @return string Название товарного предложения
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
      * Устанавливает название товарного предложения
      *
      * @param string $value Название товарного предложения
@@ -153,13 +163,13 @@ class Offer extends Object
     }
 
     /**
-     * Возвращает название товарного предложения
+     * Проверяет статус заказа
      *
-     * @return string Название товарного предложения
+     * @return bool True если товар готов к отправке, false ели доступен только под заказ
      */
-    public function getName()
+    public function isAvailable()
     {
-        return $this->name;
+        return $this->available;
     }
 
     /**
@@ -178,14 +188,9 @@ class Offer extends Object
         return $this;
     }
 
-    /**
-     * Проверяет статус заказа
-     *
-     * @return bool True если товар готов к отправке, false ели доступен только под заказ
-     */
-    public function isAvailable()
+    public function getClickRate()
     {
-        return $this->available;
+        return $this->clickRate / 100.0;
     }
 
     public function setClickRate($value)
@@ -194,14 +199,14 @@ class Offer extends Object
         return $this;
     }
 
-    public function getClickRate()
-    {
-        return $this->clickRate / 100.0;
-    }
-
     public function getCbid()
     {
         return $this->clickRate;
+    }
+
+    public function getOtherClickRate()
+    {
+        return $this->otherClickRate / 100.0;
     }
 
     public function setOtherClickRate($value)
@@ -210,14 +215,14 @@ class Offer extends Object
         return $this;
     }
 
-    public function getOtherClickRate()
-    {
-        return $this->otherClickRate / 100.0;
-    }
-
     public function getBid()
     {
         return $this->otherClickRate;
+    }
+
+    public function getRedirectFee()
+    {
+        return $this->redirectFee / 10000.0;
     }
 
     public function setRedirectFee($value)
@@ -226,14 +231,19 @@ class Offer extends Object
         return $this;
     }
 
-    public function getRedirectFee()
-    {
-        return $this->redirectFee / 10000.0;
-    }
-
     public function getFee()
     {
         return $this->redirectFee;
+    }
+
+    /**
+     * Возвращает URL страницы товара на сайте магазина
+     *
+     * @return string URL страницы товара на сайте магазина
+     */
+    public function getUrl()
+    {
+        return $this->url;
     }
 
     /**
@@ -256,22 +266,22 @@ class Offer extends Object
     }
 
     /**
-     * Возвращает URL страницы товара на сайте магазина
-     *
-     * @return string URL страницы товара на сайте магазина
-     */
-    public function getUrl()
-    {
-        return $this->url;
-    }
-
-    /**
      * Проверяет был ли установлен URL товара
      * @return bool True если URL товара установлен, false если нет
      */
     public function hasUrl()
     {
         return !empty($this->url);
+    }
+
+    /**
+     * Возвращает цену товара
+     *
+     * @return double Цена товара
+     */
+    public function getPrice()
+    {
+        return $this->price;
     }
 
     /**
@@ -302,13 +312,13 @@ class Offer extends Object
     }
 
     /**
-     * Возвращает цену товара
+     * Возвращает старую цену товара
      *
-     * @return double Цена товара
+     * @return double Старая цена товара
      */
-    public function getPrice()
+    public function getOldPrice()
     {
-        return $this->price;
+        return $this->oldPrice;
     }
 
     /**
@@ -327,16 +337,6 @@ class Offer extends Object
     }
 
     /**
-     * Возвращает старую цену товара
-     *
-     * @return double Старая цена товара
-     */
-    public function getOldPrice()
-    {
-        return $this->oldPrice;
-    }
-
-    /**
      * Проверяет была ли установлена старая цена товара
      *
      * @return bool True если старая цена была установлена, false если нет
@@ -344,6 +344,19 @@ class Offer extends Object
     public function hasOldPrice()
     {
         return !empty($this->oldPrice);
+    }
+
+    /**
+     * Возвращает код валюты, если он не был указан, то возвращается код валюты всего прайс листа
+     *
+     * @return string Код валюты
+     */
+    public function getCurrencyId()
+    {
+        if (empty($this->currencyId)) {
+            return $this->shop->getDefaultCurrencyId();
+        }
+        return $this->currencyId;
     }
 
     /**
@@ -359,19 +372,6 @@ class Offer extends Object
     {
         $this->currencyId = $value;
         return $this;
-    }
-
-    /**
-     * Возвращает код валюты, если он не был указан, то возвращается код валюты всего прайс листа
-     *
-     * @return string Код валюты
-     */
-    public function getCurrencyId()
-    {
-        if (empty($this->currencyId)) {
-            return $this->shop->getDefaultCurrencyId();
-        }
-        return $this->currencyId;
     }
 
     /**
@@ -428,6 +428,16 @@ class Offer extends Object
     }
 
     /**
+     * Возвращает возможность доставки товара курьером
+     *
+     * @return bool True если товар может быть доставлен курьером, false если нет
+     */
+    public function getDelivery()
+    {
+        return $this->delivery;
+    }
+
+    /**
      * Устанавливает возможность курьерской доставки соответствующего товара
      *
      * Возможные значения:
@@ -447,16 +457,6 @@ class Offer extends Object
     {
         $this->delivery = $value ? true : false;
         return $this;
-    }
-
-    /**
-     * Возвращает возможность доставки товара курьером
-     *
-     * @return bool True если товар может быть доставлен курьером, false если нет
-     */
-    public function getDelivery()
-    {
-        return $this->delivery;
     }
 
     /**

@@ -51,6 +51,17 @@ class CategoryTreeBuilder
     }
 
     /**
+     * @return ProductCategory[]
+     */
+    public function getRootCategories()
+    {
+        if (!empty($this->parentIds)) {
+            $this->build();
+        }
+        return array_values($this->categories);
+    }
+
+    /**
      * @return CategoryTreeBuilder
      */
     public function build()
@@ -72,16 +83,5 @@ class CategoryTreeBuilder
             }
         }
         return $this;
-    }
-
-    /**
-     * @return ProductCategory[]
-     */
-    public function getRootCategories()
-    {
-        if (!empty($this->parentIds)) {
-            $this->build();
-        }
-        return array_values($this->categories);
     }
 }

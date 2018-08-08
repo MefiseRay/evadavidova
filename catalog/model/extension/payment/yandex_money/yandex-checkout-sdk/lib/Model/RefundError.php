@@ -9,7 +9,7 @@ use YaMoney\Common\AbstractObject;
  * Код ошибки | Описание
  * --- | ---
  * authorization_rejected | Отказ в проведении возврата платежа по логике платежной системы (например лимиты или отказ антифрод-аналитики)
- * 
+ *
  * @property string $code Код ошибки
  * @property string $description Дополнительное текстовое пояснение ошибки
  */

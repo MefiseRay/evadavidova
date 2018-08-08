@@ -57,21 +57,6 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
     private $confirmationFactory;
 
     /**
-     * Инициализирует объект запроса, который в дальнейшем будет собираться билдером
-     * @return CreatePaymentRequest Инстанс собираемого объекта запроса к API
-     */
-    protected function initCurrentObject()
-    {
-        $request = new CreatePaymentRequest();
-
-        $this->recipient = new Recipient();
-        $this->receipt = new Receipt();
-        $this->amount = new MonetaryAmount();
-
-        return $request;
-    }
-
-    /**
      * Устанавливает идентификатор магазина получателя платежа
      * @param string $value Идентификатор магазина
      * @return CreatePaymentRequestBuilder Инстанс текущего билдера
@@ -151,7 +136,7 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
      * Устанавлвиает список товаров в заказе для создания чека
      * @param array $value Массив товаров в заказе
      * @return CreatePaymentRequestBuilder Инстанс текущего билдера
-     * 
+     *
      * @throws InvalidPropertyValueException Генерируется если хотя бы один из товаров имеет неверную структуру
      */
     public function setReceiptItems($value)
@@ -320,6 +305,18 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
     }
 
     /**
+     * Возвращает фабрику методов проведения платежей
+     * @return PaymentDataFactory Фабрика методов проведения платежей
+     */
+    protected function getPaymentDataFactory()
+    {
+        if ($this->paymentDataFactory === null) {
+            $this->paymentDataFactory = new PaymentDataFactory();
+        }
+        return $this->paymentDataFactory;
+    }
+
+    /**
      * Устанавливает способ подтверждения платежа
      * @param AbstractConfirmationAttributes|string|array|null $value Способ подтверждения платежа
      * @param array|null $options Настройки способа подтверждения платежа в виде массива
@@ -344,6 +341,18 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
     }
 
     /**
+     * Возвращает фабрику для создания методов подтверждения платежей
+     * @return ConfirmationAttributesFactory Фабрика объектов методов подтверждения платежей
+     */
+    protected function getConfirmationFactory()
+    {
+        if ($this->confirmationFactory === null) {
+            $this->confirmationFactory = new ConfirmationAttributesFactory();
+        }
+        return $this->confirmationFactory;
+    }
+
+    /**
      * Устанавливает флаг сохранения платёжных данных. Значение true инициирует создание многоразового payment_method.
      * @param bool $value Сохранить платежные данные для последующего использования
      * @return CreatePaymentRequestBuilder Инстанс текущего билдера
@@ -362,7 +371,6 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
      * @return CreatePaymentRequestBuilder Инстанс текущего билдера
      *
      * @throws InvalidPropertyValueTypeException Генерируется если переданный аргумент не кастится в bool
-
      */
     public function setCapture($value)
     {
@@ -422,26 +430,17 @@ class CreatePaymentRequestBuilder extends AbstractRequestBuilder
     }
 
     /**
-     * Возвращает фабрику методов проведения платежей
-     * @return PaymentDataFactory Фабрика методов проведения платежей
+     * Инициализирует объект запроса, который в дальнейшем будет собираться билдером
+     * @return CreatePaymentRequest Инстанс собираемого объекта запроса к API
      */
-    protected function getPaymentDataFactory()
+    protected function initCurrentObject()
     {
-        if ($this->paymentDataFactory === null) {
-            $this->paymentDataFactory = new PaymentDataFactory();
-        }
-        return $this->paymentDataFactory;
-    }
+        $request = new CreatePaymentRequest();
 
-    /**
-     * Возвращает фабрику для создания методов подтверждения платежей
-     * @return ConfirmationAttributesFactory Фабрика объектов методов подтверждения платежей
-     */
-    protected function getConfirmationFactory()
-    {
-        if ($this->confirmationFactory === null) {
-            $this->confirmationFactory = new ConfirmationAttributesFactory();
-        }
-        return $this->confirmationFactory;
+        $this->recipient = new Recipient();
+        $this->receipt = new Receipt();
+        $this->amount = new MonetaryAmount();
+
+        return $request;
     }
 }

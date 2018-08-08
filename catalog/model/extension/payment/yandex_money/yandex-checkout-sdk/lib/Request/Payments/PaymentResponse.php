@@ -8,4 +8,5 @@ namespace YaMoney\Request\Payments;
  * @package YaMoney\Request\Payments
  */
 class PaymentResponse extends AbstractPaymentResponse
-{}
+{
+}

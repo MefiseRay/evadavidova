@@ -1,6 +1,7 @@
 <?php
 
 namespace YaMoney\Model\PaymentMethod;
+
 use YaMoney\Model\PaymentMethodType;
 
 /**

@@ -46,13 +46,13 @@ abstract class AbstractPaymentResponse extends Payment implements PaymentInterfa
             $this->setError($error);
         }
         /* @todo не устанавливаем пока реципиента
-        if (!empty($paymentInfo['recipient'])) {
-            $recipient = new Recipient();
-            $recipient->setAccountId($paymentInfo['recipient']['account_id']);
-            $recipient->setGatewayId($paymentInfo['recipient']['gateway_id']);
-            $this->setRecipient($recipient);
-        }
-        */
+         * if (!empty($paymentInfo['recipient'])) {
+         * $recipient = new Recipient();
+         * $recipient->setAccountId($paymentInfo['recipient']['account_id']);
+         * $recipient->setGatewayId($paymentInfo['recipient']['gateway_id']);
+         * $this->setRecipient($recipient);
+         * }
+         */
         if (!empty($paymentInfo['captured_at'])) {
             $this->setCapturedAt(strtotime($paymentInfo['captured_at']));
         }
@@ -89,17 +89,6 @@ abstract class AbstractPaymentResponse extends Payment implements PaymentInterfa
     }
 
     /**
-     * Фабричный метод для создания способа оплаты
-     * @param array $options Настройки способа оплаты в массиве
-     * @return AbstractPaymentMethod Инстанс способа оплаты нужного типа
-     */
-    private function factoryPaymentMethod($options)
-    {
-        $factory = new PaymentMethodFactory();
-        return $factory->factoryFromArray($options);
-    }
-
-    /**
      * Фабричный метод создания суммы
      * @param array $options Сумма в виде ассоциативного массива
      * @return AmountInterface Созданный инстанс суммы
@@ -111,5 +100,16 @@ abstract class AbstractPaymentResponse extends Payment implements PaymentInterfa
             $amount->setValue($options['value']);
         }
         return $amount;
+    }
+
+    /**
+     * Фабричный метод для создания способа оплаты
+     * @param array $options Настройки способа оплаты в массиве
+     * @return AbstractPaymentMethod Инстанс способа оплаты нужного типа
+     */
+    private function factoryPaymentMethod($options)
+    {
+        $factory = new PaymentMethodFactory();
+        return $factory->factoryFromArray($options);
     }
 }

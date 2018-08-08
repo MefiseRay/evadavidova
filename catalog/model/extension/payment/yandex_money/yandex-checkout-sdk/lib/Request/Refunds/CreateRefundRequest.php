@@ -42,6 +42,15 @@ class CreateRefundRequest extends AbstractRequest implements CreateRefundRequest
     private $_receipt;
 
     /**
+     * Возвращает билдер объектов текущего типа
+     * @return CreateRefundRequestBuilder Инстанс билдера запрсов
+     */
+    public static function builder()
+    {
+        return new CreateRefundRequestBuilder();
+    }
+
+    /**
      * Возвращает айди платежа для которого создаётся возврат средств
      * @return string Айди платежа для которого создаётся возврат
      */
@@ -108,15 +117,6 @@ class CreateRefundRequest extends AbstractRequest implements CreateRefundRequest
     }
 
     /**
-     * Проверяет задан ли комментарий к создаваемому возврату
-     * @return bool True если комментарий установлен, false если нет
-     */
-    public function hasComment()
-    {
-        return $this->_comment !== null;
-    }
-
-    /**
      * Устанавливает комментарий к возврату
      * @param string $value Комментарий к операции возврата, основание для возврата средств покупателю
      *
@@ -143,21 +143,21 @@ class CreateRefundRequest extends AbstractRequest implements CreateRefundRequest
     }
 
     /**
+     * Проверяет задан ли комментарий к создаваемому возврату
+     * @return bool True если комментарий установлен, false если нет
+     */
+    public function hasComment()
+    {
+        return $this->_comment !== null;
+    }
+
+    /**
      * Возвращает инстанс чека или null если чек не задан
      * @return ReceiptInterface|null Инстанс чека или null
      */
     public function getReceipt()
     {
         return $this->_receipt;
-    }
-
-    /**
-     * Проверяет задан ли чек
-     * @return bool True если чек есть, false если нет
-     */
-    public function hasReceipt()
-    {
-        return $this->_receipt !== null && $this->_receipt->notEmpty();
     }
 
     /**
@@ -172,6 +172,15 @@ class CreateRefundRequest extends AbstractRequest implements CreateRefundRequest
         } else {
             throw new InvalidPropertyValueTypeException('Invalid receipt in Refund', 0, 'Refund.receipt', $value);
         }
+    }
+
+    /**
+     * Проверяет задан ли чек
+     * @return bool True если чек есть, false если нет
+     */
+    public function hasReceipt()
+    {
+        return $this->_receipt !== null && $this->_receipt->notEmpty();
     }
 
     /**
@@ -209,14 +218,5 @@ class CreateRefundRequest extends AbstractRequest implements CreateRefundRequest
             }
         }
         return true;
-    }
-
-    /**
-     * Возвращает билдер объектов текущего типа
-     * @return CreateRefundRequestBuilder Инстанс билдера запрсов
-     */
-    public static function builder()
-    {
-        return new CreateRefundRequestBuilder();
     }
 }

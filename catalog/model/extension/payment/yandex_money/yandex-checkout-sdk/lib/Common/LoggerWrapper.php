@@ -37,7 +37,7 @@ class LoggerWrapper implements LoggerInterface
      * System is unusable.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -47,13 +47,31 @@ class LoggerWrapper implements LoggerInterface
     }
 
     /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed $level
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function log($level, $message, array $context = array())
+    {
+        if ($this->loggerInstance !== null) {
+            $this->loggerInstance->log($level, $message, $context);
+        } elseif ($this->loggerCallback !== null) {
+            call_user_func_array($this->loggerCallback, array($level, $message, $context));
+        }
+    }
+
+    /**
      * Action must be taken immediately.
      *
      * Example: Entire website down, database unavailable, etc. This should
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -68,7 +86,7 @@ class LoggerWrapper implements LoggerInterface
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -82,7 +100,7 @@ class LoggerWrapper implements LoggerInterface
      * be logged and monitored.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -98,7 +116,7 @@ class LoggerWrapper implements LoggerInterface
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -111,7 +129,7 @@ class LoggerWrapper implements LoggerInterface
      * Normal but significant events.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -126,7 +144,7 @@ class LoggerWrapper implements LoggerInterface
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
@@ -139,30 +157,12 @@ class LoggerWrapper implements LoggerInterface
      * Detailed debug information.
      *
      * @param string $message
-     * @param array  $context
+     * @param array $context
      *
      * @return void
      */
     public function debug($message, array $context = array())
     {
         $this->log(LogLevel::DEBUG, $message, $context);
-    }
-
-    /**
-     * Logs with an arbitrary level.
-     *
-     * @param mixed  $level
-     * @param string $message
-     * @param array  $context
-     *
-     * @return void
-     */
-    public function log($level, $message, array $context = array())
-    {
-        if ($this->loggerInstance !== null) {
-            $this->loggerInstance->log($level, $message, $context);
-        } elseif ($this->loggerCallback !== null) {
-            call_user_func_array($this->loggerCallback, array($level, $message, $context));
-        }
     }
 }

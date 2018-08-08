@@ -54,10 +54,10 @@ class MarketModel
             LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
             LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)
             LEFT JOIN " . DB_PREFIX . "product_special ps ON (p.product_id = ps.product_id) AND ps.customer_group_id = '" . (int)$this->config->get('config_customer_group_id') . "' AND ps.date_start < NOW() AND (ps.date_end = '0000-00-00' OR ps.date_end > NOW())
-            LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) AND wcd.language_id='" . (int)$this->config->get('config_language_id')."'
+            LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) AND wcd.language_id='" . (int)$this->config->get('config_language_id') . "'
             LEFT JOIN " . DB_PREFIX . "product_related pr ON (p.product_id = pr.product_id AND p.date_available <= NOW() AND p.status = '1')
             WHERE p2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
-            ".($allowed_categories ? " AND p2c.category_id IN (" . $this->db->escape($allowed_categories) . ")" : "")."
+            " . ($allowed_categories ? " AND p2c.category_id IN (" . $this->db->escape($allowed_categories) . ")" : "") . "
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND p.status = '1'
             GROUP BY p.product_id");
@@ -72,7 +72,7 @@ class MarketModel
             FROM " . DB_PREFIX . "product_option_value pov
             LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (pov.option_value_id = ovd.option_value_id)
             LEFT JOIN " . DB_PREFIX . "option_description od ON (od.option_id = pov.option_id) AND (od.language_id = '$lang')
-            WHERE pov.option_id IN (". implode(',', array_map('intval', $option_ids)) .") AND pov.product_id = '". (int)$product_id."'
+            WHERE pov.option_id IN (" . implode(',', array_map('intval', $option_ids)) . ") AND pov.product_id = '" . (int)$product_id . "'
                 AND ovd.language_id = '$lang'");
         return $query->rows;
     }
@@ -87,7 +87,7 @@ class MarketModel
                 AND a.attribute_id IN (" . $this->db->escape($attr_ids) . ")
                 ORDER BY a.attribute_id, ad.name");
         $ret = array();
-        foreach($query->rows as $row) {
+        foreach ($query->rows as $row) {
             $ret[$row['attribute_id']] = $row['name'];
         }
         return $ret;

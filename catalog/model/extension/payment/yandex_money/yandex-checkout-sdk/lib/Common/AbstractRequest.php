@@ -29,20 +29,20 @@ abstract class AbstractRequest extends AbstractObject
     }
 
     /**
-     * Устанавливает ошибку валидации
-     * @param string $value Ошибка, произошедшая при валидации объекта
-     */
-    protected function setValidationError($value)
-    {
-        $this->_validationError = $value;
-    }
-
-    /**
      * Возвращает последнюю ошибку валидации
      * @return string Последняя произошедшая ошибка валидации
      */
     public function getLastValidationError()
     {
         return $this->_validationError;
+    }
+
+    /**
+     * Устанавливает ошибку валидации
+     * @param string $value Ошибка, произошедшая при валидации объекта
+     */
+    protected function setValidationError($value)
+    {
+        $this->_validationError = $value;
     }
 }

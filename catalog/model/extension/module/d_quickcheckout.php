@@ -3,7 +3,8 @@
  *  location: admin/model
  */
 
-class ModelExtensionModuleDQuickcheckout extends Model {
+class ModelExtensionModuleDQuickcheckout extends Model
+{
     private $handle;
     private $debug;
 
@@ -11,8 +12,9 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     *   debug
     */
 
-    public function logWrite($message){
-        if(!empty($this->session->data['d_quickcheckout_debug'])){
+    public function logWrite($message)
+    {
+        if (!empty($this->session->data['d_quickcheckout_debug'])) {
             $this->handle = fopen(DIR_LOGS . $this->config->get('d_quickcheckout_debug_file'), 'a');
             fwrite($this->handle, date('Y-m-d G:i:s') . ' - ' . print_r($message, true) . "\n");
             fclose($this->handle);
@@ -23,43 +25,44 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     *   Language
     */
 
-    public function languageFilter($data){
+    public function languageFilter($data)
+    {
         $this->load->model('catalog/information');
         $result = $data;
         $translate = array('title', 'tooltip', 'description', 'text', 'placeholder');
 
-        if(is_array($data)){
+        if (is_array($data)) {
 
-            foreach($data as $key => $value){
+            foreach ($data as $key => $value) {
 
-                if(in_array($key, $translate)){
+                if (in_array($key, $translate)) {
 
-                    if(!is_array($value)){
+                    if (!is_array($value)) {
 
                         $result[$key] = $this->escape($this->language->get($value));
-                    }elseif(isset($value[(int)$this->config->get('config_language_id')])){
+                    } elseif (isset($value[(int)$this->config->get('config_language_id')])) {
                         $result[$key] = $this->escape($value[(int)$this->config->get('config_language_id')]);
-                    }else{
+                    } else {
                         $result[$key] = $this->languageFilterRec($value);
                     }
 
-                    if(is_string($result[$key]) && isset($result['information_id'])){
+                    if (is_string($result[$key]) && isset($result['information_id'])) {
                         $information_info = $this->model_catalog_information->getInformation($result['information_id']);
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 1){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 1) {
                             $result[$key] = sprintf($result[$key], $information_info['title']);
                         }
 
-                         if(isset($information_info['title']) && substr_count($result[$key], '%s') == 2){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 2) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title']);
                         }
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 3){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 3) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title'], $information_info['title']);
                         }
                     }
 
-                }else{
+                } else {
                     $result[$key] = $this->languageFilterRec($value);
                 }
 
@@ -68,43 +71,49 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $result;
     }
 
-    public function languageFilterRec($data){
+    public function escape($data)
+    {
+        return $data;
+    }
+
+    public function languageFilterRec($data)
+    {
 
         $result = $data;
         $translate = array('title', 'tooltip', 'description', 'text', 'placeholder');
 
-        if(is_array($data)){
+        if (is_array($data)) {
 
-            foreach($data as $key => $value){
+            foreach ($data as $key => $value) {
 
-                if(in_array($key, $translate)){
+                if (in_array($key, $translate)) {
 
-                    if(!is_array($value)){
+                    if (!is_array($value)) {
 
                         $result[$key] = $this->escape($this->language->get($value));
-                    }elseif(isset($value[(int)$this->config->get('config_language_id')])){
+                    } elseif (isset($value[(int)$this->config->get('config_language_id')])) {
                         $result[$key] = $this->escape($value[(int)$this->config->get('config_language_id')]);
-                    }else{
+                    } else {
                         $result[$key] = $this->languageFilterRec($value);
                     }
 
-                    if(is_string($result[$key]) && isset($result['information_id'])){
+                    if (is_string($result[$key]) && isset($result['information_id'])) {
                         $information_info = $this->model_catalog_information->getInformation($result['information_id']);
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 1){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 1) {
                             $result[$key] = sprintf($result[$key], $information_info['title']);
                         }
 
-                         if(isset($information_info['title']) && substr_count($result[$key], '%s') == 2){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 2) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title']);
                         }
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 3){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 3) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title'], $information_info['title']);
                         }
                     }
 
-                }else{
+                } else {
                     $result[$key] = $this->languageFilterRec($value);
                 }
 
@@ -113,11 +122,8 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $result;
     }
 
-    public function escape($data){
-        return $data;
-    }
-
-    public function in_array_multi($needle, $haystack, $strict = true) {
+    public function in_array_multi($needle, $haystack, $strict = true)
+    {
         foreach ($haystack as $item) {
             if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && $this->in_array_multi($needle, $item, $strict))) {
                 return true;
@@ -128,58 +134,60 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     }
 
     // public function array_merge_r_d( array &$array1, array &$array2 ){
- //      $merged = $array1;
- //      foreach ( $array2 as $key => &$value )
- //          {
- //            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
- //            {
- //              $merged [$key] = $this->array_merge_r_d ( $merged [$key], $value );
- //            }
- //            else
- //            {
- //              $merged [$key] = $value;
- //            }
- //          }
+    //      $merged = $array1;
+    //      foreach ( $array2 as $key => &$value )
+    //          {
+    //            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
+    //            {
+    //              $merged [$key] = $this->array_merge_r_d ( $merged [$key], $value );
+    //            }
+    //            else
+    //            {
+    //              $merged [$key] = $value;
+    //            }
+    //          }
 
- //      return $merged;
- //    }
+    //      return $merged;
+    //    }
 
-public function array_merge_r_d() {
-    $arrays = func_get_args();
-    $base = array_shift($arrays);
-    if(!is_array($base)) $base = empty($base) ? array() : array($base);
-    foreach($arrays as $append) {
-        if(!is_array($append)) $append = array($append);
-        foreach($append as $key => $value) {
-            if(!array_key_exists($key, $base) and !is_numeric($key)) {
-                $base[$key] = $append[$key];
-                continue;
-            }
-            if(is_array($value) or is_array($base[$key])) {
-                $base[$key] = $this->array_merge_r_d($base[$key], $append[$key]);
-            } else if(is_numeric($key)) {
-                if(!in_array($value, $base)) $base[] = $value;
-            } else {
-                $base[$key] = $value;
+    public function array_merge_r_d()
+    {
+        $arrays = func_get_args();
+        $base = array_shift($arrays);
+        if (!is_array($base)) $base = empty($base) ? array() : array($base);
+        foreach ($arrays as $append) {
+            if (!is_array($append)) $append = array($append);
+            foreach ($append as $key => $value) {
+                if (!array_key_exists($key, $base) and !is_numeric($key)) {
+                    $base[$key] = $append[$key];
+                    continue;
+                }
+                if (is_array($value) or is_array($base[$key])) {
+                    $base[$key] = $this->array_merge_r_d($base[$key], $append[$key]);
+                } else if (is_numeric($key)) {
+                    if (!in_array($value, $base)) $base[] = $value;
+                } else {
+                    $base[$key] = $value;
+                }
             }
         }
+        return $base;
     }
-    return $base;
- }
 
     /*
     *   Vqmod: turn on or off
     */
 
-    public function setVqmod($xml, $action = 1){
-        $dir_vqmod =  str_replace("system", "vqmod/xml", DIR_SYSTEM);
-        $on  = $dir_vqmod.$xml;
-        $off = $dir_vqmod.$xml.'_';
-        if($action){
+    public function setVqmod($xml, $action = 1)
+    {
+        $dir_vqmod = str_replace("system", "vqmod/xml", DIR_SYSTEM);
+        $on = $dir_vqmod . $xml;
+        $off = $dir_vqmod . $xml . '_';
+        if ($action) {
             if (file_exists($off)) {
                 return rename($off, $on);
             }
-        }else{
+        } else {
             if (file_exists($on)) {
                 return rename($on, $off);
             }
@@ -190,7 +198,8 @@ public function array_merge_r_d() {
     /*
     *   Format the link to work with ajax requests
     */
-    public function ajax($link){
+    public function ajax($link)
+    {
         return str_replace('&amp;', '&', $link);
     }
 
@@ -198,7 +207,8 @@ public function array_merge_r_d() {
     *   Get file contents, usualy for debug log files.
     */
 
-    public function getFileContents($file){
+    public function getFileContents($file)
+    {
 
         if (file_exists($file)) {
             $size = filesize($file);
@@ -214,7 +224,7 @@ public function array_merge_r_d() {
                     'EB',
                     'ZB',
                     'YB'
-                    );
+                );
 
                 $i = 0;
 
@@ -233,53 +243,57 @@ public function array_merge_r_d() {
     /*
     *   Return name of config file.
     */
-    public function getConfigFile($id, $sub_versions){
+    public function getConfigFile($id, $sub_versions)
+    {
 
-        if(isset($this->request->post['config'])){
+        if (isset($this->request->post['config'])) {
             return $this->request->post['config'];
         }
 
-        $setting = $this->config->get($id.'_setting');
+        $setting = $this->config->get($id . '_setting');
 
-        if(isset($setting['config'])){
+        if (isset($setting['config'])) {
             return $setting['config'];
         }
 
-        $full = DIR_SYSTEM . 'config/'. $id . '.php';
+        $full = DIR_SYSTEM . 'config/' . $id . '.php';
         if (file_exists($full)) {
             return $id;
         }
 
-        foreach ($sub_versions as $lite){
-            if (file_exists(DIR_SYSTEM . 'config/'. $id . '_' . $lite . '.php')) {
+        foreach ($sub_versions as $lite) {
+            if (file_exists(DIR_SYSTEM . 'config/' . $id . '_' . $lite . '.php')) {
                 return $id . '_' . $lite;
             }
         }
 
         return false;
     }
+
     /*
     *   Return list of config files that contain the id of the module.
     */
-    public function getConfigFiles($id){
+    public function getConfigFiles($id)
+    {
         $files = array();
-        $results = glob(DIR_SYSTEM . 'config/'. $id .'*');
-        foreach($results as $result){
+        $results = glob(DIR_SYSTEM . 'config/' . $id . '*');
+        foreach ($results as $result) {
             $files[] = str_replace('.php', '', str_replace(DIR_SYSTEM . 'config/', '', $result));
         }
         return $files;
     }
 
-    public function getConfigSetting($id, $config_key, $store_id, $config_file = false, $customer_group_id = 0){
+    public function getConfigSetting($id, $config_key, $store_id, $config_file = false, $customer_group_id = 0)
+    {
 
-        if($this->getCurrentSettingId($id, $store_id) !== false){
+        if ($this->getCurrentSettingId($id, $store_id) !== false) {
             $setting = $this->getSetting($this->getCurrentSettingId($id, $store_id));
             $setting[$config_key] = $setting['value'];
         }
 
-        if(isset($setting[$config_key]['general']['config'])){
+        if (isset($setting[$config_key]['general']['config'])) {
             $this->config->load($setting[$config_key]['general']['config']);
-        }elseif($config_file){
+        } elseif ($config_file) {
             $this->config->load($config_file);
         }
 
@@ -295,7 +309,7 @@ public function array_merge_r_d() {
         $result['step']['payment_address']['fields'] = $result['step']['payment_address']['fields'] + $this->model_extension_d_quickcheckout_custom_field->getCustomFieldsConfigData('address');
         $result['step']['shipping_address']['fields'] = $result['step']['shipping_address']['fields'] + $this->model_extension_d_quickcheckout_custom_field->getCustomFieldsConfigData('address');
 
-        if(!isset($this->request->post['config'])){
+        if (!isset($this->request->post['config'])) {
             $this->load->model('setting/setting');
             if (isset($this->request->post[$config_key])) {
                 $setting = $this->request->post;
@@ -303,16 +317,16 @@ public function array_merge_r_d() {
                 $setting = $this->model_setting_setting->getSetting($id, $store_id);
             }
 
-            if($this->getCurrentSettingId($id, $store_id) !== false){
+            if ($this->getCurrentSettingId($id, $store_id) !== false) {
                 $setting = $this->getSetting($this->getCurrentSettingId($id, $store_id));
                 $setting[$config_key] = $setting['value'];
 
 
             }
 
-            if(isset($setting[$config_key])){
+            if (isset($setting[$config_key])) {
 
-                $result = $this->array_merge_recursive_distinct($result,$setting[$config_key]);
+                $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
 
             }
 
@@ -322,49 +336,13 @@ public function array_merge_r_d() {
         return $result;
     }
 
-    public function getConfigData($id, $config_key, $store_id, $config_file = false){
-        if(!$config_file){
-            $config_file = $this->config_file;
-        }
+    public function getCurrentSettingId($id, $store_id = 0)
+    {
 
-        if($config_file){
-            $this->config->load($config_file);
-
-        }
-
-        $result = ($this->config->get($config_key)) ? $this->config->get($config_key) : array();
-
-        if(!isset($this->request->post['config'])){
-            $this->load->model('setting/setting');
-            if (isset($this->request->post[$config_key])) {
-                $setting = $this->request->post;
-            } elseif ($this->model_setting_setting->getSetting($id, $store_id)) {
-                $setting = $this->model_setting_setting->getSetting($id, $store_id);
-
-            }
-
-            if(isset($setting[$config_key])){
-
-                if(is_array($setting[$config_key])){
-                    $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
-                }else{
-                    $result = $setting[$config_key];
-                }
-            }
-        }
-        return $result;
-    }
-
-    /*
-    *   Get config file values and merge with config database values
-    */
-
-    public function getCurrentSettingId($id, $store_id = 0){
-
-        if(isset($this->request->get['setting_id'])){
+        if (isset($this->request->get['setting_id'])) {
             $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE setting_id = '". (int)$this->request->get['setting_id'] ."' AND store_id = '" . (int)$store_id . "'" );
-            if($query->row){
+            WHERE setting_id = '" . (int)$this->request->get['setting_id'] . "' AND store_id = '" . (int)$store_id . "'");
+            if ($query->row) {
                 return $query->row['setting_id'];
             }
         }
@@ -374,22 +352,22 @@ public function array_merge_r_d() {
 
         $setting_id = '';
 
-        if(isset($setting[$id.'_setting_cycle'])){
-            $probabilities = $setting[$id.'_setting_cycle'];
+        if (isset($setting[$id . '_setting_cycle'])) {
+            $probabilities = $setting[$id . '_setting_cycle'];
 
-            if(isset($this->session->data['current_setting_id']) &&
+            if (isset($this->session->data['current_setting_id']) &&
                 isset($probabilities[$this->session->data['current_setting_id']])
-                && $probabilities[$this->session->data['current_setting_id']]){
+                && $probabilities[$this->session->data['current_setting_id']]) {
                 $setting_id = $this->session->data['current_setting_id'];
-            }else{
+            } else {
 
                 $random = array();
-                foreach($probabilities as $key => $value) {
-                    for($i = 0; $i < $value; $i++) {
+                foreach ($probabilities as $key => $value) {
+                    for ($i = 0; $i < $value; $i++) {
                         $random[] = $key;
                     }
 
-                    if($i > 100){
+                    if ($i > 100) {
                         break;
                     }
                 }
@@ -398,48 +376,89 @@ public function array_merge_r_d() {
 
                 $setting_id = current($random);
 
-                if($setting_id){
+                if ($setting_id) {
                     $this->session->data['current_setting_id'] = $setting_id;
 
                 }
             }
 
         }
-        if(!$setting_id){
+        if (!$setting_id) {
             $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE store_id = '" . (int)$store_id . "'" );
-            if($query->row){
+            WHERE store_id = '" . (int)$store_id . "'");
+            if ($query->row) {
                 $setting_id = $query->row['setting_id'];
             }
         }
         return $setting_id;
     }
 
+    /*
+    *   Get config file values and merge with config database values
+    */
 
-    public function getSettingName($setting_id){
+    public function getSetting($setting_id)
+    {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE setting_id = '" . (int)$setting_id . "'" );
-        if(isset($query->row['name'])){
-            return $query->row['name'];
-        }else{
-            return false;
-        }
-
-    }
-
-    public function getSetting($setting_id){
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE setting_id = '" . (int)$setting_id . "'" );
+            WHERE setting_id = '" . (int)$setting_id . "'");
 
         $result = $query->row;
-        if(isset($result['value'])){
+        if (isset($result['value'])) {
             $result['value'] = json_decode($result['value'], true);
-        }else{
+        } else {
             $result = false;
         }
 
         return $result;
 
+    }
+
+    public function array_merge_recursive_distinct(array &$array1, array &$array2)
+    {
+        $merged = $array1;
+        foreach ($array2 as $key => &$value) {
+            if (is_array($value) && isset ($merged [$key]) && is_array($merged [$key])) {
+                $merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
+            } else {
+                $merged [$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
+
+    public function getConfigData($id, $config_key, $store_id, $config_file = false)
+    {
+        if (!$config_file) {
+            $config_file = $this->config_file;
+        }
+
+        if ($config_file) {
+            $this->config->load($config_file);
+
+        }
+
+        $result = ($this->config->get($config_key)) ? $this->config->get($config_key) : array();
+
+        if (!isset($this->request->post['config'])) {
+            $this->load->model('setting/setting');
+            if (isset($this->request->post[$config_key])) {
+                $setting = $this->request->post;
+            } elseif ($this->model_setting_setting->getSetting($id, $store_id)) {
+                $setting = $this->model_setting_setting->getSetting($id, $store_id);
+
+            }
+
+            if (isset($setting[$config_key])) {
+
+                if (is_array($setting[$config_key])) {
+                    $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
+                } else {
+                    $result = $setting[$config_key];
+                }
+            }
+        }
+        return $result;
     }
     /*
     statistic = array(
@@ -513,30 +532,20 @@ public function array_merge_r_d() {
     //  return  $data;
     // }
 
-    public function setStatisticActivity($data, $activity){
-        foreach($activity as $key => $value){
-            if(is_array($value)){
-                if(!isset($data[$key])){
-                    $data[$key] = array();
-                }
-                $data[$key] = $this->setStatisticActivity($value, $data[$key]);
-            }else{
-                if(!isset($data[$key])){
-                    $data[$key] = '';
-                }
-                if(is_int($value)){
-                    $data[$key] = (int)$data[$key] + (int)$value;
-                }else{
-                    $data[$key] = $value;
-                }
-
-            }
-
+    public function getSettingName($setting_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
+            WHERE setting_id = '" . (int)$setting_id . "'");
+        if (isset($query->row['name'])) {
+            return $query->row['name'];
+        } else {
+            return false;
         }
-        return $data;
+
     }
 
-    public function setStatistic($setting_id, $order_id, $data){
+    public function setStatistic($setting_id, $order_id, $data)
+    {
         $this->session->data['statistic'] = array();
         $this->session->data['statistic'] = $this->setStatisticActivity($this->session->data['statistic'], $data);
 
@@ -553,30 +562,60 @@ public function array_merge_r_d() {
         return $this->session->data['statistic_id'];
     }
 
-    public function updateStatistic($data){
-        $this->session->data['statistic'] = $this->setStatisticActivity($this->session->data['statistic'], $data);
-        $statistic_id = $this->session->data['statistic_id'];
-        $this->db->query("UPDATE " . DB_PREFIX . "dqc_statistic
-            SET customer_id = '" . (int)$this->customer->getId(). "',
-                data = '" . $this->db->escape(json_encode($this->session->data['statistic'])) . "',
-                date_modified = NOW()
-            WHERE statistic_id = '" . (int)$statistic_id . "'");
-    }
+    public function setStatisticActivity($data, $activity)
+    {
+        foreach ($activity as $key => $value) {
+            if (is_array($value)) {
+                if (!isset($data[$key])) {
+                    $data[$key] = array();
+                }
+                $data[$key] = $this->setStatisticActivity($value, $data[$key]);
+            } else {
+                if (!isset($data[$key])) {
+                    $data[$key] = '';
+                }
+                if (is_int($value)) {
+                    $data[$key] = (int)$data[$key] + (int)$value;
+                } else {
+                    $data[$key] = $value;
+                }
 
+            }
+
+        }
+        return $data;
+    }
 
 
     /*
     *   Return mbooth file.
     */
-    public function getMboothFile($id, $sub_versions){
-        $full = DIR_SYSTEM . 'mbooth/xml/mbooth_'. $id .'.xml';
+
+    public function updateStatistic($data)
+    {
+        $this->session->data['statistic'] = $this->setStatisticActivity($this->session->data['statistic'], $data);
+        $statistic_id = $this->session->data['statistic_id'];
+        $this->db->query("UPDATE " . DB_PREFIX . "dqc_statistic
+            SET customer_id = '" . (int)$this->customer->getId() . "',
+                data = '" . $this->db->escape(json_encode($this->session->data['statistic'])) . "',
+                date_modified = NOW()
+            WHERE statistic_id = '" . (int)$statistic_id . "'");
+    }
+
+    /*
+    *   Return mbooth file.
+    */
+
+    public function getMboothFile($id, $sub_versions)
+    {
+        $full = DIR_SYSTEM . 'mbooth/xml/mbooth_' . $id . '.xml';
         if (file_exists($full)) {
-            return 'mbooth_'. $id . '.xml';
-        } else{
-            foreach ($sub_versions as $lite){
-                if (file_exists(DIR_SYSTEM . 'mbooth/xml/mbooth_'. $id . '_' . $lite . '.xml')) {
+            return 'mbooth_' . $id . '.xml';
+        } else {
+            foreach ($sub_versions as $lite) {
+                if (file_exists(DIR_SYSTEM . 'mbooth/xml/mbooth_' . $id . '_' . $lite . '.xml')) {
                     $this->prefix = '_' . $lite;
-                    return 'mbooth_'. $id . '_' . $lite . '.xml';
+                    return 'mbooth_' . $id . '_' . $lite . '.xml';
                 }
             }
         }
@@ -584,60 +623,54 @@ public function array_merge_r_d() {
     }
 
     /*
-    *   Return mbooth file.
+    *   Return list of stores.
     */
-    public function getMboothInfo($mbooth_xml){
-        if(file_exists(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml)){
-            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml));
+
+    public function getMboothInfo($mbooth_xml)
+    {
+        if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml)) {
+            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml));
             return $xml;
-        }else{
+        } else {
             return false;
         }
     }
 
     /*
-    *   Return list of stores.
+    *   Check if another extension/module is installed.
     */
-    public function getStores(){
+
+    public function getStores()
+    {
         $this->load->model('setting/store');
         $stores = $this->model_setting_store->getStores();
         $result = array();
-        if($stores){
+        if ($stores) {
             $result[] = array(
                 'store_id' => 0,
                 'name' => $this->config->get('config_name')
-                );
+            );
             foreach ($stores as $store) {
                 $result[] = array(
                     'store_id' => $store['store_id'],
                     'name' => $store['name']
-                    );
+                );
             }
         }
         return $result;
     }
 
     /*
-    *   Check if another extension/module is installed.
-    */
-    public function isInstalled($code) {
-        $extension_data = array();
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension WHERE `code` = '" . $this->db->escape($code) . "'");
-        if($query->row) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    /*
     *   Get the version of this module
     */
-    public function getVersion($mbooth_xml){
-        if(file_exists(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml)){
-            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml));
-            return $xml->version;
-        }else{
+
+    public function isInstalled($code)
+    {
+        $extension_data = array();
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension WHERE `code` = '" . $this->db->escape($code) . "'");
+        if ($query->row) {
+            return true;
+        } else {
             return false;
         }
     }
@@ -645,16 +678,18 @@ public function array_merge_r_d() {
     /*
     *   Get extension info by mbooth from server (Check for update)
     */
-    public function getUpdateInfo($mbooth_xml, $status = 1){
+
+    public function getUpdateInfo($mbooth_xml, $status = 1)
+    {
         $result = array();
 
         $current_version = $this->getVersion($mbooth_xml);
         $customer_url = HTTP_SERVER;
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE language_id = " . (int)$this->config->get('config_language_id') );
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE language_id = " . (int)$this->config->get('config_language_id'));
         $language_code = $query->row['code'];
         $ip = $this->request->server['REMOTE_ADDR'];
 
-        $request = 'http://opencart.dreamvention.com/api/1/index.php?route=extension/check&mbooth=' . $mbooth_xml . '&store_url=' . $customer_url . '&module_version=' . $current_version . '&language_code=' . $language_code . '&opencart_version=' . VERSION . '&ip='.$ip . '&status=' .$status;
+        $request = 'http://opencart.dreamvention.com/api/1/index.php?route=extension/check&mbooth=' . $mbooth_xml . '&store_url=' . $customer_url . '&module_version=' . $current_version . '&language_code=' . $language_code . '&opencart_version=' . VERSION . '&ip=' . $ip . '&status=' . $status;
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $request);
@@ -666,9 +701,20 @@ public function array_merge_r_d() {
         return $result;
     }
 
-    public function download_extension($mbooth_xml, $filename  = false ) {
+    public function getVersion($mbooth_xml)
+    {
+        if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml)) {
+            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml));
+            return $xml->version;
+        } else {
+            return false;
+        }
+    }
 
-        if(!$filename){
+    public function download_extension($mbooth_xml, $filename = false)
+    {
+
+        if (!$filename) {
             $filename = DIR_SYSTEM . 'mbooth/download/archive.zip';
         }
 
@@ -676,11 +722,11 @@ public function array_merge_r_d() {
         $ch = curl_init();
         $fp = fopen($filename, "w");
         curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
-        curl_setopt($ch, CURLOPT_URL, 'http://opencart.dreamvention.com/api/1/extension/download/?mbooth=' . $mbooth_xml.'&opencart_version='.VERSION);
+        curl_setopt($ch, CURLOPT_URL, 'http://opencart.dreamvention.com/api/1/extension/download/?mbooth=' . $mbooth_xml . '&opencart_version=' . VERSION);
         curl_setopt($ch, CURLOPT_FAILONERROR, true);
-        curl_setopt($ch, CURLOPT_HEADER,0);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER,true);
+        curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 100);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -693,11 +739,12 @@ public function array_merge_r_d() {
 
     }
 
-    public function extract_extension($filename = false, $location = false ) {
-        if(!$filename){
+    public function extract_extension($filename = false, $location = false)
+    {
+        if (!$filename) {
             $filename = DIR_SYSTEM . 'mbooth/download/archive.zip';
         }
-        if(!$location){
+        if (!$location) {
             $location = DIR_SYSTEM . 'mbooth/download/';
         }
 
@@ -707,7 +754,7 @@ public function array_merge_r_d() {
             $result['error'][] = 'ZipArchive not working.';
         }
 
-        if($zip->open($filename) != "true") {
+        if ($zip->open($filename) != "true") {
             $result['error'][] = $filename;
         }
         $zip->extractTo($location);
@@ -719,7 +766,8 @@ public function array_merge_r_d() {
 
     }
 
-    public function backup_files_by_mbooth($mbooth_xml, $action = 'install'){
+    public function backup_files_by_mbooth($mbooth_xml, $action = 'install')
+    {
 
         $zip = new ZipArchive();
 
@@ -730,44 +778,27 @@ public function array_merge_r_d() {
         $mbooth = $this->get_files_by_mbooth(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml);
         $files = $mbooth['files'];
 
-        $zip->open(DIR_SYSTEM . 'mbooth/backup/' . date('Y-m-d.h-i-s'). '.'. $action .'.'.$mbooth_xml.'.v'.$mbooth['version'].'.zip', ZipArchive::CREATE);
+        $zip->open(DIR_SYSTEM . 'mbooth/backup/' . date('Y-m-d.h-i-s') . '.' . $action . '.' . $mbooth_xml . '.v' . $mbooth['version'] . '.zip', ZipArchive::CREATE);
 
 
         foreach ($files as $file) {
 
-            if(file_exists(DIR_ROOT.$file)){
+            if (file_exists(DIR_ROOT . $file)) {
 
-                if (is_file(DIR_ROOT.$file)) {
-                    $zip->addFile(DIR_ROOT.$file, 'upload/'.$file);
+                if (is_file(DIR_ROOT . $file)) {
+                    $zip->addFile(DIR_ROOT . $file, 'upload/' . $file);
                     $result['success'][] = $file;
-                }else{
+                } else {
                     $result['error'][] = $file;
                 }
-            }else{
-                    $result['error'][] = $file;
+            } else {
+                $result['error'][] = $file;
             }
         }
         $zip->close();
         return $result;
 
     }
-
-    public function array_merge_recursive_distinct( array &$array1, array &$array2 )
-    {
-      $merged = $array1;
-      foreach ( $array2 as $key => &$value )
-          {
-            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
-            {
-              $merged [$key] = $this->array_merge_recursive_distinct ( $merged [$key], $value );
-            }
-            else
-            {
-              $merged [$key] = $value;
-            }
-          }
-
-      return $merged;
-    }
 }
+
 ?>

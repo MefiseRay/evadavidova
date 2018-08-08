@@ -1,6 +1,7 @@
 <?php
 
 namespace YaMoney\Client;
+
 use Psr\Log\LoggerInterface;
 
 /**

@@ -4,6 +4,18 @@ namespace YaMoney\Helpers;
 
 class Random
 {
+    public static function float($min = null, $max = null, $useBest = true)
+    {
+        $random = self::int(null, null, $useBest) / PHP_INT_MAX;
+        if ($min === null) {
+            $min = 0.0;
+        }
+        if ($max === null) {
+            return $random + $min;
+        }
+        return ($random * ($max - $min)) + $min;
+    }
+
     public static function int($min = null, $max = null, $useBest = true)
     {
         if ($min === null) {
@@ -19,27 +31,20 @@ class Random
         }
     }
 
-    public static function float($min = null, $max = null, $useBest = true)
+    public static function hex($length, $useBest = true)
     {
-        $random = self::int(null, null, $useBest) / PHP_INT_MAX;
-        if ($min === null) {
-            $min = 0.0;
-        }
-        if ($max === null) {
-            return $random + $min;
-        }
-        return ($random * ($max - $min)) + $min;
+        return self::str($length, '0123456789abcdef', $useBest);
     }
 
     public static function str($length, $maxLength = null, $characters = null, $useBest = true)
     {
         $result = '';
         if ($maxLength !== null) {
-             if (is_string($maxLength)) {
-                 $characters = $maxLength;
-             } else {
-                 $length = self::int($length, $maxLength, $useBest);
-             }
+            if (is_string($maxLength)) {
+                $characters = $maxLength;
+            } else {
+                $length = self::int($length, $maxLength, $useBest);
+            }
         }
         if ($characters === null) {
             for ($i = 0; $i < $length; $i++) {
@@ -53,11 +58,6 @@ class Random
             }
         }
         return $result;
-    }
-
-    public static function hex($length, $useBest = true)
-    {
-        return self::str($length, '0123456789abcdef', $useBest);
     }
 
     public static function bytes($length, $useBest = true)

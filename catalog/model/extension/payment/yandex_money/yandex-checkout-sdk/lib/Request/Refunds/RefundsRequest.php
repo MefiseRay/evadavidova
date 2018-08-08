@@ -101,21 +101,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     private $_nextPage;
 
     /**
+     * Возвращает инстанс билдера объектов запросов списка возвратов магазина
+     * @return RefundsRequestBuilder Билдер объектов запросов списка возвратов
+     */
+    public static function builder()
+    {
+        return new RefundsRequestBuilder();
+    }
+
+    /**
      * Возвращает идентификатор возврата
      * @return string Идентификатор возврата
      */
     public function getRefundId()
     {
         return $this->_refundId;
-    }
-
-    /**
-     * Проверяет был ли установлен идентификатор возврата
-     * @return bool True если идентификатор возврата был установлен, false если не был
-     */
-    public function hasRefundId()
-    {
-        return $this->_refundId !== null;
     }
 
     /**
@@ -145,21 +145,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет был ли установлен идентификатор возврата
+     * @return bool True если идентификатор возврата был установлен, false если не был
+     */
+    public function hasRefundId()
+    {
+        return $this->_refundId !== null;
+    }
+
+    /**
      * Возвращает идентификатор платежа если он задан или null
      * @return string|null Идентификатор платежа
      */
     public function getPaymentId()
     {
         return $this->_paymentId;
-    }
-
-    /**
-     * Проверяет, был ли задан идентификатор платежа
-     * @return bool True если идентификатор был задан, false если нет
-     */
-    public function hasPaymentId()
-    {
-        return !empty($this->_paymentId);
     }
 
     /**
@@ -189,21 +189,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет, был ли задан идентификатор платежа
+     * @return bool True если идентификатор был задан, false если нет
+     */
+    public function hasPaymentId()
+    {
+        return !empty($this->_paymentId);
+    }
+
+    /**
      * Возвращает идентификатор магазина, если он был задан
      * @return string|null Идентификатор магазина
      */
     public function getAccountId()
     {
         return $this->_accountId;
-    }
-
-    /**
-     * Проверяет, был ли установлен идентификатор магазина
-     * @return bool True если идентификатор магазина был установлен, false если нет
-     */
-    public function hasAccountId()
-    {
-        return !empty($this->_accountId);
     }
 
     /**
@@ -226,21 +226,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет, был ли установлен идентификатор магазина
+     * @return bool True если идентификатор магазина был установлен, false если нет
+     */
+    public function hasAccountId()
+    {
+        return !empty($this->_accountId);
+    }
+
+    /**
      * Возвращает идентификатор шлюза
      * @return string|null Идентификатор шлюза
      */
     public function getGatewayId()
     {
         return $this->_gatewayId;
-    }
-
-    /**
-     * Проверяет был ли установлен идентификатор шлюза
-     * @return bool True если идентификатор шлюза был установлен, false если нет
-     */
-    public function hasGatewayId()
-    {
-        return !empty($this->_gatewayId);
     }
 
     /**
@@ -263,21 +263,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет был ли установлен идентификатор шлюза
+     * @return bool True если идентификатор шлюза был установлен, false если нет
+     */
+    public function hasGatewayId()
+    {
+        return !empty($this->_gatewayId);
+    }
+
+    /**
      * Возвращает дату создания от которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время создания, от (включительно)
      */
     public function getCreatedGte()
     {
         return $this->_createdGte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания от которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedGte()
-    {
-        return !empty($this->_createdGte);
     }
 
     /**
@@ -309,21 +309,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата создания от которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedGte()
+    {
+        return !empty($this->_createdGte);
+    }
+
+    /**
      * Возвращает дату создания от которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время создания, от (не включая)
      */
     public function getCreatedGt()
     {
         return $this->_createdGt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания от которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedGt()
-    {
-        return !empty($this->_createdGt);
     }
 
     /**
@@ -355,21 +355,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата создания от которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedGt()
+    {
+        return !empty($this->_createdGt);
+    }
+
+    /**
      * Возвращает дату создания до которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время создания, до (включительно)
      */
     public function getCreatedLte()
     {
         return $this->_createdLte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания до которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedLte()
-    {
-        return !empty($this->_createdLte);
     }
 
     /**
@@ -401,21 +401,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата создания до которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedLte()
+    {
+        return !empty($this->_createdLte);
+    }
+
+    /**
      * Возвращает дату создания до которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время создания, до (не включая)
      */
     public function getCreatedLt()
     {
         return $this->_createdLt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата создания до которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasCreatedLt()
-    {
-        return !empty($this->_createdLt);
     }
 
     /**
@@ -447,21 +447,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата создания до которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasCreatedLt()
+    {
+        return !empty($this->_createdLt);
+    }
+
+    /**
      * Возвращает дату проведения от которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время проведения операции, от (включительно)
      */
     public function getAuthorizedGte()
     {
         return $this->_authorizedGte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения от которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedGte()
-    {
-        return !empty($this->_authorizedGte);
     }
 
     /**
@@ -494,21 +494,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата проведения от которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedGte()
+    {
+        return !empty($this->_authorizedGte);
+    }
+
+    /**
      * Возвращает дату проведения от которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время проведения операции, от (не включая)
      */
     public function getAuthorizedGt()
     {
         return $this->_authorizedGt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения от которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedGt()
-    {
-        return !empty($this->_authorizedGt);
     }
 
     /**
@@ -541,21 +541,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата проведения от которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedGt()
+    {
+        return !empty($this->_authorizedGt);
+    }
+
+    /**
      * Возвращает дату проведения до которой будут возвращены возвраты или null если дата не была установлена
      * @return \DateTime|null Время проведения, до (включительно)
      */
     public function getAuthorizedLte()
     {
         return $this->_authorizedLte;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения до которой выбираются возвраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedLte()
-    {
-        return !empty($this->_authorizedLte);
     }
 
     /**
@@ -587,21 +587,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата проведения до которой выбираются возвраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedLte()
+    {
+        return !empty($this->_authorizedLte);
+    }
+
+    /**
      * Возвращает дату проведения до которой будут возвращены платежи возвраты или null если она не была установлена
      * @return \DateTime|null Время проведения, до (не включая)
      */
     public function getAuthorizedLt()
     {
         return $this->_authorizedLt;
-    }
-
-    /**
-     * Проверяет была ли установлена дата проведения до которой выбираются вовзраты
-     * @return bool True если дата была установлена, false если нет
-     */
-    public function hasAuthorizedLt()
-    {
-        return !empty($this->_authorizedLt);
     }
 
     /**
@@ -633,21 +633,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет была ли установлена дата проведения до которой выбираются вовзраты
+     * @return bool True если дата была установлена, false если нет
+     */
+    public function hasAuthorizedLt()
+    {
+        return !empty($this->_authorizedLt);
+    }
+
+    /**
      * Возвращает статус выбираемых возвратов или null если он до этого не был установлен
      * @return string|null Статус выбираемых возвратов
      */
     public function getStatus()
     {
         return $this->_status;
-    }
-
-    /**
-     * Проверяет был ли установлен статус выбираемых возвратов
-     * @return bool True если статус был установлен, false если нет
-     */
-    public function hasStatus()
-    {
-        return !empty($this->_status);
     }
 
     /**
@@ -677,21 +677,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
     }
 
     /**
+     * Проверяет был ли установлен статус выбираемых возвратов
+     * @return bool True если статус был установлен, false если нет
+     */
+    public function hasStatus()
+    {
+        return !empty($this->_status);
+    }
+
+    /**
      * Возвращает токен для получения следующей страницы выборки
      * @return string|null Токен для получения следующей страницы выборки
      */
     public function getNextPage()
     {
         return $this->_nextPage;
-    }
-
-    /**
-     * Проверяет был ли установлен токен следующей страницы
-     * @return bool True если токен был установлен, false если нет
-     */
-    public function hasNextPage()
-    {
-        return !empty($this->_nextPage);
     }
 
     /**
@@ -705,12 +705,21 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
         if ($value === null || $value === '') {
             $this->_nextPage = null;
         } elseif (TypeCast::canCastToString($value)) {
-            $this->_nextPage = (string) $value;
+            $this->_nextPage = (string)$value;
         } else {
             throw new InvalidPropertyValueTypeException(
                 'Invalid status value in PaymentsRequest', 0, 'PaymentsRequest.status', $value
             );
         }
+    }
+
+    /**
+     * Проверяет был ли установлен токен следующей страницы
+     * @return bool True если токен был установлен, false если нет
+     */
+    public function hasNextPage()
+    {
+        return !empty($this->_nextPage);
     }
 
     /**
@@ -724,14 +733,5 @@ class RefundsRequest extends AbstractRequest implements RefundsRequestInterface
             return false;
         }
         return true;
-    }
-
-    /**
-     * Возвращает инстанс билдера объектов запросов списка возвратов магазина
-     * @return RefundsRequestBuilder Билдер объектов запросов списка возвратов
-     */
-    public static function builder()
-    {
-        return new RefundsRequestBuilder();
     }
 }
