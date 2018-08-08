@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use Facebook\Exceptions\FacebookSDKException;
@@ -50,7 +51,7 @@ class SignedRequest
     /**
      * Instantiate a new SignedRequest entity.
      *
-     * @param FacebookApp $facebookApp      The FacebookApp entity.
+     * @param FacebookApp $facebookApp The FacebookApp entity.
      * @param string|null $rawSignedRequest The raw signed request.
      */
     public function __construct(FacebookApp $facebookApp, $rawSignedRequest = null)
@@ -64,82 +65,6 @@ class SignedRequest
         $this->rawSignedRequest = $rawSignedRequest;
 
         $this->parse();
-    }
-
-    /**
-     * Returns the raw signed request data.
-     *
-     * @return string|null
-     */
-    public function getRawSignedRequest()
-    {
-        return $this->rawSignedRequest;
-    }
-
-    /**
-     * Returns the parsed signed request data.
-     *
-     * @return array|null
-     */
-    public function getPayload()
-    {
-        return $this->payload;
-    }
-
-    /**
-     * Returns a property from the signed request data if available.
-     *
-     * @param string     $key
-     * @param mixed|null $default
-     *
-     * @return mixed|null
-     */
-    public function get($key, $default = null)
-    {
-        if (isset($this->payload[$key])) {
-            return $this->payload[$key];
-        }
-
-        return $default;
-    }
-
-    /**
-     * Returns user_id from signed request data if available.
-     *
-     * @return string|null
-     */
-    public function getUserId()
-    {
-        return $this->get('user_id');
-    }
-
-    /**
-     * Checks for OAuth data in the payload.
-     *
-     * @return boolean
-     */
-    public function hasOAuthData()
-    {
-        return $this->get('oauth_token') || $this->get('code');
-    }
-
-    /**
-     * Creates a signed request from an array of data.
-     *
-     * @param array $payload
-     *
-     * @return string
-     */
-    public function make(array $payload)
-    {
-        $payload['algorithm'] = isset($payload['algorithm']) ? $payload['algorithm'] : 'HMAC-SHA256';
-        $payload['issued_at'] = isset($payload['issued_at']) ? $payload['issued_at'] : time();
-        $encodedPayload = $this->base64UrlEncode(json_encode($payload));
-
-        $hashedSig = $this->hashSignature($encodedPayload);
-        $encodedSig = $this->base64UrlEncode($hashedSig);
-
-        return $encodedSig . '.' . $encodedPayload;
     }
 
     /**
@@ -198,38 +123,35 @@ class SignedRequest
     }
 
     /**
-     * Decodes the raw payload from a signed request.
+     * Base64 decoding which replaces characters:
+     *   + instead of -
+     *   / instead of _
      *
-     * @param string $encodedPayload
+     * @link http://en.wikipedia.org/wiki/Base64#URL_applications
      *
-     * @returns array
+     * @param string $input base64 url encoded input
      *
-     * @throws FacebookSDKException
+     * @return string decoded string
      */
-    protected function decodePayload($encodedPayload)
+    public function base64UrlDecode($input)
     {
-        $payload = $this->base64UrlDecode($encodedPayload);
+        $urlDecodedBase64 = strtr($input, '-_', '+/');
+        $this->validateBase64($urlDecodedBase64);
 
-        if ($payload) {
-            $payload = json_decode($payload, true);
-        }
-
-        if (!is_array($payload)) {
-            throw new FacebookSDKException('Signed request has malformed encoded payload data.', 607);
-        }
-
-        return $payload;
+        return base64_decode($urlDecodedBase64);
     }
 
     /**
-     * Validates the algorithm used in a signed request.
+     * Validates a base64 string.
+     *
+     * @param string $input base64 value to validate
      *
      * @throws FacebookSDKException
      */
-    protected function validateAlgorithm()
+    protected function validateBase64($input)
     {
-        if ($this->get('algorithm') !== 'HMAC-SHA256') {
-            throw new FacebookSDKException('Signed request is using the wrong algorithm.', 605);
+        if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $input)) {
+            throw new FacebookSDKException('Signed request contains malformed base64 encoding.', 608);
         }
     }
 
@@ -282,22 +204,115 @@ class SignedRequest
     }
 
     /**
-     * Base64 decoding which replaces characters:
-     *   + instead of -
-     *   / instead of _
+     * Decodes the raw payload from a signed request.
      *
-     * @link http://en.wikipedia.org/wiki/Base64#URL_applications
+     * @param string $encodedPayload
      *
-     * @param string $input base64 url encoded input
+     * @returns array
      *
-     * @return string decoded string
+     * @throws FacebookSDKException
      */
-    public function base64UrlDecode($input)
+    protected function decodePayload($encodedPayload)
     {
-        $urlDecodedBase64 = strtr($input, '-_', '+/');
-        $this->validateBase64($urlDecodedBase64);
+        $payload = $this->base64UrlDecode($encodedPayload);
 
-        return base64_decode($urlDecodedBase64);
+        if ($payload) {
+            $payload = json_decode($payload, true);
+        }
+
+        if (!is_array($payload)) {
+            throw new FacebookSDKException('Signed request has malformed encoded payload data.', 607);
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Validates the algorithm used in a signed request.
+     *
+     * @throws FacebookSDKException
+     */
+    protected function validateAlgorithm()
+    {
+        if ($this->get('algorithm') !== 'HMAC-SHA256') {
+            throw new FacebookSDKException('Signed request is using the wrong algorithm.', 605);
+        }
+    }
+
+    /**
+     * Returns a property from the signed request data if available.
+     *
+     * @param string $key
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function get($key, $default = null)
+    {
+        if (isset($this->payload[$key])) {
+            return $this->payload[$key];
+        }
+
+        return $default;
+    }
+
+    /**
+     * Returns the raw signed request data.
+     *
+     * @return string|null
+     */
+    public function getRawSignedRequest()
+    {
+        return $this->rawSignedRequest;
+    }
+
+    /**
+     * Returns the parsed signed request data.
+     *
+     * @return array|null
+     */
+    public function getPayload()
+    {
+        return $this->payload;
+    }
+
+    /**
+     * Returns user_id from signed request data if available.
+     *
+     * @return string|null
+     */
+    public function getUserId()
+    {
+        return $this->get('user_id');
+    }
+
+    /**
+     * Checks for OAuth data in the payload.
+     *
+     * @return boolean
+     */
+    public function hasOAuthData()
+    {
+        return $this->get('oauth_token') || $this->get('code');
+    }
+
+    /**
+     * Creates a signed request from an array of data.
+     *
+     * @param array $payload
+     *
+     * @return string
+     */
+    public function make(array $payload)
+    {
+        $payload['algorithm'] = isset($payload['algorithm']) ? $payload['algorithm'] : 'HMAC-SHA256';
+        $payload['issued_at'] = isset($payload['issued_at']) ? $payload['issued_at'] : time();
+        $encodedPayload = $this->base64UrlEncode(json_encode($payload));
+
+        $hashedSig = $this->hashSignature($encodedPayload);
+        $encodedSig = $this->base64UrlEncode($hashedSig);
+
+        return $encodedSig . '.' . $encodedPayload;
     }
 
     /**
@@ -314,19 +329,5 @@ class SignedRequest
     public function base64UrlEncode($input)
     {
         return strtr(base64_encode($input), '+/', '-_');
-    }
-
-    /**
-     * Validates a base64 string.
-     *
-     * @param string $input base64 value to validate
-     *
-     * @throws FacebookSDKException
-     */
-    protected function validateBase64($input)
-    {
-        if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $input)) {
-            throw new FacebookSDKException('Signed request contains malformed base64 encoding.', 608);
-        }
     }
 }

@@ -11,7 +11,7 @@ namespace Httpful\Handlers;
 class XmlHandler extends MimeHandlerAdapter
 {
     /**
-     *  @var string $namespace xml namespace to use with simple_load_string
+     * @var string $namespace xml namespace to use with simple_load_string
      */
     private $namespace;
 
@@ -25,8 +25,8 @@ class XmlHandler extends MimeHandlerAdapter
      */
     public function __construct(array $conf = array())
     {
-        $this->namespace =      isset($conf['namespace']) ? $conf['namespace'] : '';
-        $this->libxml_opts =    isset($conf['libxml_opts']) ? $conf['libxml_opts'] : 0;
+        $this->namespace = isset($conf['namespace']) ? $conf['namespace'] : '';
+        $this->libxml_opts = isset($conf['libxml_opts']) ? $conf['libxml_opts'] : 0;
     }
 
     /**
@@ -57,37 +57,6 @@ class XmlHandler extends MimeHandlerAdapter
     }
 
     /**
-     * @param mixed $payload
-     * @return string
-     * @author Ted Zellers
-     */
-    public function serialize_clean($payload)
-    {
-        $xml = new \XMLWriter;
-        $xml->openMemory();
-        $xml->startDocument('1.0','ISO-8859-1');
-        $this->serialize_node($xml, $payload);
-        return $xml->outputMemory(true);
-    }
-
-    /**
-     * @param \XMLWriter $xmlw
-     * @param mixed $node to serialize
-     * @author Ted Zellers
-     */
-    public function serialize_node(&$xmlw, $node){
-        if (!is_array($node)){
-            $xmlw->text($node);
-        } else {
-            foreach ($node as $k => $v){
-                $xmlw->startElement($k);
-                    $this->serialize_node($xmlw, $v);
-                $xmlw->endElement();
-            }
-        }
-    }
-
-    /**
      * @author Zack Douglas <zack@zackerydouglas.info>
      */
     private function _future_serializeAsXml($value, $node = null, $dom = null)
@@ -112,12 +81,29 @@ class XmlHandler extends MimeHandlerAdapter
             $node->appendChild($arrNode);
             $this->_future_serializeArrayAsXml($value, $arrNode, $dom);
         } else if (is_bool($value)) {
-            $node->appendChild($dom->createTextNode($value?'TRUE':'FALSE'));
+            $node->appendChild($dom->createTextNode($value ? 'TRUE' : 'FALSE'));
         } else {
             $node->appendChild($dom->createTextNode($value));
         }
         return array($node, $dom);
     }
+
+    /**
+     * @author Zack Douglas <zack@zackerydouglas.info>
+     */
+    private function _future_serializeObjectAsXml($value, &$parent, &$dom)
+    {
+        $refl = new \ReflectionObject($value);
+        foreach ($refl->getProperties() as $pr) {
+            if (!$pr->isPrivate()) {
+                $el = $dom->createElement($pr->getName());
+                $parent->appendChild($el);
+                $this->_future_serializeAsXml($pr->getValue($value), $el, $dom);
+            }
+        }
+        return array($parent, $dom);
+    }
+
     /**
      * @author Zack Douglas <zack@zackerydouglas.info>
      */
@@ -134,19 +120,36 @@ class XmlHandler extends MimeHandlerAdapter
         }
         return array($parent, $dom);
     }
+
     /**
-     * @author Zack Douglas <zack@zackerydouglas.info>
+     * @param mixed $payload
+     * @return string
+     * @author Ted Zellers
      */
-    private function _future_serializeObjectAsXml($value, &$parent, &$dom)
+    public function serialize_clean($payload)
     {
-        $refl = new \ReflectionObject($value);
-        foreach ($refl->getProperties() as $pr) {
-            if (!$pr->isPrivate()) {
-                $el = $dom->createElement($pr->getName());
-                $parent->appendChild($el);
-                $this->_future_serializeAsXml($pr->getValue($value), $el, $dom);
+        $xml = new \XMLWriter;
+        $xml->openMemory();
+        $xml->startDocument('1.0', 'ISO-8859-1');
+        $this->serialize_node($xml, $payload);
+        return $xml->outputMemory(true);
+    }
+
+    /**
+     * @param \XMLWriter $xmlw
+     * @param mixed $node to serialize
+     * @author Ted Zellers
+     */
+    public function serialize_node(&$xmlw, $node)
+    {
+        if (!is_array($node)) {
+            $xmlw->text($node);
+        } else {
+            foreach ($node as $k => $v) {
+                $xmlw->startElement($k);
+                $this->serialize_node($xmlw, $v);
+                $xmlw->endElement();
             }
         }
-        return array($parent, $dom);
     }
 }

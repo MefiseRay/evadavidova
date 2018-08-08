@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Helpers;
 
 use Facebook\Facebook;
@@ -55,9 +56,9 @@ abstract class FacebookSignedRequestFromInputHelper
     /**
      * Initialize the helper and process available signed request data.
      *
-     * @param FacebookApp    $app          The FacebookApp entity.
-     * @param FacebookClient $client       The client to make HTTP requests.
-     * @param string|null    $graphVersion The version of Graph to use.
+     * @param FacebookApp $app The FacebookApp entity.
+     * @param FacebookClient $client The client to make HTTP requests.
+     * @param string|null $graphVersion The version of Graph to use.
      */
     public function __construct(FacebookApp $app, FacebookClient $client, $graphVersion = null)
     {
@@ -83,6 +84,13 @@ abstract class FacebookSignedRequestFromInputHelper
 
         $this->signedRequest = new SignedRequest($this->app, $rawSignedRequest);
     }
+
+    /**
+     * Get raw signed request from input.
+     *
+     * @return string|null
+     */
+    abstract public function getRawSignedRequest();
 
     /**
      * Returns an AccessToken entity from the signed request.
@@ -128,13 +136,6 @@ abstract class FacebookSignedRequestFromInputHelper
     {
         return $this->signedRequest ? $this->signedRequest->getUserId() : null;
     }
-
-    /**
-     * Get raw signed request from input.
-     *
-     * @return string|null
-     */
-    abstract public function getRawSignedRequest();
 
     /**
      * Get raw signed request from POST input.

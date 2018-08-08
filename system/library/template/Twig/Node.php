@@ -28,10 +28,10 @@ class Twig_Node implements Twig_NodeInterface
      * The nodes are automatically made available as properties ($this->node).
      * The attributes are automatically made available as array items ($this['name']).
      *
-     * @param array  $nodes      An array of named nodes
-     * @param array  $attributes An array of attributes (should not be nodes)
-     * @param int    $lineno     The line number
-     * @param string $tag        The tag name associated with the Node
+     * @param array $nodes An array of named nodes
+     * @param array $attributes An array of attributes (should not be nodes)
+     * @param int $lineno The line number
+     * @param string $tag The tag name associated with the Node
      */
     public function __construct(array $nodes = array(), array $attributes = array(), $lineno = 0, $tag = null)
     {
@@ -48,14 +48,14 @@ class Twig_Node implements Twig_NodeInterface
             $attributes[] = sprintf('%s: %s', $name, str_replace("\n", '', var_export($value, true)));
         }
 
-        $repr = array(get_class($this).'('.implode(', ', $attributes));
+        $repr = array(get_class($this) . '(' . implode(', ', $attributes));
 
         if (count($this->nodes)) {
             foreach ($this->nodes as $name => $node) {
                 $len = strlen($name) + 4;
                 $noderepr = array();
-                foreach (explode("\n", (string) $node) as $line) {
-                    $noderepr[] = str_repeat(' ', $len).$line;
+                foreach (explode("\n", (string)$node) as $line) {
+                    $noderepr[] = str_repeat(' ', $len) . $line;
                 }
 
                 $repr[] = sprintf('  %s: %s', $name, ltrim(implode("\n", $noderepr)));
@@ -153,7 +153,7 @@ class Twig_Node implements Twig_NodeInterface
      * Sets an attribute by name to a value.
      *
      * @param string $name
-     * @param mixed  $value
+     * @param mixed $value
      */
     public function setAttribute($name, $value)
     {
@@ -201,7 +201,7 @@ class Twig_Node implements Twig_NodeInterface
     /**
      * Sets a node.
      *
-     * @param string    $name
+     * @param string $name
      * @param Twig_Node $node
      */
     public function setNode($name, $node = null)

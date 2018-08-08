@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\FileUpload;
 
 use Facebook\Exceptions\FacebookSDKException;
@@ -56,14 +57,6 @@ class FacebookFile
     }
 
     /**
-     * Closes the stream when destructed.
-     */
-    public function __destruct()
-    {
-        $this->close();
-    }
-
-    /**
      * Opens a stream for the file.
      *
      * @throws FacebookSDKException
@@ -79,6 +72,26 @@ class FacebookFile
         if (!$this->stream) {
             throw new FacebookSDKException('Failed to create FacebookFile entity. Unable to open resource: ' . $this->path . '.');
         }
+    }
+
+    /**
+     * Returns true if the path to the file is remote.
+     *
+     * @param string $pathToFile
+     *
+     * @return boolean
+     */
+    protected function isRemoteFile($pathToFile)
+    {
+        return preg_match('/^(https?|ftp):\/\/.*/', $pathToFile) === 1;
+    }
+
+    /**
+     * Closes the stream when destructed.
+     */
+    public function __destruct()
+    {
+        $this->close();
     }
 
     /**
@@ -119,17 +132,5 @@ class FacebookFile
     public function getMimetype()
     {
         return Mimetypes::getInstance()->fromFilename($this->path) ?: 'text/plain';
-    }
-
-    /**
-     * Returns true if the path to the file is remote.
-     *
-     * @param string $pathToFile
-     *
-     * @return boolean
-     */
-    protected function isRemoteFile($pathToFile)
-    {
-        return preg_match('/^(https?|ftp):\/\/.*/', $pathToFile) === 1;
     }
 }

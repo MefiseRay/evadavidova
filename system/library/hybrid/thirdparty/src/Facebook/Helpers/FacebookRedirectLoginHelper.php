@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Helpers;
 
 use Facebook\Authentication\AccessToken;
@@ -69,10 +70,10 @@ class FacebookRedirectLoginHelper
     protected $pseudoRandomStringGenerator;
 
     /**
-     * @param OAuth2Client                              $oAuth2Client          The OAuth 2.0 client service.
-     * @param PersistentDataInterface|null              $persistentDataHandler The persistent data handler.
-     * @param UrlDetectionInterface|null                $urlHandler            The URL detection handler.
-     * @param PseudoRandomStringGeneratorInterface|null $prsg                  The cryptographically secure pseudo-random string generator.
+     * @param OAuth2Client $oAuth2Client The OAuth 2.0 client service.
+     * @param PersistentDataInterface|null $persistentDataHandler The persistent data handler.
+     * @param UrlDetectionInterface|null $urlHandler The URL detection handler.
+     * @param PseudoRandomStringGeneratorInterface|null $prsg The cryptographically secure pseudo-random string generator.
      */
     public function __construct(OAuth2Client $oAuth2Client, PersistentDataInterface $persistentDataHandler = null, UrlDetectionInterface $urlHandler = null, PseudoRandomStringGeneratorInterface $prsg = null)
     {
@@ -80,6 +81,32 @@ class FacebookRedirectLoginHelper
         $this->persistentDataHandler = $persistentDataHandler ?: new FacebookSessionPersistentDataHandler();
         $this->urlDetectionHandler = $urlHandler ?: new FacebookUrlDetectionHandler();
         $this->pseudoRandomStringGenerator = $prsg ?: $this->detectPseudoRandomStringGenerator();
+    }
+
+    /**
+     * Detects which pseudo-random string generator to use.
+     *
+     * @return PseudoRandomStringGeneratorInterface
+     *
+     * @throws FacebookSDKException
+     */
+    public function detectPseudoRandomStringGenerator()
+    {
+        // Since openssl_random_pseudo_bytes() can sometimes return non-cryptographically
+        // secure pseudo-random strings (in rare cases), we check for mcrypt_create_iv() first.
+        if (function_exists('mcrypt_create_iv')) {
+            return new McryptPseudoRandomStringGenerator();
+        }
+
+        if (function_exists('openssl_random_pseudo_bytes')) {
+            return new OpenSslPseudoRandomStringGenerator();
+        }
+
+        if (!ini_get('open_basedir') && is_readable('/dev/urandom')) {
+            return new UrandomPseudoRandomStringGenerator();
+        }
+
+        throw new FacebookSDKException('Unable to detect a cryptographically secure pseudo-random string generator.');
     }
 
     /**
@@ -113,38 +140,26 @@ class FacebookRedirectLoginHelper
     }
 
     /**
-     * Detects which pseudo-random string generator to use.
+     * Returns the URL to send the user in order to login to Facebook.
      *
-     * @return PseudoRandomStringGeneratorInterface
+     * @param string $redirectUrl The URL Facebook should redirect users to after login.
+     * @param array $scope List of permissions to request during login.
+     * @param string $separator The separator to use in http_build_query().
      *
-     * @throws FacebookSDKException
+     * @return string
      */
-    public function detectPseudoRandomStringGenerator()
+    public function getLoginUrl($redirectUrl, array $scope = [], $separator = '&')
     {
-        // Since openssl_random_pseudo_bytes() can sometimes return non-cryptographically
-        // secure pseudo-random strings (in rare cases), we check for mcrypt_create_iv() first.
-        if (function_exists('mcrypt_create_iv')) {
-            return new McryptPseudoRandomStringGenerator();
-        }
-
-        if (function_exists('openssl_random_pseudo_bytes')) {
-            return new OpenSslPseudoRandomStringGenerator();
-        }
-
-        if (!ini_get('open_basedir') && is_readable('/dev/urandom')) {
-            return new UrandomPseudoRandomStringGenerator();
-        }
-
-        throw new FacebookSDKException('Unable to detect a cryptographically secure pseudo-random string generator.');
+        return $this->makeUrl($redirectUrl, $scope, [], $separator);
     }
 
     /**
      * Stores CSRF state and returns a URL to which the user should be sent to in order to continue the login process with Facebook.
      *
      * @param string $redirectUrl The URL Facebook should redirect users to after login.
-     * @param array  $scope       List of permissions to request during login.
-     * @param array  $params      An array of parameters to generate URL.
-     * @param string $separator   The separator to use in http_build_query().
+     * @param array $scope List of permissions to request during login.
+     * @param array $params An array of parameters to generate URL.
+     * @param string $separator The separator to use in http_build_query().
      *
      * @return string
      */
@@ -157,25 +172,11 @@ class FacebookRedirectLoginHelper
     }
 
     /**
-     * Returns the URL to send the user in order to login to Facebook.
-     *
-     * @param string $redirectUrl The URL Facebook should redirect users to after login.
-     * @param array  $scope       List of permissions to request during login.
-     * @param string $separator   The separator to use in http_build_query().
-     *
-     * @return string
-     */
-    public function getLoginUrl($redirectUrl, array $scope = [], $separator = '&')
-    {
-        return $this->makeUrl($redirectUrl, $scope, [], $separator);
-    }
-
-    /**
      * Returns the URL to send the user in order to log out of Facebook.
      *
      * @param AccessToken|string $accessToken The access token that will be logged out.
-     * @param string             $next        The url Facebook should redirect the user to after a successful logout.
-     * @param string             $separator   The separator to use in http_build_query().
+     * @param string $next The url Facebook should redirect the user to after a successful logout.
+     * @param string $separator The separator to use in http_build_query().
      *
      * @return string
      *
@@ -203,8 +204,8 @@ class FacebookRedirectLoginHelper
      * Returns the URL to send the user in order to login to Facebook with permission(s) to be re-asked.
      *
      * @param string $redirectUrl The URL Facebook should redirect users to after login.
-     * @param array  $scope       List of permissions to request during login.
-     * @param string $separator   The separator to use in http_build_query().
+     * @param array $scope List of permissions to request during login.
+     * @param string $separator The separator to use in http_build_query().
      *
      * @return string
      */
@@ -219,8 +220,8 @@ class FacebookRedirectLoginHelper
      * Returns the URL to send the user in order to login to Facebook with user to be re-authenticated.
      *
      * @param string $redirectUrl The URL Facebook should redirect users to after login.
-     * @param array  $scope       List of permissions to request during login.
-     * @param string $separator   The separator to use in http_build_query().
+     * @param array $scope List of permissions to request during login.
+     * @param string $separator The separator to use in http_build_query().
      *
      * @return string
      */
@@ -256,6 +257,28 @@ class FacebookRedirectLoginHelper
     }
 
     /**
+     * Return the code.
+     *
+     * @return string|null
+     */
+    protected function getCode()
+    {
+        return $this->getInput('code');
+    }
+
+    /**
+     * Returns a value from a GET param.
+     *
+     * @param string $key
+     *
+     * @return string|null
+     */
+    private function getInput($key)
+    {
+        return isset($_GET[$key]) ? $_GET[$key] : null;
+    }
+
+    /**
      * Validate the request against a cross-site request forgery.
      *
      * @throws FacebookSDKException
@@ -284,16 +307,6 @@ class FacebookRedirectLoginHelper
         if ($result !== 0) {
             throw new FacebookSDKException('Cross-site request forgery validation failed. The "state" param from the URL and session do not match.');
         }
-    }
-
-    /**
-     * Return the code.
-     *
-     * @return string|null
-     */
-    protected function getCode()
-    {
-        return $this->getInput('code');
     }
 
     /**
@@ -344,17 +357,5 @@ class FacebookRedirectLoginHelper
     public function getErrorDescription()
     {
         return $this->getInput('error_description');
-    }
-
-    /**
-     * Returns a value from a GET param.
-     *
-     * @param string $key
-     *
-     * @return string|null
-     */
-    private function getInput($key)
-    {
-        return isset($_GET[$key]) ? $_GET[$key] : null;
     }
 }

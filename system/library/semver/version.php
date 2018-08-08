@@ -21,13 +21,13 @@ class version extends expression
 
     /**
      * Initializes the version object with a simple version
-     * @param  string          $version A simple, single version string
-     * @param  bool            $padZero Set empty version pieces to zero?
+     * @param  string $version A simple, single version string
+     * @param  bool $padZero Set empty version pieces to zero?
      * @throws SemVerException
      */
     public function __construct($version, $padZero = false)
     {
-        $version = (string) $version;
+        $version = (string)$version;
         $expression = sprintf(parent::$dirty_regexp_mask, parent::$global_single_version);
         if (!preg_match($expression, $version, $matches)) {
             throw new SemVerException('This is not a valid version');
@@ -55,116 +55,10 @@ class version extends expression
     }
 
     /**
-     * Get the full version
-     * @return string
-     */
-    public function getVersion()
-    {
-        return (string) $this->version;
-    }
-
-    /**
-     * Get the major version number
-     * @return int
-     */
-    public function getMajor()
-    {
-        return (int) $this->major;
-    }
-
-    /**
-     * Get the minor version number
-     * @return int
-     */
-    public function getMinor()
-    {
-        return (int) $this->minor;
-    }
-
-    /**
-     * Get the patch version number
-     * @return int
-     */
-    public function getPatch()
-    {
-        return (int) $this->patch;
-    }
-
-    /**
-     * Get the build number
-     * @return int
-     */
-    public function getBuild()
-    {
-        return (int) $this->build;
-    }
-
-    /**
-     * Get the tag appended to the version
-     * @return int
-     */
-    public function getTag()
-    {
-        return (string) $this->prtag;
-    }
-
-    /**
-     * Returns a valid version
-     * @return string
-     * @see self::getVersion()
-     */
-    public function valid()
-    {
-        return $this->getVersion();
-    }
-
-    /**
-     * Increment the version number
-     * @param  string                         $what One of 'major', 'minor', 'patch' or 'build'
-     * @return \vierbergenlars\SemVer\version
-     * @throws SemVerException                When an invalid increment value is given
-     */
-    public function inc($what)
-    {
-        if ($what == 'major') {
-            return new version(($this->major + 1) . '.0.0');
-        }
-        if ($what == 'minor') {
-            return new version($this->major . '.' . ($this->minor + 1) . '.0');
-        }
-        if ($what == 'patch') {
-            return new version($this->major . '.' . $this->minor . '.' . ($this->patch + 1));
-        }
-        if ($what == 'build') {
-            if ($this->build == -1) {
-                return new version($this->major . '.' . $this->minor . '.' . $this->patch . '-1');
-            }
-
-            return new version($this->major . '.' . $this->minor . '.' . $this->patch . '-' . ($this->build + 1));
-        }
-        throw new SemVerException('Invalid increment value given', $what);
-    }
-
-    /**
-     * Checks whether this version satisfies an expression
-     * @param  expression $versions The expression to check against
-     * @return bool
-     */
-    public function satisfies(expression $versions)
-    {
-        return $versions->satisfiedBy($this);
-    }
-
-    public function __toString()
-    {
-        return $this->getVersion();
-    }
-
-    /**
      * Compare two versions
-     * @param  string                   $v1  The first version
-     * @param  string                   $cmp The comparator, one of '==', '!=', '>', '>=', '<', '<=', '===', '!=='
-     * @param  string                   $v2  The second version
+     * @param  string $v1 The first version
+     * @param  string $cmp The comparator, one of '==', '!=', '>', '>=', '<', '<=', '===', '!=='
+     * @param  string $v2 The second version
      * @return bool
      * @throws UnexpectedValueException
      */
@@ -190,6 +84,35 @@ class version extends expression
             default:
                 throw new UnexpectedValueException('Invalid comparator');
         }
+    }
+
+    /**
+     * Checks ifa given string is equal to another
+     * @param  string|version $v1 The first version
+     * @param  string|version $v2 The second version
+     * @return boolean
+     */
+    public static function eq($v1, $v2)
+    {
+        if (!$v1 instanceof version) {
+            $v1 = new version($v1, true);
+        }
+        if (!$v2 instanceof version) {
+            $v2 = new version($v2, true);
+        }
+
+        return $v1->getVersion() === $v2->getVersion();
+    }
+
+    /**
+     * Checks ifa given string is not equal to another
+     * @param  string|version $v1 The first version
+     * @param  string|version $v2 The second version
+     * @return boolean
+     */
+    public static function neq($v1, $v2)
+    {
+        return !self::eq($v1, $v2);
     }
 
     /**
@@ -298,6 +221,51 @@ class version extends expression
     }
 
     /**
+     * Get the major version number
+     * @return int
+     */
+    public function getMajor()
+    {
+        return (int)$this->major;
+    }
+
+    /**
+     * Get the minor version number
+     * @return int
+     */
+    public function getMinor()
+    {
+        return (int)$this->minor;
+    }
+
+    /**
+     * Get the patch version number
+     * @return int
+     */
+    public function getPatch()
+    {
+        return (int)$this->patch;
+    }
+
+    /**
+     * Get the build number
+     * @return int
+     */
+    public function getBuild()
+    {
+        return (int)$this->build;
+    }
+
+    /**
+     * Get the tag appended to the version
+     * @return int
+     */
+    public function getTag()
+    {
+        return (string)$this->prtag;
+    }
+
+    /**
      * Checks ifa given string is greater than, or equal to another
      * @param  string|version $v1 The first version
      * @param  string|version $v2 The second version
@@ -331,32 +299,14 @@ class version extends expression
     }
 
     /**
-     * Checks ifa given string is equal to another
+     * Reverse compares two versions, can be used with usort()
      * @param  string|version $v1 The first version
      * @param  string|version $v2 The second version
-     * @return boolean
+     * @return int            0 when they are equal, 1 ifthe second version is smaller, -1 ifthe second version is greater
      */
-    public static function eq($v1, $v2)
+    public static function rcompare($v1, $v2)
     {
-        if (!$v1 instanceof version) {
-            $v1 = new version($v1, true);
-        }
-        if (!$v2 instanceof version) {
-            $v2 = new version($v2, true);
-        }
-
-        return $v1->getVersion() === $v2->getVersion();
-    }
-
-    /**
-     * Checks ifa given string is not equal to another
-     * @param  string|version $v1 The first version
-     * @param  string|version $v2 The second version
-     * @return boolean
-     */
-    public static function neq($v1, $v2)
-    {
-        return !self::eq($v1, $v2);
+        return self::compare($v2, $v1);
     }
 
     /**
@@ -378,19 +328,8 @@ class version extends expression
     }
 
     /**
-     * Reverse compares two versions, can be used with usort()
-     * @param  string|version $v1 The first version
-     * @param  string|version $v2 The second version
-     * @return int            0 when they are equal, 1 ifthe second version is smaller, -1 ifthe second version is greater
-     */
-    public static function rcompare($v1, $v2)
-    {
-        return self::compare($v2, $v1);
-    }
-
-    /**
      * Shorthand function to match a version against an expression.
-     * @param string|version    $version The version to match.
+     * @param string|version $version The version to match.
      * @param string|expression $range The expression to be matched against.
      * @return bool             True on a matching pair, false otherwise.
      */
@@ -405,5 +344,66 @@ class version extends expression
         }
 
         return $version->satisfies($range);
+    }
+
+    /**
+     * Checks whether this version satisfies an expression
+     * @param  expression $versions The expression to check against
+     * @return bool
+     */
+    public function satisfies(expression $versions)
+    {
+        return $versions->satisfiedBy($this);
+    }
+
+    /**
+     * Returns a valid version
+     * @return string
+     * @see self::getVersion()
+     */
+    public function valid()
+    {
+        return $this->getVersion();
+    }
+
+    /**
+     * Get the full version
+     * @return string
+     */
+    public function getVersion()
+    {
+        return (string)$this->version;
+    }
+
+    /**
+     * Increment the version number
+     * @param  string $what One of 'major', 'minor', 'patch' or 'build'
+     * @return \vierbergenlars\SemVer\version
+     * @throws SemVerException                When an invalid increment value is given
+     */
+    public function inc($what)
+    {
+        if ($what == 'major') {
+            return new version(($this->major + 1) . '.0.0');
+        }
+        if ($what == 'minor') {
+            return new version($this->major . '.' . ($this->minor + 1) . '.0');
+        }
+        if ($what == 'patch') {
+            return new version($this->major . '.' . $this->minor . '.' . ($this->patch + 1));
+        }
+        if ($what == 'build') {
+            if ($this->build == -1) {
+                return new version($this->major . '.' . $this->minor . '.' . $this->patch . '-1');
+            }
+
+            return new version($this->major . '.' . $this->minor . '.' . $this->patch . '-' . ($this->build + 1));
+        }
+        throw new SemVerException('Invalid increment value given', $what);
+    }
+
+    public function __toString()
+    {
+        return $this->getVersion();
     }
 }

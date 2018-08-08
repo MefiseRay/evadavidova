@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Helpers;
 
 use Facebook\FacebookApp;
@@ -41,9 +42,9 @@ class FacebookPageTabHelper extends FacebookCanvasHelper
     /**
      * Initialize the helper and process available signed request data.
      *
-     * @param FacebookApp    $app          The FacebookApp entity.
-     * @param FacebookClient $client       The client to make HTTP requests.
-     * @param string|null    $graphVersion The version of Graph to use.
+     * @param FacebookApp $app The FacebookApp entity.
+     * @param FacebookClient $client The client to make HTTP requests.
+     * @param string|null $graphVersion The version of Graph to use.
      */
     public function __construct(FacebookApp $app, FacebookClient $client, $graphVersion = null)
     {
@@ -57,9 +58,19 @@ class FacebookPageTabHelper extends FacebookCanvasHelper
     }
 
     /**
+     * Returns true if the user is an admin.
+     *
+     * @return boolean
+     */
+    public function isAdmin()
+    {
+        return $this->getPageData('admin') === true;
+    }
+
+    /**
      * Returns a value from the page data.
      *
-     * @param string     $key
+     * @param string $key
      * @param mixed|null $default
      *
      * @return mixed|null
@@ -71,16 +82,6 @@ class FacebookPageTabHelper extends FacebookCanvasHelper
         }
 
         return $default;
-    }
-
-    /**
-     * Returns true if the user is an admin.
-     *
-     * @return boolean
-     */
-    public function isAdmin()
-    {
-        return $this->getPageData('admin') === true;
     }
 
     /**

@@ -64,51 +64,6 @@ class Constraint implements ConstraintInterface
     protected $prettyString;
 
     /**
-     * @param ConstraintInterface $provider
-     *
-     * @return bool
-     */
-    public function matches(ConstraintInterface $provider)
-    {
-        if ($provider instanceof $this) {
-            return $this->matchSpecific($provider);
-        }
-
-        // turn matching around to find a match
-        return $provider->matches($this);
-    }
-
-    /**
-     * @param string $prettyString
-     */
-    public function setPrettyString($prettyString)
-    {
-        $this->prettyString = $prettyString;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPrettyString()
-    {
-        if ($this->prettyString) {
-            return $this->prettyString;
-        }
-
-        return $this->__toString();
-    }
-
-    /**
-     * Get all supported comparison operators.
-     *
-     * @return array
-     */
-    public static function getSupportedOperators()
-    {
-        return array_keys(self::$transOpStr);
-    }
-
-    /**
      * Sets operator and version to compare with.
      *
      * @param string $operator
@@ -131,38 +86,18 @@ class Constraint implements ConstraintInterface
     }
 
     /**
-     * @param string $a
-     * @param string $b
-     * @param string $operator
-     * @param bool $compareBranches
-     *
-     * @throws \InvalidArgumentException if invalid operator is given.
+     * @param ConstraintInterface $provider
      *
      * @return bool
      */
-    public function versionCompare($a, $b, $operator, $compareBranches = false)
+    public function matches(ConstraintInterface $provider)
     {
-        if (!isset(self::$transOpStr[$operator])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid operator "%s" given, expected one of: %s',
-                $operator,
-                implode(', ', self::getSupportedOperators())
-            ));
+        if ($provider instanceof $this) {
+            return $this->matchSpecific($provider);
         }
 
-        $aIsBranch = 'dev-' === substr($a, 0, 4);
-        $bIsBranch = 'dev-' === substr($b, 0, 4);
-
-        if ($aIsBranch && $bIsBranch) {
-            return $operator === '==' && $a === $b;
-        }
-
-        // when branches are not comparable, we make sure dev branches never match anything
-        if (!$compareBranches && ($aIsBranch || $bIsBranch)) {
-            return false;
-        }
-
-        return version_compare($a, $b, $operator);
+        // turn matching around to find a match
+        return $provider->matches($this);
     }
 
     /**
@@ -207,6 +142,71 @@ class Constraint implements ConstraintInterface
         }
 
         return false;
+    }
+
+    /**
+     * @param string $a
+     * @param string $b
+     * @param string $operator
+     * @param bool $compareBranches
+     *
+     * @throws \InvalidArgumentException if invalid operator is given.
+     *
+     * @return bool
+     */
+    public function versionCompare($a, $b, $operator, $compareBranches = false)
+    {
+        if (!isset(self::$transOpStr[$operator])) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid operator "%s" given, expected one of: %s',
+                $operator,
+                implode(', ', self::getSupportedOperators())
+            ));
+        }
+
+        $aIsBranch = 'dev-' === substr($a, 0, 4);
+        $bIsBranch = 'dev-' === substr($b, 0, 4);
+
+        if ($aIsBranch && $bIsBranch) {
+            return $operator === '==' && $a === $b;
+        }
+
+        // when branches are not comparable, we make sure dev branches never match anything
+        if (!$compareBranches && ($aIsBranch || $bIsBranch)) {
+            return false;
+        }
+
+        return version_compare($a, $b, $operator);
+    }
+
+    /**
+     * Get all supported comparison operators.
+     *
+     * @return array
+     */
+    public static function getSupportedOperators()
+    {
+        return array_keys(self::$transOpStr);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrettyString()
+    {
+        if ($this->prettyString) {
+            return $this->prettyString;
+        }
+
+        return $this->__toString();
+    }
+
+    /**
+     * @param string $prettyString
+     */
+    public function setPrettyString($prettyString)
+    {
+        $this->prettyString = $prettyString;
     }
 
     /**

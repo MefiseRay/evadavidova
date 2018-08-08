@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\GraphNodes;
 
 use Facebook\FacebookRequest;
@@ -57,11 +58,11 @@ class GraphEdge extends Collection
     /**
      * Init this collection of GraphNode's.
      *
-     * @param FacebookRequest $request            The original request that generated this data.
-     * @param array           $data               An array of GraphNode's.
-     * @param array           $metaData           An array of Graph meta data like pagination, etc.
-     * @param string|null     $parentEdgeEndpoint The parent Graph edge endpoint that generated the list.
-     * @param string|null     $subclassName       The subclass of the child GraphNode's.
+     * @param FacebookRequest $request The original request that generated this data.
+     * @param array $data An array of GraphNode's.
+     * @param array $metaData An array of Graph meta data like pagination, etc.
+     * @param string|null $parentEdgeEndpoint The parent Graph edge endpoint that generated the list.
+     * @param string|null $subclassName The subclass of the child GraphNode's.
      */
     public function __construct(FacebookRequest $request, array $data = [], array $metaData = [], $parentEdgeEndpoint = null, $subclassName = null)
     {
@@ -114,16 +115,6 @@ class GraphEdge extends Collection
     }
 
     /**
-     * Returns the previous cursor if it exists.
-     *
-     * @return string|null
-     */
-    public function getPreviousCursor()
-    {
-        return $this->getCursor('before');
-    }
-
-    /**
      * Returns the cursor for a specific direction if it exists.
      *
      * @param string $direction The direction of the page: after|before
@@ -137,6 +128,50 @@ class GraphEdge extends Collection
         }
 
         return null;
+    }
+
+    /**
+     * Returns the previous cursor if it exists.
+     *
+     * @return string|null
+     */
+    public function getPreviousCursor()
+    {
+        return $this->getCursor('before');
+    }
+
+    /**
+     * Gets the request object needed to make a "next" page request.
+     *
+     * @return FacebookRequest|null
+     *
+     * @throws FacebookSDKException
+     */
+    public function getNextPageRequest()
+    {
+        return $this->getPaginationRequest('next');
+    }
+
+    /**
+     * Gets the request object needed to make a next|previous page request.
+     *
+     * @param string $direction The direction of the page: next|previous
+     *
+     * @return FacebookRequest|null
+     *
+     * @throws FacebookSDKException
+     */
+    public function getPaginationRequest($direction)
+    {
+        $pageUrl = $this->getPaginationUrl($direction);
+        if (!$pageUrl) {
+            return null;
+        }
+
+        $newRequest = clone $this->request;
+        $newRequest->setEndpoint($pageUrl);
+
+        return $newRequest;
     }
 
     /**
@@ -194,40 +229,6 @@ class GraphEdge extends Collection
         if ($this->request->getMethod() !== 'GET') {
             throw new FacebookSDKException('You can only paginate on a GET request.', 720);
         }
-    }
-
-    /**
-     * Gets the request object needed to make a next|previous page request.
-     *
-     * @param string $direction The direction of the page: next|previous
-     *
-     * @return FacebookRequest|null
-     *
-     * @throws FacebookSDKException
-     */
-    public function getPaginationRequest($direction)
-    {
-        $pageUrl = $this->getPaginationUrl($direction);
-        if (!$pageUrl) {
-            return null;
-        }
-
-        $newRequest = clone $this->request;
-        $newRequest->setEndpoint($pageUrl);
-
-        return $newRequest;
-    }
-
-    /**
-     * Gets the request object needed to make a "next" page request.
-     *
-     * @return FacebookRequest|null
-     *
-     * @throws FacebookSDKException
-     */
-    public function getNextPageRequest()
-    {
-        return $this->getPaginationRequest('next');
     }
 
     /**

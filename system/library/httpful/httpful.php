@@ -2,7 +2,8 @@
 
 namespace Httpful;
 
-class Httpful {
+class Httpful
+{
     const VERSION = '0.2.20';
 
     private static $mimeRegistrar = array();

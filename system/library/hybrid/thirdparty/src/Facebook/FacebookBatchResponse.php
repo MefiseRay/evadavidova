@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use ArrayIterator;
@@ -48,7 +49,7 @@ class FacebookBatchResponse extends FacebookResponse implements IteratorAggregat
      * Creates a new Response entity.
      *
      * @param FacebookBatchRequest $batchRequest
-     * @param FacebookResponse     $response
+     * @param FacebookResponse $response
      */
     public function __construct(FacebookBatchRequest $batchRequest, FacebookResponse $response)
     {
@@ -90,9 +91,25 @@ class FacebookBatchResponse extends FacebookResponse implements IteratorAggregat
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getIterator()
+    {
+        return new ArrayIterator($this->responses);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->addResponse($offset, $value);
+    }
+
+    /**
      * Add a response to the list.
      *
-     * @param int        $key
+     * @param int $key
      * @param array|null $response
      */
     public function addResponse($key, $response)
@@ -110,22 +127,6 @@ class FacebookBatchResponse extends FacebookResponse implements IteratorAggregat
             $httpResponseCode,
             $httpResponseHeaders
         );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getIterator()
-    {
-        return new ArrayIterator($this->responses);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function offsetSet($offset, $value)
-    {
-        $this->addResponse($offset, $value);
     }
 
     /**

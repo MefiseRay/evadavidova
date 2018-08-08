@@ -3,17 +3,17 @@
 /**
  * Copyright 2008 Konrad Rudolph
  * All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,7 +38,7 @@
  * back-refences in the individual expressions!
  * If {@link $names} is given, the individual expressions are captured in
  * named sub-matches using the contents of that array as names.
- * Matching pair-delimiters (e.g. <var>"{…}"</var>) are currently
+ * Matching pair-delimiters (e.g. <var>"{ï¿½}"</var>) are currently
  * <b>not</b> supported.
  *
  * The function assumes that all regular expressions are well-formed.
@@ -46,28 +46,29 @@
  *
  * This function was created after a
  * {@link http://stackoverflow.com/questions/244959/ StackOverflow discussion}.
- * Much of it was written or thought of by “porneL” and “eyelidlessness”. Many
+ * Much of it was written or thought of by ï¿½porneLï¿½ and ï¿½eyelidlessnessï¿½. Many
  * thanks to both of them.
  *
- * @param string $glue  A string to insert between the individual expressions.
+ * @param string $glue A string to insert between the individual expressions.
  *      This should usually be either the empty string, indicating
  *      concatenation, or the pipe (<var>"|"</var>), indicating alternation.
  *      Notice that this string might have to be escaped since it is treated
  *      as a normal character in a regular expression (i.e. <var>"/"</var> will
  *      end the expression and result in an invalid output).
- * @param array $expressions    The expressions to merge. The expressions may
+ * @param array $expressions The expressions to merge. The expressions may
  *      have arbitrary different delimiters and modifiers.
- * @param array $names  Optional. This is either an empty array or an array of
+ * @param array $names Optional. This is either an empty array or an array of
  *      strings of the same length as {@link $expressions}. In that case,
  *      the strings of this array are used to create named sub-matches for the
  *      expressions.
  * @return string An string representing a regular expression equivalent to the
  *      merged expressions. Returns <var>FALSE</var> if an error occurred.
  */
-function preg_merge($glue, array $expressions, array $names = array()) {
-    // … then, a miracle occurs.
+function preg_merge($glue, array $expressions, array $names = array())
+{
+    // ï¿½ then, a miracle occurs.
 
-    // Sanity check …
+    // Sanity check ï¿½
 
     $use_names = ($names !== null and count($names) !== 0);
 
@@ -98,10 +99,10 @@ function preg_merge($glue, array $expressions, array $names = array()) {
 
         // Re-adjust backreferences:
         // TODO What about \R backreferences (\0 isn't allowed, though)?
-        
+
         // We assume that the expression is correct and therefore don't check
         // for matching parentheses.
-        
+
         $number_of_captures = preg_match_all('/\([^?]|\(\?[^:]/', $sub_expr, $_);
 
         if ($number_of_captures === false)
@@ -125,7 +126,7 @@ function preg_merge($glue, array $expressions, array $names = array()) {
         }
 
         // Last, construct the new sub-match:
-        
+
         $modifiers = implode('', $modifiers);
         $sub_modifiers = "(?$modifiers)";
         if ($sub_modifiers === '(?)')
@@ -150,7 +151,8 @@ function preg_merge($glue, array $expressions, array $names = array()) {
  *      expression, returns <var>FALSE</var>.
  *
  */
-function preg_strip($expression) {
+function preg_strip($expression)
+{
     if (preg_match('/^(.)(.*)\\1([imsxeADSUXJu]*)$/s', $expression, $matches) !== 1)
         return false;
 

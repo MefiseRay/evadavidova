@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\GraphNodes;
 
 /**
@@ -44,20 +45,6 @@ class GraphObjectFactory extends GraphNodeFactory
     const BASE_GRAPH_EDGE_CLASS = '\Facebook\GraphNodes\GraphList';
 
     /**
-     * Tries to convert a FacebookResponse entity into a GraphNode.
-     *
-     * @param string|null $subclassName The GraphNode sub class to cast to.
-     *
-     * @return GraphNode
-     *
-     * @deprecated 5.0.0 GraphObjectFactory has been renamed to GraphNodeFactory
-     */
-    public function makeGraphObject($subclassName = null)
-    {
-        return $this->makeGraphNode($subclassName);
-    }
-    
-    /**
      * Convenience method for creating a GraphEvent collection.
      *
      * @return GraphEvent
@@ -70,10 +57,24 @@ class GraphObjectFactory extends GraphNodeFactory
     }
 
     /**
+     * Tries to convert a FacebookResponse entity into a GraphNode.
+     *
+     * @param string|null $subclassName The GraphNode sub class to cast to.
+     *
+     * @return GraphNode
+     *
+     * @deprecated 5.0.0 GraphObjectFactory has been renamed to GraphNodeFactory
+     */
+    public function makeGraphObject($subclassName = null)
+    {
+        return $this->makeGraphNode($subclassName);
+    }
+
+    /**
      * Tries to convert a FacebookResponse entity into a GraphEdge.
      *
      * @param string|null $subclassName The GraphNode sub class to cast the list items to.
-     * @param boolean     $auto_prefix  Toggle to auto-prefix the subclass name.
+     * @param boolean $auto_prefix Toggle to auto-prefix the subclass name.
      *
      * @return GraphEdge
      *

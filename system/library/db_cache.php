@@ -1,17 +1,105 @@
 <?PHP
 /**
-OpenCart 1.5.x DB Cache module
-PN Solutions http://pnsols.com 2016
-*/
+ * OpenCart 1.5.x DB Cache module
+ * PN Solutions http://pnsols.com 2016
+ */
 
 
-
-class DbCache {
+class DbCache
+{
+    const DEFAULT_CACHE_TIMEOUT_SECONDS = 3600;
     /**
      * @var Singleton The reference to *Singleton* instance of this class
      */
     private static $instance;
-    
+    private $cacheChanged = FALSE;
+    private $cacheMap = array();
+
+    /**
+     * Protected constructor to prevent creating a new instance of the
+     * *Singleton* via the `new` operator from outside of this class.
+     */
+    protected function __construct()
+    {
+        $this->loadCacheFromFile();
+    }
+
+    public function loadCacheFromFile()
+    {
+        $cacheFilePath = $this->getCacheMapFilePath();
+        if (!file_exists($cacheFilePath))
+            return;
+        $handle = fopen($cacheFilePath, "r");
+        flock($handle, LOCK_SH);
+        $cacheSerialized = fread($handle, filesize($cacheFilePath));
+        fclose($handle);
+        $this->cacheMap = unserialize($cacheSerialized);
+    }
+
+    private function getCacheMapFilePath()
+    {
+
+        $dir = DIR_DOWNLOAD . 'db_cache/';
+        $dbCacheFilePath = $dir . 'db_cache.dat';
+        if (file_exists($dbCacheFilePath)) unlink($dbCacheFilePath);
+        if (file_exists($dir)) rmdir($dir);
+
+        $latestPath = $this->getCacheDirPath();
+        //$latestPath .= '_index';
+        $latestPath .= '_cache';
+
+        return $latestPath;
+    }
+
+    public function getCacheDirPath()
+    {
+        $dirPath = DIR_CACHE . 'db_cache/';
+        if (!file_exists($dirPath)) mkdir($dirPath);
+        return $dirPath;
+    }
+
+    public static function isCreated()
+    {
+        return static::$instance !== NULL;
+    }
+
+    public static function processDbQuery($db, $sql, $params = NULL)
+    {
+        $config = new Config();
+        //$config = $GLOBALS['registry']->get('config');
+        if (!$config->get('speedup_status') || !$config->get('speedup_db_cache')) {
+            return $db->queryNonCache($sql);
+        }
+        if ($params === NULL) $params = array();
+        $dbCache = DbCache::getInstance();
+        if (stripos($sql, 'now()')) {
+            $c = 0;
+            $sql = str_ireplace('NOW()', '\'' . date('Y-m-d H:i') . ':00\'', $sql, $c);
+        }
+        if (DbCache::isModificationQuery($sql)) {
+            $dbCache->processModificationQuery($sql);
+        } else {
+            //if (!Registry::getInstance()->get('config')->get('db_cache_status'))
+            //return $db->queryNonCache($sql);
+            if (!stripos($_SERVER['REQUEST_URI'], '/admin')) {
+                $cachedFetch = $dbCache->getCachedSelectFetch($sql);
+                if ($cachedFetch != null) {
+                    //echo 'cached select query: '.$sql;
+                    return $cachedFetch;
+                }
+            } else {
+                return $db->queryNonCache($sql);
+            }
+        }
+
+        $freshDbFetch = $db->queryNonCache($sql);
+        if (!DbCache::isModificationQuery($sql)) {
+            //echo 'add cache select query: '.$sql;
+            $dbCache->addSelectFetchToCache($sql, $freshDbFetch);
+        }
+        return $freshDbFetch;
+    }
+
     /**
      * Returns the *Singleton* instance of this class.
      *
@@ -25,37 +113,132 @@ class DbCache {
         return static::$instance;
     }
 
-    public static function isCreated() {
-        return static::$instance !== NULL;
-    }
+    public static function isModificationQuery($queryText)
+    {
+        //strpos(trim(strtolower($queryText)), "select");
+        //$startsWithSelect = $selectStrPos === 0 || $selectStrPos === '0';
+        //$isModQuery = $startsWithSelect === FALSE;
 
-    private static function getCacheTimeout() {
-	/*
-        $cacheTimeoutSeconds = (int)Registry::getInstance()->get('config')->get('db_cache_cacheTimeoutSeconds');
-        if (!$cacheTimeoutSeconds) {
-            $cacheTimeoutSeconds = self::DEFAULT_CACHE_TIMEOUT_SECONDS;
+        //return $isModQuery;
+        $arReadQueries = array('select', 'show tables', 'show columns');
+        foreach ($arReadQueries as $queryRead) {
+            $striposSelect = stripos(trim($queryText), $queryRead);
+            if ($striposSelect === 0 || $striposSelect === '0') return FALSE;
         }
-        return $cacheTimeoutSeconds;
-		*/
-		return self::DEFAULT_CACHE_TIMEOUT_SECONDS;
+        return TRUE;
     }
 
-    private $cacheChanged = FALSE;
-
-    public function isChanged() {
+    public function isChanged()
+    {
         return $this->cacheChanged;
     }
 
-    /**
-     * Protected constructor to prevent creating a new instance of the
-     * *Singleton* via the `new` operator from outside of this class.
-     */
-    protected function __construct()
+    public function clear()
     {
-        $this->loadCacheFromFile();
+        $dbCache = $this;
+        $dirPath = $dbCache->getCacheDirPath();
+        $files = scandir($dirPath);
+        foreach ($files as $filePath) {
+            if ($filePath == '.' || $filePath == '..') continue;
+            unlink($dirPath . $filePath);
+        }
+        rmdir($dirPath);
     }
 
+    public function saveCacheToFile()
+    {
+        $cacheFilePath = $this->getCacheMapFilePath();
 
+        $cacheSerialized = serialize($this->cacheMap);
+
+        $handle = fopen($cacheFilePath, 'w');
+        flock($handle, LOCK_EX);
+        fwrite($handle, $cacheSerialized);
+        fflush($handle);
+        fclose($handle);
+    }
+
+    public function addSelectFetchToCache($queryText, $fetchData)
+    {
+        $this->setCacheEntry($queryText, $fetchData);
+    }
+
+    private function setCacheEntry($cacheKey, $cacheData)
+    {
+        $cachedTime = date_create();
+        //file_put_contents($this->getCacheEntryFilePath($cacheKey), serialize($cacheData));
+        $this->cacheMap[$cacheKey] = array('time' => $cachedTime, 'data' => $cacheData);
+        $this->cacheChanged = TRUE;
+        //$this->cacheMap[$cacheKey] = $this->getSelectQueryHash($cacheKey);
+    }
+
+    public function getCachedSelectFetch($queryText)
+    {
+        $cachedFetchData = $this->getCachedDataFromCacheMap($queryText);
+        //$cachedFetchData = $this->getCacheEntryData($queryText);
+
+        return $cachedFetchData;
+    }
+
+    private function getCachedDataFromCacheMap($queryText)
+    {
+
+        if (isset($this->cacheMap[$queryText]) && $this->cacheMap[$queryText] != null) {
+            $cachedEntry = $this->cacheMap[$queryText];
+            $cacheTime = $cachedEntry['time'];
+            $nowTime = date_create();
+            $secondsDiffSpan = date_diff($cacheTime, $nowTime);
+            $daysDiffCount = $secondsDiffSpan->format('%a');
+            if ($daysDiffCount >= self::getCacheTimeout()) {
+                $this->removeCacheEntry($queryText);
+                return null;
+            }
+            return $cachedEntry['data'];
+        }
+        return null;
+    }
+
+    private static function getCacheTimeout()
+    {
+        /*
+            $cacheTimeoutSeconds = (int)Registry::getInstance()->get('config')->get('db_cache_cacheTimeoutSeconds');
+            if (!$cacheTimeoutSeconds) {
+                $cacheTimeoutSeconds = self::DEFAULT_CACHE_TIMEOUT_SECONDS;
+            }
+            return $cacheTimeoutSeconds;
+            */
+        return self::DEFAULT_CACHE_TIMEOUT_SECONDS;
+    }
+
+    private function removeCacheEntry($queryTextKey)
+    {
+        if (isset($this->cacheMap[$queryTextKey])) {
+            //$cacheEntryFilePath = $this->getCacheDirPath().$this->getCacheEntryFileNameByHash($this->cacheMap[$queryTextKey]);
+            //if (file_exists($cacheEntryFilePath)) unlink($cacheEntryFilePath);
+            $this->cacheMap[$queryTextKey] = null;
+            unset($this->cacheMap[$queryTextKey]);
+            $this->cacheChanged = TRUE;
+        }
+    }
+
+    public function processModificationQuery($queryText)
+    {
+        $dbTableNamesInQuery = DbCache::extractDbTableNamesFromQueryText($queryText);
+        foreach ($this->cacheMap as $queryTextKey => $cacheEntry) {
+            foreach ($dbTableNamesInQuery as $dbTableName) {
+                if (stripos($queryTextKey, $dbTableName)) {
+                    $this->removeCacheEntry($queryTextKey);
+                    //echo 'remove db cache: '.$queryTextKey.'<br />';
+                }
+            }
+        }
+    }
+
+    public static function extractDbTableNamesFromQueryText($queryText)
+    {
+        $tableNames = preg_grep('/' . DB_PREFIX . '.+/', explode(' ', $queryText));
+        return $tableNames;
+    }
 
     /**
      * Private clone method to prevent cloning of the instance of the
@@ -76,203 +259,37 @@ class DbCache {
     private function __wakeup()
     {
     }
-	
-	private $cacheMap = array();
-    const DEFAULT_CACHE_TIMEOUT_SECONDS = 3600;
-		
-    public function clear() {
-        $dbCache = $this;
-        $dirPath = $dbCache->getCacheDirPath();
-        $files = scandir($dirPath);
-        foreach ($files as $filePath) {
-            if ($filePath == '.' || $filePath == '..') continue;
-            unlink($dirPath.$filePath);
+
+    private function getCacheEntryData($cacheKey)
+    {
+        if (!file_exists($this->getCacheEntryFilePath($cacheKey))) return NULL;
+        $nowTime = date_create();
+
+        $timeModified = date_create();
+        date_timestamp_set($timeModified, filemtime($this->getCacheEntryFilePath($cacheKey)));
+
+        $secondsDiffSpan = date_diff($timeModified, $nowTime);
+        $daysDiffCount = $secondsDiffSpan->format('%a');
+        if ($daysDiffCount >= self::getCacheTimeout()) {
+            $this->removeCacheEntry($cacheKey);
+            return NULL;
         }
-        rmdir($dirPath);
+        return unserialize(file_get_contents($this->getCacheEntryFilePath($cacheKey)));
+
     }
 
-    public function getCacheDirPath() {
-        $dirPath = DIR_CACHE.'db_cache/';
-        if (!file_exists($dirPath)) mkdir($dirPath);
-        return $dirPath;
+    private function getCacheEntryFilePath($cacheKey)
+    {
+        return $this->getCacheDirPath() . $this->getCacheEntryFileNameByHash($this->getSelectQueryHash($cacheKey));
     }
 
-    private function getCacheMapFilePath() {
-        
-        $dir = DIR_DOWNLOAD . 'db_cache/';
-        $dbCacheFilePath = $dir.'db_cache.dat';
-        if (file_exists($dbCacheFilePath)) unlink($dbCacheFilePath);
-        if (file_exists($dir)) rmdir($dir);
-
-        $latestPath = $this->getCacheDirPath();
-        //$latestPath .= '_index';
-        $latestPath .= '_cache';
-
-        return $latestPath;
-    }
-
-    public function loadCacheFromFile() {
-        $cacheFilePath = $this->getCacheMapFilePath();
-        if (!file_exists($cacheFilePath))
-            return;
-        $handle = fopen($cacheFilePath, "r");
-        flock($handle, LOCK_SH);
-        $cacheSerialized = fread($handle, filesize($cacheFilePath));
-        fclose($handle);
-        $this->cacheMap = unserialize($cacheSerialized);
-    }
-
-    public function saveCacheToFile() {
-        $cacheFilePath = $this->getCacheMapFilePath();
-        
-        $cacheSerialized = serialize($this->cacheMap);
-        
-        $handle = fopen($cacheFilePath, 'w');
-        flock($handle, LOCK_EX);
-        fwrite($handle, $cacheSerialized);
-        fflush($handle);
-        fclose($handle);
-    }
-
-	public function addSelectFetchToCache($queryText, $fetchData) {
-        $this->setCacheEntry($queryText, $fetchData);
-	}
-	
-	public function getCachedSelectFetch($queryText) {
-        $cachedFetchData = $this->getCachedDataFromCacheMap($queryText);
-        //$cachedFetchData = $this->getCacheEntryData($queryText);
-        
-        return $cachedFetchData;
-	}
-
-    private function getCachedDataFromCacheMap($queryText) {
-        
-		if (isset($this->cacheMap[$queryText]) && $this->cacheMap[$queryText] != null) {
-            $cachedEntry = $this->cacheMap[$queryText];
-			$cacheTime = $cachedEntry['time'];
-			$nowTime = date_create();
-			$secondsDiffSpan = date_diff($cacheTime, $nowTime);
-            $daysDiffCount = $secondsDiffSpan->format('%a');
-			if ($daysDiffCount >= self::getCacheTimeout()) {
-                $this->removeCacheEntry($queryText);
-				return null;
-			}
-			return $cachedEntry['data'];
-		}
-		return null;
-    }
-	
-	public function processModificationQuery($queryText) {
-		$dbTableNamesInQuery = DbCache::extractDbTableNamesFromQueryText($queryText);
-		foreach ($this->cacheMap as $queryTextKey => $cacheEntry) {
-            foreach ($dbTableNamesInQuery as $dbTableName) { 
-                if (stripos($queryTextKey, $dbTableName)) {
-                    $this->removeCacheEntry($queryTextKey);
-                    //echo 'remove db cache: '.$queryTextKey.'<br />';
-                }   
-            }
-		}
-	}
-
-    private function getCacheEntryFilePath($cacheKey) {
-        return $this->getCacheDirPath().$this->getCacheEntryFileNameByHash($this->getSelectQueryHash($cacheKey));
-    }
-
-    private function getCacheEntryFileNameByHash($hash) {
+    private function getCacheEntryFileNameByHash($hash)
+    {
         return $hash;
     }
 
-    private function getCacheEntryData($cacheKey) {
-        if (!file_exists($this->getCacheEntryFilePath($cacheKey))) return NULL;
-        $nowTime = date_create();
-        
-        $timeModified = date_create();
-        date_timestamp_set($timeModified, filemtime($this->getCacheEntryFilePath($cacheKey)));
-        
-		$secondsDiffSpan = date_diff($timeModified, $nowTime);
-        $daysDiffCount = $secondsDiffSpan->format('%a');
-		if ($daysDiffCount >= self::getCacheTimeout()) {
-            $this->removeCacheEntry($cacheKey);
-			return NULL;
-		}
-		return unserialize(file_get_contents($this->getCacheEntryFilePath($cacheKey)));
-
-    }
-
-    private function removeCacheEntry($queryTextKey) {
-        if (isset($this->cacheMap[$queryTextKey])) {
-            //$cacheEntryFilePath = $this->getCacheDirPath().$this->getCacheEntryFileNameByHash($this->cacheMap[$queryTextKey]);
-            //if (file_exists($cacheEntryFilePath)) unlink($cacheEntryFilePath);
-            $this->cacheMap[$queryTextKey] = null;
-            unset($this->cacheMap[$queryTextKey]);   
-            $this->cacheChanged = TRUE;
-        }
-    }
-
-    private function getSelectQueryHash($queryText) {
+    private function getSelectQueryHash($queryText)
+    {
         return md5($queryText);
     }
-
-    private function setCacheEntry($cacheKey, $cacheData) {
-		$cachedTime = date_create();
-        //file_put_contents($this->getCacheEntryFilePath($cacheKey), serialize($cacheData));
-		$this->cacheMap[$cacheKey] = array('time' => $cachedTime, 'data' => $cacheData);
-        $this->cacheChanged = TRUE;
-        //$this->cacheMap[$cacheKey] = $this->getSelectQueryHash($cacheKey);
-    }
-	
-	public static function isModificationQuery($queryText) {
-        //strpos(trim(strtolower($queryText)), "select");
-		//$startsWithSelect = $selectStrPos === 0 || $selectStrPos === '0';
-        //$isModQuery = $startsWithSelect === FALSE;
-        
-        //return $isModQuery;
-        $arReadQueries = array('select', 'show tables', 'show columns');
-        foreach ($arReadQueries as $queryRead) {
-            $striposSelect = stripos(trim($queryText), $queryRead);
-            if ($striposSelect === 0 || $striposSelect === '0') return FALSE;
-        }
-        return TRUE;
-	}
-	
-	public static function extractDbTableNamesFromQueryText($queryText) {
-		$tableNames = preg_grep('/'.DB_PREFIX.'.+/', explode(' ', $queryText));
-        return $tableNames;
-	}
-	
-	public static function processDbQuery($db, $sql, $params = NULL) {
-        $config = new Config();
-        //$config = $GLOBALS['registry']->get('config');
-        if(!$config->get('speedup_status') || !$config->get('speedup_db_cache')){
-            return $db->queryNonCache($sql);
-        }
-		if ($params === NULL) $params = array();
-		$dbCache = DbCache::getInstance();
-        if (stripos($sql, 'now()')) {
-            $c = 0;
-            $sql = str_ireplace('NOW()', '\''.date('Y-m-d H:i').':00\'', $sql, $c);
-        }
-        if (DbCache::isModificationQuery($sql)) {
-            $dbCache->processModificationQuery($sql);
-        } else {
-            //if (!Registry::getInstance()->get('config')->get('db_cache_status')) 
-                //return $db->queryNonCache($sql);
-            if (!stripos($_SERVER['REQUEST_URI'], '/admin')) {    
-                $cachedFetch = $dbCache->getCachedSelectFetch($sql);
-                if ($cachedFetch != null) {
-                    //echo 'cached select query: '.$sql;
-                    return $cachedFetch;
-                }
-            } else {
-                return $db->queryNonCache($sql);
-            }
-        }
-
-		$freshDbFetch = $db->queryNonCache($sql);
-        if (!DbCache::isModificationQuery($sql)) {
-                //echo 'add cache select query: '.$sql;
-            $dbCache->addSelectFetchToCache($sql, $freshDbFetch);   
-        }
-        return $freshDbFetch;
-	}
 }

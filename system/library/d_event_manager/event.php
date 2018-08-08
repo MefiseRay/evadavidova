@@ -7,13 +7,15 @@
 
 namespace d_event_manager;
 
-class Event {
+class Event
+{
     protected $registry;
     protected $data = array();
 
-    public function __construct($registry) {
-        
-        if(VERSION < '2.2.0.0'){
+    public function __construct($registry)
+    {
+
+        if (VERSION < '2.2.0.0') {
             $db = new \DB(DB_DRIVER, DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
             $registry->set('db', $db);
         }
@@ -22,30 +24,33 @@ class Event {
         $this->register_all();
     }
 
-    public function register_all(){
-        if(VERSION < '2.2.0.0'){
+    public function register_all()
+    {
+        if (VERSION < '2.2.0.0') {
             $location = 'catalog';
-            if(defined('HTTP_CATALOG')){
+            if (defined('HTTP_CATALOG')) {
                 $location = 'admin';
             }
-            
-            $query = $this->registry->get('db')->query("SELECT * FROM `" . DB_PREFIX . "event` WHERE `trigger` LIKE '".$location."/%' AND `status` = '1' ORDER BY `event_id` ASC");
-            
+
+            $query = $this->registry->get('db')->query("SELECT * FROM `" . DB_PREFIX . "event` WHERE `trigger` LIKE '" . $location . "/%' AND `status` = '1' ORDER BY `event_id` ASC");
+
             foreach ($query->rows as $result) {
                 $this->register(substr($result['trigger'], strpos($result['trigger'], '/') + 1), new Action($result['action']));
             }
         }
     }
 
-    public function register($trigger, Action $action) {
+    public function register($trigger, Action $action)
+    {
         $this->data[$trigger][] = $action;
     }
-    
-    public function trigger($event, array $args = array()) {
-        
+
+    public function trigger($event, array $args = array())
+    {
+
         foreach ($this->data as $trigger => $actions) {
 
-            if(preg_match('/view\/[^*][^theme]/', $trigger) && !defined('HTTP_CATALOG') && strpos($trigger, 'before') == false){
+            if (preg_match('/view\/[^*][^theme]/', $trigger) && !defined('HTTP_CATALOG') && strpos($trigger, 'before') == false) {
                 $trigger = str_replace('view/', 'view/*/', $trigger);
             }
 
@@ -61,7 +66,8 @@ class Event {
         }
     }
 
-    public function unregister($trigger, $route = '') {
+    public function unregister($trigger, $route = '')
+    {
         if ($route) {
             foreach ($this->data[$trigger] as $key => $action) {
                 if ($action->getId() == $route) {
@@ -73,7 +79,8 @@ class Event {
         }
     }
 
-    public function removeAction($trigger, $route) {
+    public function removeAction($trigger, $route)
+    {
         foreach ($this->data[$trigger] as $key => $action) {
             if ($action->getId() == $route) {
                 unset($this->data[$trigger][$key]);

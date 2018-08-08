@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\GraphNodes;
 
 use Facebook\FacebookResponse;
@@ -79,6 +80,18 @@ class GraphNodeFactory
     }
 
     /**
+     * Convenience method for creating a GraphAchievement collection.
+     *
+     * @return GraphAchievement
+     *
+     * @throws FacebookSDKException
+     */
+    public function makeGraphAchievement()
+    {
+        return $this->makeGraphNode(static::BASE_GRAPH_OBJECT_PREFIX . 'GraphAchievement');
+    }
+
+    /**
      * Tries to convert a FacebookResponse entity into a GraphNode.
      *
      * @param string|null $subclassName The GraphNode sub class to cast to.
@@ -96,15 +109,177 @@ class GraphNodeFactory
     }
 
     /**
-     * Convenience method for creating a GraphAchievement collection.
-     *
-     * @return GraphAchievement
+     * Validates the decoded body.
      *
      * @throws FacebookSDKException
      */
-    public function makeGraphAchievement()
+    public function validateResponseAsArray()
     {
-        return $this->makeGraphNode(static::BASE_GRAPH_OBJECT_PREFIX . 'GraphAchievement');
+        if (!is_array($this->decodedBody)) {
+            throw new FacebookSDKException('Unable to get response from Graph as array.', 620);
+        }
+    }
+
+    /**
+     * Validates that the return data can be cast as a GraphNode.
+     *
+     * @throws FacebookSDKException
+     */
+    public function validateResponseCastableAsGraphNode()
+    {
+        if (isset($this->decodedBody['data']) && static::isCastableAsGraphEdge($this->decodedBody['data'])) {
+            throw new FacebookSDKException(
+                'Unable to convert response from Graph to a GraphNode because the response looks like a GraphEdge. Try using GraphNodeFactory::makeGraphEdge() instead.',
+                620
+            );
+        }
+    }
+
+    /**
+     * Determines whether or not the data should be cast as a GraphEdge.
+     *
+     * @param array $data
+     *
+     * @return boolean
+     */
+    public static function isCastableAsGraphEdge(array $data)
+    {
+        if ($data === []) {
+            return true;
+        }
+
+        // Checks for a sequential numeric array which would be a GraphEdge
+        return array_keys($data) === range(0, count($data) - 1);
+    }
+
+    /**
+     * Takes an array of values and determines how to cast each node.
+     *
+     * @param array $data The array of data to iterate over.
+     * @param string|null $subclassName The subclass to cast this collection to.
+     * @param string|null $parentKey The key of this data (Graph edge).
+     * @param string|null $parentNodeId The parent Graph node ID.
+     *
+     * @return GraphNode|GraphEdge
+     *
+     * @throws FacebookSDKException
+     */
+    public function castAsGraphNodeOrGraphEdge(array $data, $subclassName = null, $parentKey = null, $parentNodeId = null)
+    {
+        if (isset($data['data'])) {
+            // Create GraphEdge
+            if (static::isCastableAsGraphEdge($data['data'])) {
+                return $this->safelyMakeGraphEdge($data, $subclassName, $parentKey, $parentNodeId);
+            }
+            // Sometimes Graph is a weirdo and returns a GraphNode under the "data" key
+            $data = $data['data'];
+        }
+
+        // Create GraphNode
+        return $this->safelyMakeGraphNode($data, $subclassName);
+    }
+
+    /**
+     * Return an array of GraphNode's.
+     *
+     * @param array $data The array of data to iterate over.
+     * @param string|null $subclassName The GraphNode subclass to cast each item in the list to.
+     * @param string|null $parentKey The key of this data (Graph edge).
+     * @param string|null $parentNodeId The parent Graph node ID.
+     *
+     * @return GraphEdge
+     *
+     * @throws FacebookSDKException
+     */
+    public function safelyMakeGraphEdge(array $data, $subclassName = null, $parentKey = null, $parentNodeId = null)
+    {
+        if (!isset($data['data'])) {
+            throw new FacebookSDKException('Cannot cast data to GraphEdge. Expected a "data" key.', 620);
+        }
+
+        $dataList = [];
+        foreach ($data['data'] as $graphNode) {
+            $dataList[] = $this->safelyMakeGraphNode($graphNode, $subclassName, $parentKey, $parentNodeId);
+        }
+
+        $metaData = $this->getMetaData($data);
+
+        // We'll need to make an edge endpoint for this in case it's a GraphEdge (for cursor pagination)
+        $parentGraphEdgeEndpoint = $parentNodeId && $parentKey ? '/' . $parentNodeId . '/' . $parentKey : null;
+        $className = static::BASE_GRAPH_EDGE_CLASS;
+
+        return new $className($this->response->getRequest(), $dataList, $metaData, $parentGraphEdgeEndpoint, $subclassName);
+    }
+
+    /**
+     * Safely instantiates a GraphNode of $subclassName.
+     *
+     * @param array $data The array of data to iterate over.
+     * @param string|null $subclassName The subclass to cast this collection to.
+     *
+     * @return GraphNode
+     *
+     * @throws FacebookSDKException
+     */
+    public function safelyMakeGraphNode(array $data, $subclassName = null)
+    {
+        $subclassName = $subclassName ?: static::BASE_GRAPH_NODE_CLASS;
+        static::validateSubclass($subclassName);
+
+        // Remember the parent node ID
+        $parentNodeId = isset($data['id']) ? $data['id'] : null;
+
+        $items = [];
+
+        foreach ($data as $k => $v) {
+            // Array means could be recurable
+            if (is_array($v)) {
+                // Detect any smart-casting from the $graphObjectMap array.
+                // This is always empty on the GraphNode collection, but subclasses can define
+                // their own array of smart-casting types.
+                $graphObjectMap = $subclassName::getObjectMap();
+                $objectSubClass = isset($graphObjectMap[$k])
+                    ? $graphObjectMap[$k]
+                    : null;
+
+                // Could be a GraphEdge or GraphNode
+                $items[$k] = $this->castAsGraphNodeOrGraphEdge($v, $objectSubClass, $k, $parentNodeId);
+            } else {
+                $items[$k] = $v;
+            }
+        }
+
+        return new $subclassName($items);
+    }
+
+    /**
+     * Ensures that the subclass in question is valid.
+     *
+     * @param string $subclassName The GraphNode subclass to validate.
+     *
+     * @throws FacebookSDKException
+     */
+    public static function validateSubclass($subclassName)
+    {
+        if ($subclassName == static::BASE_GRAPH_NODE_CLASS || is_subclass_of($subclassName, static::BASE_GRAPH_NODE_CLASS)) {
+            return;
+        }
+
+        throw new FacebookSDKException('The given subclass "' . $subclassName . '" is not valid. Cannot cast to an object that is not a GraphNode subclass.', 620);
+    }
+
+    /**
+     * Get the meta data from a list in a Graph response.
+     *
+     * @param array $data The Graph response.
+     *
+     * @return array
+     */
+    public function getMetaData(array $data)
+    {
+        unset($data['data']);
+
+        return $data;
     }
 
     /**
@@ -183,7 +358,7 @@ class GraphNodeFactory
      * Tries to convert a FacebookResponse entity into a GraphEdge.
      *
      * @param string|null $subclassName The GraphNode sub class to cast the list items to.
-     * @param boolean     $auto_prefix  Toggle to auto-prefix the subclass name.
+     * @param boolean $auto_prefix Toggle to auto-prefix the subclass name.
      *
      * @return GraphEdge
      *
@@ -202,33 +377,6 @@ class GraphNodeFactory
     }
 
     /**
-     * Validates the decoded body.
-     *
-     * @throws FacebookSDKException
-     */
-    public function validateResponseAsArray()
-    {
-        if (!is_array($this->decodedBody)) {
-            throw new FacebookSDKException('Unable to get response from Graph as array.', 620);
-        }
-    }
-
-    /**
-     * Validates that the return data can be cast as a GraphNode.
-     *
-     * @throws FacebookSDKException
-     */
-    public function validateResponseCastableAsGraphNode()
-    {
-        if (isset($this->decodedBody['data']) && static::isCastableAsGraphEdge($this->decodedBody['data'])) {
-            throw new FacebookSDKException(
-                'Unable to convert response from Graph to a GraphNode because the response looks like a GraphEdge. Try using GraphNodeFactory::makeGraphEdge() instead.',
-                620
-            );
-        }
-    }
-
-    /**
      * Validates that the return data can be cast as a GraphEdge.
      *
      * @throws FacebookSDKException
@@ -241,152 +389,5 @@ class GraphNodeFactory
                 620
             );
         }
-    }
-
-    /**
-     * Safely instantiates a GraphNode of $subclassName.
-     *
-     * @param array       $data         The array of data to iterate over.
-     * @param string|null $subclassName The subclass to cast this collection to.
-     *
-     * @return GraphNode
-     *
-     * @throws FacebookSDKException
-     */
-    public function safelyMakeGraphNode(array $data, $subclassName = null)
-    {
-        $subclassName = $subclassName ?: static::BASE_GRAPH_NODE_CLASS;
-        static::validateSubclass($subclassName);
-
-        // Remember the parent node ID
-        $parentNodeId = isset($data['id']) ? $data['id'] : null;
-
-        $items = [];
-
-        foreach ($data as $k => $v) {
-            // Array means could be recurable
-            if (is_array($v)) {
-                // Detect any smart-casting from the $graphObjectMap array.
-                // This is always empty on the GraphNode collection, but subclasses can define
-                // their own array of smart-casting types.
-                $graphObjectMap = $subclassName::getObjectMap();
-                $objectSubClass = isset($graphObjectMap[$k])
-                    ? $graphObjectMap[$k]
-                    : null;
-
-                // Could be a GraphEdge or GraphNode
-                $items[$k] = $this->castAsGraphNodeOrGraphEdge($v, $objectSubClass, $k, $parentNodeId);
-            } else {
-                $items[$k] = $v;
-            }
-        }
-
-        return new $subclassName($items);
-    }
-
-    /**
-     * Takes an array of values and determines how to cast each node.
-     *
-     * @param array       $data         The array of data to iterate over.
-     * @param string|null $subclassName The subclass to cast this collection to.
-     * @param string|null $parentKey    The key of this data (Graph edge).
-     * @param string|null $parentNodeId The parent Graph node ID.
-     *
-     * @return GraphNode|GraphEdge
-     *
-     * @throws FacebookSDKException
-     */
-    public function castAsGraphNodeOrGraphEdge(array $data, $subclassName = null, $parentKey = null, $parentNodeId = null)
-    {
-        if (isset($data['data'])) {
-            // Create GraphEdge
-            if (static::isCastableAsGraphEdge($data['data'])) {
-                return $this->safelyMakeGraphEdge($data, $subclassName, $parentKey, $parentNodeId);
-            }
-            // Sometimes Graph is a weirdo and returns a GraphNode under the "data" key
-            $data = $data['data'];
-        }
-
-        // Create GraphNode
-        return $this->safelyMakeGraphNode($data, $subclassName);
-    }
-
-    /**
-     * Return an array of GraphNode's.
-     *
-     * @param array       $data         The array of data to iterate over.
-     * @param string|null $subclassName The GraphNode subclass to cast each item in the list to.
-     * @param string|null $parentKey    The key of this data (Graph edge).
-     * @param string|null $parentNodeId The parent Graph node ID.
-     *
-     * @return GraphEdge
-     *
-     * @throws FacebookSDKException
-     */
-    public function safelyMakeGraphEdge(array $data, $subclassName = null, $parentKey = null, $parentNodeId = null)
-    {
-        if (!isset($data['data'])) {
-            throw new FacebookSDKException('Cannot cast data to GraphEdge. Expected a "data" key.', 620);
-        }
-
-        $dataList = [];
-        foreach ($data['data'] as $graphNode) {
-            $dataList[] = $this->safelyMakeGraphNode($graphNode, $subclassName, $parentKey, $parentNodeId);
-        }
-
-        $metaData = $this->getMetaData($data);
-
-        // We'll need to make an edge endpoint for this in case it's a GraphEdge (for cursor pagination)
-        $parentGraphEdgeEndpoint = $parentNodeId && $parentKey ? '/' . $parentNodeId . '/' . $parentKey : null;
-        $className = static::BASE_GRAPH_EDGE_CLASS;
-
-        return new $className($this->response->getRequest(), $dataList, $metaData, $parentGraphEdgeEndpoint, $subclassName);
-    }
-
-    /**
-     * Get the meta data from a list in a Graph response.
-     *
-     * @param array $data The Graph response.
-     *
-     * @return array
-     */
-    public function getMetaData(array $data)
-    {
-        unset($data['data']);
-
-        return $data;
-    }
-
-    /**
-     * Determines whether or not the data should be cast as a GraphEdge.
-     *
-     * @param array $data
-     *
-     * @return boolean
-     */
-    public static function isCastableAsGraphEdge(array $data)
-    {
-        if ($data === []) {
-            return true;
-        }
-
-        // Checks for a sequential numeric array which would be a GraphEdge
-        return array_keys($data) === range(0, count($data) - 1);
-    }
-
-    /**
-     * Ensures that the subclass in question is valid.
-     *
-     * @param string $subclassName The GraphNode subclass to validate.
-     *
-     * @throws FacebookSDKException
-     */
-    public static function validateSubclass($subclassName)
-    {
-        if ($subclassName == static::BASE_GRAPH_NODE_CLASS || is_subclass_of($subclassName, static::BASE_GRAPH_NODE_CLASS)) {
-            return;
-        }
-
-        throw new FacebookSDKException('The given subclass "' . $subclassName . '" is not valid. Cannot cast to an object that is not a GraphNode subclass.', 620);
     }
 }

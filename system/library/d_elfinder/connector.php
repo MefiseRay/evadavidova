@@ -9,17 +9,18 @@ ini_set('max_file_uploads', 500);   // allow uploading up to 50 files at once
 ini_set('mbstring.internal_encoding', 'UTF-8');
 ini_set('mbstring.func_overload', 2);
 
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinderConnector.class.php';
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinder.class.php';
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinderVolumeDriver.class.php';
-include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinderVolumeLocalFileSystem.class.php';
+include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'elFinderConnector.class.php';
+include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'elFinder.class.php';
+include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'elFinderVolumeDriver.class.php';
+include_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'elFinderVolumeLocalFileSystem.class.php';
 //include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinderVolumeMySQL.class.php';
 //include_once dirname(__FILE__).DIRECTORY_SEPARATOR.'elFinderVolumeFTP.class.php';
 
 //set default timezone
 date_default_timezone_set('UTC');
 
-function debug($o) {
+function debug($o)
+{
     echo '<pre>';
     print_r($o);
 }
@@ -28,14 +29,15 @@ function debug($o) {
  * Smart logger function
  * Demonstrate how to work with elFinder event api
  *
- * @param  string   $cmd       command name
- * @param  array    $result    command result
- * @param  array    $args      command arguments from client
- * @param  elFinder $elfinder  elFinder instance
+ * @param  string $cmd command name
+ * @param  array $result command result
+ * @param  array $args command arguments from client
+ * @param  elFinder $elfinder elFinder instance
  * @return void|true
  * @author Troex Nevelin
  **/
-function logger($cmd, $result, $args, $elfinder) {
+function logger($cmd, $result, $args, $elfinder)
+{
 
 
     $log = sprintf("[%s] %s: %s \n", date('r'), strtoupper($cmd), var_export($result, true));
@@ -90,7 +92,8 @@ function logger($cmd, $result, $args, $elfinder) {
  * @package elFinder
  * @author Dmitry (dio) Levashov
  **/
-class elFinderSimpleLogger {
+class elFinderSimpleLogger
+{
 
     /**
      * Log file path
@@ -105,7 +108,8 @@ class elFinderSimpleLogger {
      * @return void
      * @author Dmitry (dio) Levashov
      **/
-    public function __construct($path) {
+    public function __construct($path)
+    {
         $this->file = $path;
         $dir = dirname($path);
         if (!is_dir($dir)) {
@@ -116,40 +120,41 @@ class elFinderSimpleLogger {
     /**
      * Create log record
      *
-     * @param  string   $cmd       command name
-     * @param  array    $result    command result
-     * @param  array    $args      command arguments from client
-     * @param  elFinder $elfinder  elFinder instance
+     * @param  string $cmd command name
+     * @param  array $result command result
+     * @param  array $args command arguments from client
+     * @param  elFinder $elfinder elFinder instance
      * @return void|true
      * @author Dmitry (dio) Levashov
      **/
-    public function log($cmd, $result, $args, $elfinder) {
-        $log = $cmd.' ['.date('d.m H:s')."]\n";
+    public function log($cmd, $result, $args, $elfinder)
+    {
+        $log = $cmd . ' [' . date('d.m H:s') . "]\n";
 
         if (!empty($result['error'])) {
-            $log .= "\tERROR: ".implode(' ', $result['error'])."\n";
+            $log .= "\tERROR: " . implode(' ', $result['error']) . "\n";
         }
 
         if (!empty($result['warning'])) {
-            $log .= "\tWARNING: ".implode(' ', $result['warning'])."\n";
+            $log .= "\tWARNING: " . implode(' ', $result['warning']) . "\n";
         }
 
         if (!empty($result['removed'])) {
             foreach ($result['removed'] as $file) {
                 // removed file contain additional field "realpath"
-                $log .= "\tREMOVED: ".$file['realpath']."\n";
+                $log .= "\tREMOVED: " . $file['realpath'] . "\n";
             }
         }
 
         if (!empty($result['added'])) {
             foreach ($result['added'] as $file) {
-                $log .= "\tADDED: ".$elfinder->realpath($file['hash'])."\n";
+                $log .= "\tADDED: " . $elfinder->realpath($file['hash']) . "\n";
             }
         }
 
         if (!empty($result['changed'])) {
             foreach ($result['changed'] as $file) {
-                $log .= "\tCHANGED: ".$elfinder->realpath($file['hash'])."\n";
+                $log .= "\tCHANGED: " . $elfinder->realpath($file['hash']) . "\n";
             }
         }
 
@@ -159,14 +164,15 @@ class elFinderSimpleLogger {
     /**
      * Write log into file
      *
-     * @param  string  $log  log record
+     * @param  string $log log record
      * @return void
      * @author Dmitry (dio) Levashov
      **/
-    protected function write($log) {
+    protected function write($log)
+    {
 
         if (($fp = @fopen($this->file, 'a'))) {
-            fwrite($fp, $log."\n");
+            fwrite($fp, $log . "\n");
             fclose($fp);
         }
     }
@@ -179,14 +185,15 @@ class elFinderSimpleLogger {
  * Simple function to demonstrate how to control file access using "accessControl" callback.
  * This method will disable accessing files/folders starting from  '.' (dot)
  *
- * @param  string  $attr  attribute name (read|write|locked|hidden)
- * @param  string  $path  file path relative to volume root directory started with directory separator
+ * @param  string $attr attribute name (read|write|locked|hidden)
+ * @param  string $path file path relative to volume root directory started with directory separator
  * @return bool|null
  **/
-function access($attr, $path, $data, $volume) {
+function access($attr, $path, $data, $volume)
+{
     return strpos(basename($path), '.') === 0       // if file/folder begins with '.' (dot)
         ? !($attr == 'read' || $attr == 'write')    // set read+write to false, other (locked+hidden) set to true
-        :  null;                                    // else elFinder decide it itself
+        : null;                                    // else elFinder decide it itself
 }
 
 /**
@@ -194,19 +201,21 @@ function access($attr, $path, $data, $volume) {
  *
  * @author Dmitry (dio) Levashov
  **/
-class elFinderTestACL {
+class elFinderTestACL
+{
 
     /**
      * make dotfiles not readable, not writable, hidden and locked
      *
-     * @param  string  $attr  attribute name (read|write|locked|hidden)
-     * @param  string  $path  file path. Attention! This is path relative to volume root directory started with directory separator.
-     * @param  mixed   $data  data which seted in 'accessControlData' elFinder option
-     * @param  elFinderVolumeDriver  $volume  volume driver
+     * @param  string $attr attribute name (read|write|locked|hidden)
+     * @param  string $path file path. Attention! This is path relative to volume root directory started with directory separator.
+     * @param  mixed $data data which seted in 'accessControlData' elFinder option
+     * @param  elFinderVolumeDriver $volume volume driver
      * @return bool
      * @author Dmitry (dio) Levashov
      **/
-    public function fsAccess($attr, $path, $data, $volume) {
+    public function fsAccess($attr, $path, $data, $volume)
+    {
 
         if ($volume->name() == 'localfilesystem') {
             return strpos(basename($path), '.') === 0
@@ -221,7 +230,8 @@ class elFinderTestACL {
 
 $acl = new elFinderTestACL();
 
-function validName($name) {
+function validName($name)
+{
     return strpos($name, '.') !== 0;
 }
 
@@ -259,20 +269,20 @@ $opts = array(
     // Uncomment this to turn on logging
     //'bind' => array(
     //  '*' => 'logger'
-        // 'mkdir mkfile rename duplicate upload rm paste' => 'logger'
+    // 'mkdir mkfile rename duplicate upload rm paste' => 'logger'
     //),
     'debug' => false,
     'roots' => array(
         array(
-            'driver'     => 'LocalFileSystem',
-            'path'       => $path_to_use,
-            'startPath'  => $path_to_use,
-            'URL'        => $url_path,
+            'driver' => 'LocalFileSystem',
+            'path' => $path_to_use,
+            'startPath' => $path_to_use,
+            'URL' => $url_path,
             // 'alias'      => 'File system',
             'mimeDetect' => 'internal',
-            'tmbPath'    => 'tmb',
-            'utf8fix'    => true,
-            'tmbCrop'    => false,
+            'tmbPath' => 'tmb',
+            'utf8fix' => true,
+            'tmbCrop' => false,
             'tmbBgColor' => 'transparent',
             'accessControl' => 'access',
             // 'uploadDeny' => array('application', 'text/xml')
@@ -297,14 +307,14 @@ $opts = array(
         //          'hidden' => true,
         //          'locked' => false
         //      ),
-                // array(
-                //  'pattern' => '~/replace/.+png$~',
-                //  // 'pattern' => '/^\/\./',
-                //  'read' => false,
-                //  'write' => false,
-                //  // 'hidden' => true,
-                //  'locked' => true
-                // )
+        // array(
+        //  'pattern' => '~/replace/.+png$~',
+        //  // 'pattern' => '/^\/\./',
+        //  'read' => false,
+        //  'write' => false,
+        //  // 'hidden' => true,
+        //  'locked' => true
+        // )
         //  ),
         //  // 'defaults' => array('read' => false, 'write' => true)
         // ),

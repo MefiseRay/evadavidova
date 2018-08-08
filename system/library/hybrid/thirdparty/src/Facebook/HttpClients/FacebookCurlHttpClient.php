@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\HttpClients;
 
 use Facebook\Http\GraphRawResponse;
@@ -34,34 +35,29 @@ use Facebook\Exceptions\FacebookSDKException;
 class FacebookCurlHttpClient implements FacebookHttpClientInterface
 {
     /**
-     * @var string The client error message
-     */
-    protected $curlErrorMessage = '';
-
-    /**
-     * @var int The curl client error code
-     */
-    protected $curlErrorCode = 0;
-
-    /**
-     * @var string|boolean The raw response from the server
-     */
-    protected $rawResponse;
-
-    /**
-     * @var FacebookCurl Procedural curl as object
-     */
-    protected $facebookCurl;
-
-    /**
      * @const Curl Version which is unaffected by the proxy header length error.
      */
     const CURL_PROXY_QUIRK_VER = 0x071E00;
-
     /**
      * @const "Connection Established" header text
      */
     const CONNECTION_ESTABLISHED = "HTTP/1.0 200 Connection established\r\n\r\n";
+    /**
+     * @var string The client error message
+     */
+    protected $curlErrorMessage = '';
+    /**
+     * @var int The curl client error code
+     */
+    protected $curlErrorCode = 0;
+    /**
+     * @var string|boolean The raw response from the server
+     */
+    protected $rawResponse;
+    /**
+     * @var FacebookCurl Procedural curl as object
+     */
+    protected $facebookCurl;
 
     /**
      * @param FacebookCurl|null Procedural curl as object
@@ -94,11 +90,11 @@ class FacebookCurlHttpClient implements FacebookHttpClientInterface
     /**
      * Opens a new curl connection.
      *
-     * @param string $url     The endpoint to send the request to.
-     * @param string $method  The request method.
-     * @param string $body    The body of the request.
-     * @param array  $headers The request headers.
-     * @param int    $timeOut The timeout in seconds for the request.
+     * @param string $url The endpoint to send the request to.
+     * @param string $method The request method.
+     * @param string $body The body of the request.
+     * @param array $headers The request headers.
+     * @param int $timeOut The timeout in seconds for the request.
      */
     public function openConnection($url, $method, $body, array $headers, $timeOut)
     {
@@ -124,22 +120,6 @@ class FacebookCurlHttpClient implements FacebookHttpClientInterface
     }
 
     /**
-     * Closes an existing curl connection
-     */
-    public function closeConnection()
-    {
-        $this->facebookCurl->close();
-    }
-
-    /**
-     * Send the request and get the raw response from curl
-     */
-    public function sendRequest()
-    {
-        $this->rawResponse = $this->facebookCurl->exec();
-    }
-
-    /**
      * Compiles the request headers into a curl-friendly format.
      *
      * @param array $headers The request headers.
@@ -155,6 +135,14 @@ class FacebookCurlHttpClient implements FacebookHttpClientInterface
         }
 
         return $return;
+    }
+
+    /**
+     * Send the request and get the raw response from curl
+     */
+    public function sendRequest()
+    {
+        $this->rawResponse = $this->facebookCurl->exec();
     }
 
     /**
@@ -206,5 +194,13 @@ class FacebookCurlHttpClient implements FacebookHttpClientInterface
         $version = $ver['version_number'];
 
         return $version < self::CURL_PROXY_QUIRK_VER;
+    }
+
+    /**
+     * Closes an existing curl connection
+     */
+    public function closeConnection()
+    {
+        $this->facebookCurl->close();
     }
 }

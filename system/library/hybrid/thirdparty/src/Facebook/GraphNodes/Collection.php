@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\GraphNodes;
 
 /**
@@ -56,27 +57,10 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * Gets the value of a field from the Graph node.
-     *
-     * @param string $name    The field to retrieve.
-     * @param mixed  $default The default to return if the field doesn't exist.
-     *
-     * @return mixed
-     */
-    public function getField($name, $default = null)
-    {
-        if (isset($this->items[$name])) {
-            return $this->items[$name];
-        }
-
-        return $default ?: null;
-    }
-
-    /**
      * Gets the value of the named property for this graph object.
      *
-     * @param string $name    The property to retrieve.
-     * @param mixed  $default The default to return if the property doesn't exist.
+     * @param string $name The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
      *
      * @return mixed
      *
@@ -89,13 +73,20 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
-     * Returns a list of all fields set on the object.
+     * Gets the value of a field from the Graph node.
      *
-     * @return array
+     * @param string $name The field to retrieve.
+     * @param mixed $default The default to return if the field doesn't exist.
+     *
+     * @return mixed
      */
-    public function getFieldNames()
+    public function getField($name, $default = null)
     {
-        return array_keys($this->items);
+        if (isset($this->items[$name])) {
+            return $this->items[$name];
+        }
+
+        return $default ?: null;
     }
 
     /**
@@ -112,6 +103,16 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * Returns a list of all fields set on the object.
+     *
+     * @return array
+     */
+    public function getFieldNames()
+    {
+        return array_keys($this->items);
+    }
+
+    /**
      * Get all of the items in the collection.
      *
      * @return array
@@ -119,18 +120,6 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function all()
     {
         return $this->items;
-    }
-
-    /**
-     * Get the collection of items as a plain array.
-     *
-     * @return array
-     */
-    public function asArray()
-    {
-        return array_map(function ($value) {
-            return $value instanceof Collection ? $value->asArray() : $value;
-        }, $this->items);
     }
 
     /**
@@ -143,18 +132,6 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function map(\Closure $callback)
     {
         return new static(array_map($callback, $this->items, array_keys($this->items)));
-    }
-
-    /**
-     * Get the collection of items as JSON.
-     *
-     * @param int $options
-     *
-     * @return string
-     */
-    public function asJson($options = 0)
-    {
-        return json_encode($this->asArray(), $options);
     }
 
     /**
@@ -238,5 +215,29 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function __toString()
     {
         return $this->asJson();
+    }
+
+    /**
+     * Get the collection of items as JSON.
+     *
+     * @param int $options
+     *
+     * @return string
+     */
+    public function asJson($options = 0)
+    {
+        return json_encode($this->asArray(), $options);
+    }
+
+    /**
+     * Get the collection of items as a plain array.
+     *
+     * @return array
+     */
+    public function asArray()
+    {
+        return array_map(function ($value) {
+            return $value instanceof Collection ? $value->asArray() : $value;
+        }, $this->items);
     }
 }

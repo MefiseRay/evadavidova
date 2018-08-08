@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\GraphNodes;
 
 /**
@@ -75,34 +76,25 @@ class GraphNode extends Collection
     }
 
     /**
-     * Uncasts any auto-casted datatypes.
-     * Basically the reverse of castItems().
+     * Determines if a value from Graph should be cast to DateTime.
      *
-     * @return array
+     * @param string $key
+     *
+     * @return boolean
      */
-    public function uncastItems()
+    public function shouldCastAsDateTime($key)
     {
-        $items = $this->asArray();
-
-        return array_map(function ($v) {
-            if ($v instanceof \DateTime) {
-                return $v->format(\DateTime::ISO8601);
-            }
-
-            return $v;
-        }, $items);
-    }
-
-    /**
-     * Get the collection of items as JSON.
-     *
-     * @param int $options
-     *
-     * @return string
-     */
-    public function asJson($options = 0)
-    {
-        return json_encode($this->uncastItems(), $options);
+        return in_array($key, [
+            'created_time',
+            'updated_time',
+            'start_time',
+            'end_time',
+            'backdated_time',
+            'issued_at',
+            'expires_at',
+            'birthday',
+            'publish_time'
+        ], true);
     }
 
     /**
@@ -133,28 +125,6 @@ class GraphNode extends Collection
     }
 
     /**
-     * Determines if a value from Graph should be cast to DateTime.
-     *
-     * @param string $key
-     *
-     * @return boolean
-     */
-    public function shouldCastAsDateTime($key)
-    {
-        return in_array($key, [
-            'created_time',
-            'updated_time',
-            'start_time',
-            'end_time',
-            'backdated_time',
-            'issued_at',
-            'expires_at',
-            'birthday',
-            'publish_time'
-        ], true);
-    }
-
-    /**
      * Casts a date value from Graph to DateTime.
      *
      * @param int|string $value
@@ -181,5 +151,36 @@ class GraphNode extends Collection
     public static function getObjectMap()
     {
         return static::$graphObjectMap;
+    }
+
+    /**
+     * Get the collection of items as JSON.
+     *
+     * @param int $options
+     *
+     * @return string
+     */
+    public function asJson($options = 0)
+    {
+        return json_encode($this->uncastItems(), $options);
+    }
+
+    /**
+     * Uncasts any auto-casted datatypes.
+     * Basically the reverse of castItems().
+     *
+     * @return array
+     */
+    public function uncastItems()
+    {
+        $items = $this->asArray();
+
+        return array_map(function ($v) {
+            if ($v instanceof \DateTime) {
+                return $v->format(\DateTime::ISO8601);
+            }
+
+            return $v;
+        }, $items);
     }
 }

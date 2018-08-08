@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Http;
 
 use Facebook\FileUpload\FacebookFile;
@@ -52,8 +53,8 @@ class RequestBodyMultipart implements RequestBodyInterface
     private $files = [];
 
     /**
-     * @param array  $params   The parameters to send with this request.
-     * @param array  $files    The files to send with this request.
+     * @param array $params The parameters to send with this request.
+     * @param array $files The files to send with this request.
      * @param string $boundary Provide a specific boundary.
      */
     public function __construct(array $params = [], array $files = [], $boundary = null)
@@ -88,54 +89,6 @@ class RequestBodyMultipart implements RequestBodyInterface
     }
 
     /**
-     * Get the boundary
-     *
-     * @return string
-     */
-    public function getBoundary()
-    {
-        return $this->boundary;
-    }
-
-    /**
-     * Get the string needed to transfer a file.
-     *
-     * @param string       $name
-     * @param FacebookFile $file
-     *
-     * @return string
-     */
-    private function getFileString($name, FacebookFile $file)
-    {
-        return sprintf(
-            "--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s\r\n\r\n%s\r\n",
-            $this->boundary,
-            $name,
-            $file->getFileName(),
-            $this->getFileHeaders($file),
-            $file->getContents()
-        );
-    }
-
-    /**
-     * Get the string needed to transfer a POST field.
-     *
-     * @param string $name
-     * @param string $value
-     *
-     * @return string
-     */
-    private function getParamString($name, $value)
-    {
-        return sprintf(
-            "--%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n",
-            $this->boundary,
-            $name,
-            $value
-        );
-    }
-
-    /**
      * Returns the params as an array of nested params.
      *
      * @param array $params
@@ -157,6 +110,44 @@ class RequestBodyMultipart implements RequestBodyInterface
     }
 
     /**
+     * Get the string needed to transfer a POST field.
+     *
+     * @param string $name
+     * @param string $value
+     *
+     * @return string
+     */
+    private function getParamString($name, $value)
+    {
+        return sprintf(
+            "--%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n",
+            $this->boundary,
+            $name,
+            $value
+        );
+    }
+
+    /**
+     * Get the string needed to transfer a file.
+     *
+     * @param string $name
+     * @param FacebookFile $file
+     *
+     * @return string
+     */
+    private function getFileString($name, FacebookFile $file)
+    {
+        return sprintf(
+            "--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"%s\r\n\r\n%s\r\n",
+            $this->boundary,
+            $name,
+            $file->getFileName(),
+            $this->getFileHeaders($file),
+            $file->getContents()
+        );
+    }
+
+    /**
      * Get the headers needed before transferring the content of a POST file.
      *
      * @param FacebookFile $file
@@ -166,5 +157,15 @@ class RequestBodyMultipart implements RequestBodyInterface
     protected function getFileHeaders(FacebookFile $file)
     {
         return "\r\nContent-Type: {$file->getMimetype()}";
+    }
+
+    /**
+     * Get the boundary
+     *
+     * @return string
+     */
+    public function getBoundary()
+    {
+        return $this->boundary;
     }
 }

@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Authentication;
 
 use Facebook\Exceptions\FacebookSDKException;
@@ -36,18 +37,17 @@ use Facebook\Exceptions\FacebookSDKException;
 class AccessTokenMetadata
 {
     /**
-     * The access token metadata.
-     *
-     * @var array
-     */
-    protected $metadata = [];
-
-    /**
      * Properties that should be cast as DateTime objects.
      *
      * @var array
      */
     protected static $dateProperties = ['expires_at', 'issued_at'];
+    /**
+     * The access token metadata.
+     *
+     * @var array
+     */
+    protected $metadata = [];
 
     /**
      * @param array $metadata
@@ -66,27 +66,37 @@ class AccessTokenMetadata
     }
 
     /**
-     * Returns a value from the metadata.
-     *
-     * @param string $field   The property to retrieve.
-     * @param mixed  $default The default to return if the property doesn't exist.
-     *
-     * @return mixed
+     * Casts the unix timestamps as DateTime entities.
      */
-    public function getField($field, $default = null)
+    private function castTimestampsToDateTime()
     {
-        if (isset($this->metadata[$field])) {
-            return $this->metadata[$field];
+        foreach (static::$dateProperties as $key) {
+            if (isset($this->metadata[$key])) {
+                $this->metadata[$key] = $this->convertTimestampToDateTime($this->metadata[$key]);
+            }
         }
+    }
 
-        return $default;
+    /**
+     * Converts a unix timestamp into a DateTime entity.
+     *
+     * @param int $timestamp
+     *
+     * @return \DateTime
+     */
+    private function convertTimestampToDateTime($timestamp)
+    {
+        $dt = new \DateTime();
+        $dt->setTimestamp($timestamp);
+
+        return $dt;
     }
 
     /**
      * Returns a value from the metadata.
      *
-     * @param string $field   The property to retrieve.
-     * @param mixed  $default The default to return if the property doesn't exist.
+     * @param string $field The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
      *
      * @return mixed
      *
@@ -99,61 +109,20 @@ class AccessTokenMetadata
     }
 
     /**
-     * Returns a value from a child property in the metadata.
+     * Returns a value from the metadata.
      *
-     * @param string $parentField The parent property.
-     * @param string $field       The property to retrieve.
-     * @param mixed  $default     The default to return if the property doesn't exist.
+     * @param string $field The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
      *
      * @return mixed
      */
-    public function getChildProperty($parentField, $field, $default = null)
+    public function getField($field, $default = null)
     {
-        if (!isset($this->metadata[$parentField])) {
-            return $default;
+        if (isset($this->metadata[$field])) {
+            return $this->metadata[$field];
         }
 
-        if (!isset($this->metadata[$parentField][$field])) {
-            return $default;
-        }
-
-        return $this->metadata[$parentField][$field];
-    }
-
-    /**
-     * Returns a value from the error metadata.
-     *
-     * @param string $field   The property to retrieve.
-     * @param mixed  $default The default to return if the property doesn't exist.
-     *
-     * @return mixed
-     */
-    public function getErrorProperty($field, $default = null)
-    {
-        return $this->getChildProperty('error', $field, $default);
-    }
-
-    /**
-     * Returns a value from the "metadata" metadata. *Brain explodes*
-     *
-     * @param string $field   The property to retrieve.
-     * @param mixed  $default The default to return if the property doesn't exist.
-     *
-     * @return mixed
-     */
-    public function getMetadataProperty($field, $default = null)
-    {
-        return $this->getChildProperty('metadata', $field, $default);
-    }
-
-    /**
-     * The ID of the application this access token is for.
-     *
-     * @return string|null
-     */
-    public function getAppId()
-    {
-        return $this->getField('app_id');
+        return $default;
     }
 
     /**
@@ -188,6 +157,41 @@ class AccessTokenMetadata
     }
 
     /**
+     * Returns a value from the error metadata.
+     *
+     * @param string $field The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
+     *
+     * @return mixed
+     */
+    public function getErrorProperty($field, $default = null)
+    {
+        return $this->getChildProperty('error', $field, $default);
+    }
+
+    /**
+     * Returns a value from a child property in the metadata.
+     *
+     * @param string $parentField The parent property.
+     * @param string $field The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
+     *
+     * @return mixed
+     */
+    public function getChildProperty($parentField, $field, $default = null)
+    {
+        if (!isset($this->metadata[$parentField])) {
+            return $default;
+        }
+
+        if (!isset($this->metadata[$parentField][$field])) {
+            return $default;
+        }
+
+        return $this->metadata[$parentField][$field];
+    }
+
+    /**
      * The error message for the error.
      *
      * @return string|null
@@ -205,16 +209,6 @@ class AccessTokenMetadata
     public function getErrorSubcode()
     {
         return $this->getErrorProperty('subcode');
-    }
-
-    /**
-     * DateTime when this access token expires.
-     *
-     * @return \DateTime|null
-     */
-    public function getExpiresAt()
-    {
-        return $this->getField('expires_at');
     }
 
     /**
@@ -264,6 +258,19 @@ class AccessTokenMetadata
     }
 
     /**
+     * Returns a value from the "metadata" metadata. *Brain explodes*
+     *
+     * @param string $field The property to retrieve.
+     * @param mixed $default The default to return if the property doesn't exist.
+     *
+     * @return mixed
+     */
+    public function getMetadataProperty($field, $default = null)
+    {
+        return $this->getChildProperty('metadata', $field, $default);
+    }
+
+    /**
      * The 'auth_type' child property from the 'metadata' parent property.
      *
      * @return string|null
@@ -306,16 +313,6 @@ class AccessTokenMetadata
     }
 
     /**
-     * The ID of the user this access token is for.
-     *
-     * @return string|null
-     */
-    public function getUserId()
-    {
-        return $this->getField('user_id');
-    }
-
-    /**
      * Ensures the app ID from the access token
      * metadata is what we expect.
      *
@@ -331,6 +328,16 @@ class AccessTokenMetadata
     }
 
     /**
+     * The ID of the application this access token is for.
+     *
+     * @return string|null
+     */
+    public function getAppId()
+    {
+        return $this->getField('app_id');
+    }
+
+    /**
      * Ensures the user ID from the access token
      * metadata is what we expect.
      *
@@ -343,6 +350,16 @@ class AccessTokenMetadata
         if ($this->getUserId() !== $userId) {
             throw new FacebookSDKException('Access token metadata contains unexpected user ID.', 401);
         }
+    }
+
+    /**
+     * The ID of the user this access token is for.
+     *
+     * @return string|null
+     */
+    public function getUserId()
+    {
+        return $this->getField('user_id');
     }
 
     /**
@@ -362,29 +379,12 @@ class AccessTokenMetadata
     }
 
     /**
-     * Converts a unix timestamp into a DateTime entity.
+     * DateTime when this access token expires.
      *
-     * @param int $timestamp
-     *
-     * @return \DateTime
+     * @return \DateTime|null
      */
-    private function convertTimestampToDateTime($timestamp)
+    public function getExpiresAt()
     {
-        $dt = new \DateTime();
-        $dt->setTimestamp($timestamp);
-
-        return $dt;
-    }
-
-    /**
-     * Casts the unix timestamps as DateTime entities.
-     */
-    private function castTimestampsToDateTime()
-    {
-        foreach (static::$dateProperties as $key) {
-            if (isset($this->metadata[$key])) {
-                $this->metadata[$key] = $this->convertTimestampToDateTime($this->metadata[$key]);
-            }
-        }
+        return $this->getField('expires_at');
     }
 }

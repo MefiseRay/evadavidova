@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use Facebook\HttpClients\FacebookHttpClientInterface;
@@ -69,52 +70,29 @@ class FacebookClient
      * @const int The timeout in seconds for a request that contains video uploads.
      */
     const DEFAULT_VIDEO_UPLOAD_REQUEST_TIMEOUT = 7200;
-
+    /**
+     * @var int The number of calls that have been made to Graph.
+     */
+    public static $requestCount = 0;
     /**
      * @var bool Toggle to use Graph beta url.
      */
     protected $enableBetaMode = false;
-
     /**
      * @var FacebookHttpClientInterface HTTP client handler.
      */
     protected $httpClientHandler;
 
     /**
-     * @var int The number of calls that have been made to Graph.
-     */
-    public static $requestCount = 0;
-
-    /**
      * Instantiates a new FacebookClient object.
      *
      * @param FacebookHttpClientInterface|null $httpClientHandler
-     * @param boolean                          $enableBeta
+     * @param boolean $enableBeta
      */
     public function __construct(FacebookHttpClientInterface $httpClientHandler = null, $enableBeta = false)
     {
         $this->httpClientHandler = $httpClientHandler ?: $this->detectHttpClientHandler();
         $this->enableBetaMode = $enableBeta;
-    }
-
-    /**
-     * Sets the HTTP client handler.
-     *
-     * @param FacebookHttpClientInterface $httpClientHandler
-     */
-    public function setHttpClientHandler(FacebookHttpClientInterface $httpClientHandler)
-    {
-        $this->httpClientHandler = $httpClientHandler;
-    }
-
-    /**
-     * Returns the HTTP client handler.
-     *
-     * @return FacebookHttpClientInterface
-     */
-    public function getHttpClientHandler()
-    {
-        return $this->httpClientHandler;
     }
 
     /**
@@ -128,6 +106,26 @@ class FacebookClient
     }
 
     /**
+     * Returns the HTTP client handler.
+     *
+     * @return FacebookHttpClientInterface
+     */
+    public function getHttpClientHandler()
+    {
+        return $this->httpClientHandler;
+    }
+
+    /**
+     * Sets the HTTP client handler.
+     *
+     * @param FacebookHttpClientInterface $httpClientHandler
+     */
+    public function setHttpClientHandler(FacebookHttpClientInterface $httpClientHandler)
+    {
+        $this->httpClientHandler = $httpClientHandler;
+    }
+
+    /**
      * Toggle beta mode.
      *
      * @param boolean $betaMode
@@ -138,52 +136,20 @@ class FacebookClient
     }
 
     /**
-     * Returns the base Graph URL.
+     * Makes a batched request to Graph and returns the result.
      *
-     * @param boolean $postToVideoUrl Post to the video API if videos are being uploaded.
+     * @param FacebookBatchRequest $request
      *
-     * @return string
+     * @return FacebookBatchResponse
+     *
+     * @throws FacebookSDKException
      */
-    public function getBaseGraphUrl($postToVideoUrl = false)
+    public function sendBatchRequest(FacebookBatchRequest $request)
     {
-        if ($postToVideoUrl) {
-            return $this->enableBetaMode ? static::BASE_GRAPH_VIDEO_URL_BETA : static::BASE_GRAPH_VIDEO_URL;
-        }
+        $request->prepareRequestsForBatch();
+        $facebookResponse = $this->sendRequest($request);
 
-        return $this->enableBetaMode ? static::BASE_GRAPH_URL_BETA : static::BASE_GRAPH_URL;
-    }
-
-    /**
-     * Prepares the request for sending to the client handler.
-     *
-     * @param FacebookRequest $request
-     *
-     * @return array
-     */
-    public function prepareRequestMessage(FacebookRequest $request)
-    {
-        $postToVideoUrl = $request->containsVideoUploads();
-        $url = $this->getBaseGraphUrl($postToVideoUrl) . $request->getUrl();
-
-        // If we're sending files they should be sent as multipart/form-data
-        if ($request->containsFileUploads()) {
-            $requestBody = $request->getMultipartBody();
-            $request->setHeaders([
-                'Content-Type' => 'multipart/form-data; boundary=' . $requestBody->getBoundary(),
-            ]);
-        } else {
-            $requestBody = $request->getUrlEncodedBody();
-            $request->setHeaders([
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ]);
-        }
-
-        return [
-            $url,
-            $request->getMethod(),
-            $request->getHeaders(),
-            $requestBody->getBody(),
-        ];
+        return new FacebookBatchResponse($request, $facebookResponse);
     }
 
     /**
@@ -232,19 +198,51 @@ class FacebookClient
     }
 
     /**
-     * Makes a batched request to Graph and returns the result.
+     * Prepares the request for sending to the client handler.
      *
-     * @param FacebookBatchRequest $request
+     * @param FacebookRequest $request
      *
-     * @return FacebookBatchResponse
-     *
-     * @throws FacebookSDKException
+     * @return array
      */
-    public function sendBatchRequest(FacebookBatchRequest $request)
+    public function prepareRequestMessage(FacebookRequest $request)
     {
-        $request->prepareRequestsForBatch();
-        $facebookResponse = $this->sendRequest($request);
+        $postToVideoUrl = $request->containsVideoUploads();
+        $url = $this->getBaseGraphUrl($postToVideoUrl) . $request->getUrl();
 
-        return new FacebookBatchResponse($request, $facebookResponse);
+        // If we're sending files they should be sent as multipart/form-data
+        if ($request->containsFileUploads()) {
+            $requestBody = $request->getMultipartBody();
+            $request->setHeaders([
+                'Content-Type' => 'multipart/form-data; boundary=' . $requestBody->getBoundary(),
+            ]);
+        } else {
+            $requestBody = $request->getUrlEncodedBody();
+            $request->setHeaders([
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ]);
+        }
+
+        return [
+            $url,
+            $request->getMethod(),
+            $request->getHeaders(),
+            $requestBody->getBody(),
+        ];
+    }
+
+    /**
+     * Returns the base Graph URL.
+     *
+     * @param boolean $postToVideoUrl Post to the video API if videos are being uploaded.
+     *
+     * @return string
+     */
+    public function getBaseGraphUrl($postToVideoUrl = false)
+    {
+        if ($postToVideoUrl) {
+            return $this->enableBetaMode ? static::BASE_GRAPH_VIDEO_URL_BETA : static::BASE_GRAPH_VIDEO_URL;
+        }
+
+        return $this->enableBetaMode ? static::BASE_GRAPH_URL_BETA : static::BASE_GRAPH_URL;
     }
 }

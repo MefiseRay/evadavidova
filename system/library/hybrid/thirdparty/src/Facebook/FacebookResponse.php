@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use Facebook\GraphNodes\GraphNodeFactory;
@@ -68,9 +69,9 @@ class FacebookResponse
      * Creates a new Response entity.
      *
      * @param FacebookRequest $request
-     * @param string|null     $body
-     * @param int|null        $httpStatusCode
-     * @param array|null      $headers
+     * @param string|null $body
+     * @param int|null $httpStatusCode
+     * @param array|null $headers
      */
     public function __construct(FacebookRequest $request, $body = null, $httpStatusCode = null, array $headers = [])
     {
@@ -80,6 +81,60 @@ class FacebookResponse
         $this->headers = $headers;
 
         $this->decodeBody();
+    }
+
+    /**
+     * Convert the raw response into an array if possible.
+     *
+     * Graph will return 2 types of responses:
+     * - JSON(P)
+     *    Most responses from Grpah are JSON(P)
+     * - application/x-www-form-urlencoded key/value pairs
+     *    Happens on the `/oauth/access_token` endpoint when exchanging
+     *    a short-lived access token for a long-lived access token
+     * - And sometimes nothing :/ but that'd be a bug.
+     */
+    public function decodeBody()
+    {
+        $this->decodedBody = json_decode($this->body, true);
+
+        if ($this->decodedBody === null) {
+            $this->decodedBody = [];
+            parse_str($this->body, $this->decodedBody);
+        } elseif (is_bool($this->decodedBody)) {
+            // Backwards compatibility for Graph < 2.1.
+            // Mimics 2.1 responses.
+            // @TODO Remove this after Graph 2.0 is no longer supported
+            $this->decodedBody = ['success' => $this->decodedBody];
+        } elseif (is_numeric($this->decodedBody)) {
+            $this->decodedBody = ['id' => $this->decodedBody];
+        }
+
+        if (!is_array($this->decodedBody)) {
+            $this->decodedBody = [];
+        }
+
+        if ($this->isError()) {
+            $this->makeException();
+        }
+    }
+
+    /**
+     * Returns true if Graph returned an error message.
+     *
+     * @return boolean
+     */
+    public function isError()
+    {
+        return isset($this->decodedBody['error']);
+    }
+
+    /**
+     * Instantiates an exception to be thrown later.
+     */
+    public function makeException()
+    {
+        $this->thrownException = FacebookResponseException::create($this);
     }
 
     /**
@@ -183,16 +238,6 @@ class FacebookResponse
     }
 
     /**
-     * Returns true if Graph returned an error message.
-     *
-     * @return boolean
-     */
-    public function isError()
-    {
-        return isset($this->decodedBody['error']);
-    }
-
-    /**
      * Throws the exception.
      *
      * @throws FacebookSDKException
@@ -203,14 +248,6 @@ class FacebookResponse
     }
 
     /**
-     * Instantiates an exception to be thrown later.
-     */
-    public function makeException()
-    {
-        $this->thrownException = FacebookResponseException::create($this);
-    }
-
-    /**
      * Returns the exception that was thrown for this request.
      *
      * @return FacebookSDKException|null
@@ -218,42 +255,6 @@ class FacebookResponse
     public function getThrownException()
     {
         return $this->thrownException;
-    }
-
-    /**
-     * Convert the raw response into an array if possible.
-     *
-     * Graph will return 2 types of responses:
-     * - JSON(P)
-     *    Most responses from Grpah are JSON(P)
-     * - application/x-www-form-urlencoded key/value pairs
-     *    Happens on the `/oauth/access_token` endpoint when exchanging
-     *    a short-lived access token for a long-lived access token
-     * - And sometimes nothing :/ but that'd be a bug.
-     */
-    public function decodeBody()
-    {
-        $this->decodedBody = json_decode($this->body, true);
-
-        if ($this->decodedBody === null) {
-            $this->decodedBody = [];
-            parse_str($this->body, $this->decodedBody);
-        } elseif (is_bool($this->decodedBody)) {
-            // Backwards compatibility for Graph < 2.1.
-            // Mimics 2.1 responses.
-            // @TODO Remove this after Graph 2.0 is no longer supported
-            $this->decodedBody = ['success' => $this->decodedBody];
-        } elseif (is_numeric($this->decodedBody)) {
-            $this->decodedBody = ['id' => $this->decodedBody];
-        }
-
-        if (!is_array($this->decodedBody)) {
-            $this->decodedBody = [];
-        }
-
-        if ($this->isError()) {
-            $this->makeException();
-        }
     }
 
     /**
@@ -377,7 +378,7 @@ class FacebookResponse
      * Instantiate a new GraphList from response.
      *
      * @param string|null $subclassName The GraphNode sub class to cast list items to.
-     * @param boolean     $auto_prefix  Toggle to auto-prefix the subclass name.
+     * @param boolean $auto_prefix Toggle to auto-prefix the subclass name.
      *
      * @return \Facebook\GraphNodes\GraphList
      *
@@ -395,7 +396,7 @@ class FacebookResponse
      * Instantiate a new GraphEdge from response.
      *
      * @param string|null $subclassName The GraphNode sub class to cast list items to.
-     * @param boolean     $auto_prefix  Toggle to auto-prefix the subclass name.
+     * @param boolean $auto_prefix Toggle to auto-prefix the subclass name.
      *
      * @return \Facebook\GraphNodes\GraphEdge
      *

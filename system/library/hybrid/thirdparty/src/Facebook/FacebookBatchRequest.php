@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use ArrayIterator;
@@ -49,10 +50,10 @@ class FacebookBatchRequest extends FacebookRequest implements IteratorAggregate,
     /**
      * Creates a new Request entity.
      *
-     * @param FacebookApp|null        $app
-     * @param array                   $requests
+     * @param FacebookApp|null $app
+     * @param array $requests
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $graphVersion
+     * @param string|null $graphVersion
      */
     public function __construct(FacebookApp $app = null, array $requests = [], $accessToken = null, $graphVersion = null)
     {
@@ -65,7 +66,7 @@ class FacebookBatchRequest extends FacebookRequest implements IteratorAggregate,
      * A a new request to the array.
      *
      * @param FacebookRequest|array $request
-     * @param string|null           $name
+     * @param string|null $name
      *
      * @return FacebookBatchRequest
      *
@@ -183,22 +184,6 @@ class FacebookBatchRequest extends FacebookRequest implements IteratorAggregate,
     }
 
     /**
-     * Converts the requests into a JSON(P) string.
-     *
-     * @return string
-     */
-    public function convertRequestsToJson()
-    {
-        $requests = [];
-        foreach ($this->requests as $request) {
-            $attachedFiles = isset($request['attached_files']) ? $request['attached_files'] : null;
-            $requests[] = $this->requestEntityToBatchArray($request['request'], $request['name'], $attachedFiles);
-        }
-
-        return json_encode($requests);
-    }
-
-    /**
      * Validate the request count before sending them as a batch.
      *
      * @throws FacebookSDKException
@@ -215,11 +200,27 @@ class FacebookBatchRequest extends FacebookRequest implements IteratorAggregate,
     }
 
     /**
+     * Converts the requests into a JSON(P) string.
+     *
+     * @return string
+     */
+    public function convertRequestsToJson()
+    {
+        $requests = [];
+        foreach ($this->requests as $request) {
+            $attachedFiles = isset($request['attached_files']) ? $request['attached_files'] : null;
+            $requests[] = $this->requestEntityToBatchArray($request['request'], $request['name'], $attachedFiles);
+        }
+
+        return json_encode($requests);
+    }
+
+    /**
      * Converts a Request entity into an array that is batch-friendly.
      *
-     * @param FacebookRequest $request       The request entity to convert.
-     * @param string|null     $requestName   The name of the request.
-     * @param string|null     $attachedFiles Names of files associated with the request.
+     * @param FacebookRequest $request The request entity to convert.
+     * @param string|null $requestName The name of the request.
+     * @param string|null $attachedFiles Names of files associated with the request.
      *
      * @return array
      */

@@ -2,7 +2,7 @@
 <modification>
     <name>d_event_manager</name>
     <code>d_event_manager</code>
-    <description>Add support for events to versions before 2.3.0.0 </description>
+    <description>Add support for events to versions before 2.3.0.0</description>
     <version>3.0.0</version>
     <author>Dreamvention</author>
     <link>http://dreamvention.com</link>
@@ -73,7 +73,8 @@
     </file>
     <file path="system/engine/loader.php">
         <operation error="skip" info="add event support 2.1.0.0 and below">
-            <search><![CDATA[$this->registry->set('model_' . str_replace('/', '_', $model), new $class($this->registry));]]></search>
+            <search>
+                <![CDATA[$this->registry->set('model_' . str_replace('/', '_', $model), new $class($this->registry));]]></search>
             <add position="replace"><![CDATA[
         //d_event_manager.xml proxy
         $d_event_manager = $this->registry->get('config')->get('d_event_manager_setting');
@@ -210,7 +211,7 @@
             ]]></add>
         </operation>
     </file>
-        
+
     <file path="system/engine/loader.php">
         <operation error="skip" info="add event support 2.0.0.0 and below">
             <search><![CDATA[private $registry;]]></search>
@@ -221,14 +222,16 @@
     </file>
     <file path="system/engine/loader.php">
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$result = $this->registry->get('event')->trigger('controller/' . $route . '/before', array(&$route, &$data));]]></search>
+            <search>
+                <![CDATA[$result = $this->registry->get('event')->trigger('controller/' . $route . '/before', array(&$route, &$data));]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 1
             $result = $this->registry->get('event')->trigger('controller/' . $route . '/before', array(&$route, &$data, &$output));
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$this->registry->get('event')->trigger('view/' . $route . '/before', array(&$route, &$data));]]></search>
+            <search>
+                <![CDATA[$this->registry->get('event')->trigger('view/' . $route . '/before', array(&$route, &$data));]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 1.1
             $this->registry->get('event')->trigger('view/' . $route . '/before', array(&$route, &$data, &$output));
@@ -242,7 +245,8 @@
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$this->registry->get('event')->trigger('view/' . $route . '/after', array(&$route, &$data, &$output));]]></search>
+            <search>
+                <![CDATA[$this->registry->get('event')->trigger('view/' . $route . '/after', array(&$route, &$data, &$output));]]></search>
             <add position="before"><![CDATA[
             //d_event_manager.xml 1.3
             }
@@ -263,21 +267,24 @@
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$this->registry->get('event')->trigger('language/' . $route . '/before', $route);]]></search>
+            <search>
+                <![CDATA[$this->registry->get('event')->trigger('language/' . $route . '/before', $route);]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 4
             $this->registry->get('event')->trigger('language/' . $route . '/before', array(&$route, &$output));
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$this->registry->get('event')->trigger('language/' . $route . '/after', $route);]]></search>
+            <search>
+                <![CDATA[$this->registry->get('event')->trigger('language/' . $route . '/after', $route);]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 5
             $this->registry->get('event')->trigger('language/' . $route . '/after', array(&$route, &$output));
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$result = $registry->get('event')->trigger('model/' . $route . '/before', array_merge(array(&$route), $args));]]></search>
+            <search>
+                <![CDATA[$result = $registry->get('event')->trigger('model/' . $route . '/before', array_merge(array(&$route), $args));]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 6
             $output = null;
@@ -285,7 +292,8 @@
             ]]></add>
         </operation>
         <operation error="skip" info="add event support for 2.2.0.0">
-            <search><![CDATA[$result = $registry->get('event')->trigger('model/' . $route . '/after', array_merge(array(&$route, &$output), $args));]]></search>
+            <search>
+                <![CDATA[$result = $registry->get('event')->trigger('model/' . $route . '/after', array_merge(array(&$route, &$output), $args));]]></search>
             <add position="replace"><![CDATA[
             //d_event_manager.xml 7
             $result = $registry->get('event')->trigger('model/' . $route . '/after', array(&$route, &$args, &$output));
@@ -307,7 +315,7 @@
     <file path="system/engine/loader.php">
         <operation error="skip" info="add event support for 2.3.0.0 fix">
             <search index="1"><![CDATA[if (!$output) {]]></search>
-            <add position="after" ><![CDATA[
+            <add position="after"><![CDATA[
             //d_event_manager.xml fix
             if (!$output) {
             ]]></add>
@@ -324,5 +332,5 @@
             ]]></add>
         </operation>
     </file>
-    
+
 </modification>

@@ -55,7 +55,8 @@ if (!function_exists('array_peek')) {
     /**
      * @internal
      * This does exactly what you think it does. */
-    function array_peek(array &$array) {
+    function array_peek(array &$array)
+    {
         $cnt = count($array);
         return $cnt === 0 ? null : $array[$cnt - 1];
     }
@@ -65,22 +66,26 @@ if (!function_exists('array_peek')) {
  * @internal
  * For internal debugging purposes.
  */
-function dump($obj, $descr = null) {
+function dump($obj, $descr = null)
+{
     if ($descr !== null)
         echo "<h3>$descr</h3>";
     ob_start();
     var_dump($obj);
     $dump = ob_get_clean();
-    ?><pre><?php echo htmlspecialchars($dump); ?></pre><?php
+    ?>
+    <pre><?php echo htmlspecialchars($dump); ?></pre><?php
     return true;
 }
 
 /**
  * Raised when the grammar offers a rule that has not been defined.
  */
-class NoMatchingRuleException extends Exception {
+class NoMatchingRuleException extends Exception
+{
     /** @internal */
-    public function __construct($states, $position, $code) {
+    public function __construct($states, $position, $code)
+    {
         $state = array_pop($states);
         parent::__construct(
             "State '$state' has no matching rule at position $position:\n" .
@@ -90,7 +95,8 @@ class NoMatchingRuleException extends Exception {
 
     // Try to extract the location of the error more or less precisely.
     // Only used for a comprehensive display.
-    private function errorSurrounding($code, $pos) {
+    private function errorSurrounding($code, $pos)
+    {
         $size = 10;
         $begin = $pos < $size ? 0 : $pos - $size;
         $end = $pos + $size > strlen($code) ? strlen($code) : $pos + $size;
@@ -121,7 +127,8 @@ class NoMatchingRuleException extends Exception {
  * $escaped_rule = array('escaped' => '/\\(x\d{1,4}|.)/');
  * </code>
  */
-class Rule {
+class Rule
+{
     /**
      * Common rules.
      */
@@ -160,7 +167,8 @@ class Rule {
     private $_end;
 
     /** @ignore */
-    public function __construct($start, $end = null) {
+    public function __construct($start, $end = null)
+    {
         $this->_start = $start;
         $this->_end = $end;
     }
@@ -169,7 +177,8 @@ class Rule {
      * Returns the pattern with which this rule starts.
      * @return string
      */
-    public function start() {
+    public function start()
+    {
         return $this->_start;
     }
 
@@ -177,7 +186,8 @@ class Rule {
      * Returns the pattern with which this rule may end.
      * @return string
      */
-    public function end() {
+    public function end()
+    {
         return $this->_end;
     }
 }
@@ -198,19 +208,8 @@ class Rule {
  * <var>languages/php.php</var>.
  *
  */
-abstract class HyperLanguage {
-    private $_states = array();
-    private $_rules = array();
-    private $_mappings = array();
-    private $_info = array();
-    private $_extensions = array();
-    private $_caseInsensitive = false;
-    private $_postProcessors = array();
-
-    private static $_languageCache = array();
-    private static $_compiledLanguageCache = array();
-    private static $_filetypes;
-
+abstract class HyperLanguage
+{
     /**
      * Indices for information.
      */
@@ -220,6 +219,16 @@ abstract class HyperLanguage {
     const AUTHOR = 10;
     const WEBSITE = 5;
     const EMAIL = 6;
+    private static $_languageCache = array();
+    private static $_compiledLanguageCache = array();
+    private static $_filetypes;
+    private $_states = array();
+    private $_rules = array();
+    private $_mappings = array();
+    private $_info = array();
+    private $_extensions = array();
+    private $_caseInsensitive = false;
+    private $_postProcessors = array();
 
     /**
      * Retrieves a language definition name based on a file extension.
@@ -233,7 +242,8 @@ abstract class HyperLanguage {
      * @param string $ext the file name extension.
      * @return string The language definition name or <var>NULL</var>.
      */
-    public static function nameFromExt($ext) {
+    public static function nameFromExt($ext)
+    {
         if (self::$_filetypes === null) {
             $ft_content = file('languages/filetypes', 1);
 
@@ -249,26 +259,44 @@ abstract class HyperLanguage {
         $ext = strtolower($ext);
         return
             array_key_exists($ext, self::$_filetypes) ?
-            self::$_filetypes[strtolower($ext)] : null;
+                self::$_filetypes[strtolower($ext)] : null;
     }
 
-    public static function compile(HyperLanguage $lang) {
+    public static function compileFromName($lang)
+    {
+        return self::compile(self::fromName($lang));
+    }
+
+    public static function compile(HyperLanguage $lang)
+    {
         $id = $lang->id();
         if (!isset(self::$_compiledLanguageCache[$id]))
             self::$_compiledLanguageCache[$id] = $lang->makeCompiledLanguage();
         return self::$_compiledLanguageCache[$id];
     }
 
-    public static function compileFromName($lang) {
-        return self::compile(self::fromName($lang));
+    public function id()
+    {
+        $klass = get_class($this);
+        return strtolower(substr($klass, 0, strlen($klass) - strlen('Language')));
     }
 
-    protected static function exists($lang) {
-        return isset(self::$_languageCache[$lang]) or
-               file_exists("languages/$lang.php");
+    private function makeCompiledLanguage()
+    {
+        return new HyperlightCompiledLanguage(
+            $this->id(),
+            $this->_info,
+            $this->_extensions,
+            $this->_states,
+            $this->_rules,
+            $this->_mappings,
+            $this->_caseInsensitive,
+            $this->_postProcessors
+        );
     }
 
-    protected static function fromName($lang) {
+    protected static function fromName($lang)
+    {
         if (!isset(self::$_languageCache[$lang])) {
             require_once("languages/$lang.php");
             $klass = ucfirst("{$lang}Language");
@@ -277,62 +305,81 @@ abstract class HyperLanguage {
         return self::$_languageCache[$lang];
     }
 
-    public function id() {
-        $klass = get_class($this);
-        return strtolower(substr($klass, 0, strlen($klass) - strlen('Language')));
+    protected static function exists($lang)
+    {
+        return isset(self::$_languageCache[$lang]) or
+            file_exists("languages/$lang.php");
     }
 
-    protected function setCaseInsensitive($value) {
+    protected function setCaseInsensitive($value)
+    {
         $this->_caseInsensitive = $value;
     }
 
-    protected function addStates(array $states) {
+    protected function addStates(array $states)
+    {
         $this->_states = self::mergeProperties($this->_states, $states);
     }
 
-    protected function getState($key) {
+    private static function mergeProperties(array $old, array $new)
+    {
+        foreach ($new as $key => $value) {
+            if (is_string($key)) {
+                if (isset($old[$key]) and is_array($old[$key]))
+                    $old[$key] = array_merge($old[$key], $new);
+                else
+                    $old[$key] = $value;
+            } else
+                $old[] = $value;
+        }
+
+        return $old;
+    }
+
+    protected function getState($key)
+    {
         return $this->_states[$key];
     }
 
-    protected function removeState($key) {
+    protected function removeState($key)
+    {
         unset($this->_states[$key]);
     }
 
-    protected function addRules(array $rules) {
+    protected function addRules(array $rules)
+    {
         $this->_rules = self::mergeProperties($this->_rules, $rules);
     }
 
-    protected function getRule($key) {
+    protected function getRule($key)
+    {
         return $this->_rules[$key];
     }
 
-    protected function removeRule($key) {
+    protected function removeRule($key)
+    {
         unset($this->_rules[$key]);
     }
 
-    protected function addMappings(array $mappings) {
+    protected function addMappings(array $mappings)
+    {
         // TODO Implement nested mappings.
         $this->_mappings = array_merge($this->_mappings, $mappings);
     }
 
-    protected function getMapping($key) {
+    protected function getMapping($key)
+    {
         return $this->_mappings[$key];
     }
 
-    protected function removeMapping($key) {
+    protected function removeMapping($key)
+    {
         unset($this->_mappings[$key]);
     }
 
-    protected function setInfo(array $info) {
+    protected function setInfo(array $info)
+    {
         $this->_info = $info;
-    }
-
-    protected function setExtensions(array $extensions) {
-        $this->_extensions = $extensions;
-    }
-
-    protected function addPostprocessing($rule, HyperLanguage $language) {
-        $this->_postProcessors[$rule] = $language;
     }
 
 //    protected function addNestedLanguage(HyperLanguage $language, $hoistBackRules) {
@@ -418,36 +465,19 @@ abstract class HyperLanguage {
 //        return $prefix . 'init';
 //    }
 
-    private function makeCompiledLanguage() {
-        return new HyperlightCompiledLanguage(
-            $this->id(),
-            $this->_info,
-            $this->_extensions,
-            $this->_states,
-            $this->_rules,
-            $this->_mappings,
-            $this->_caseInsensitive,
-            $this->_postProcessors
-        );
+    protected function setExtensions(array $extensions)
+    {
+        $this->_extensions = $extensions;
     }
 
-    private static function mergeProperties(array $old, array $new) {
-        foreach ($new as $key => $value) {
-            if (is_string($key)) {
-                if (isset($old[$key]) and is_array($old[$key]))
-                    $old[$key] = array_merge($old[$key], $new);
-                else
-                    $old[$key] = $value;
-            }
-            else
-                $old[] = $value;
-        }
-
-        return $old;
+    protected function addPostprocessing($rule, HyperLanguage $language)
+    {
+        $this->_postProcessors[$rule] = $language;
     }
 }
 
-class HyperlightCompiledLanguage {
+class HyperlightCompiledLanguage
+{
     private $_id;
     private $_info;
     private $_extensions;
@@ -457,7 +487,8 @@ class HyperlightCompiledLanguage {
     private $_caseInsensitive;
     private $_postProcessors = array();
 
-    public function __construct($id, $info, $extensions, $states, $rules, $mappings, $caseInsensitive, $postProcessors) {
+    public function __construct($id, $info, $extensions, $states, $rules, $mappings, $caseInsensitive, $postProcessors)
+    {
         $this->_id = $id;
         $this->_info = $info;
         $this->_extensions = $extensions;
@@ -470,85 +501,8 @@ class HyperlightCompiledLanguage {
             $this->_postProcessors[$ppkey] = HyperLanguage::compile($ppvalue);
     }
 
-    public function id() {
-        return $this->_id;
-    }
-
-    public function name() {
-        return $this->_info[HyperLanguage::NAME];
-    }
-
-    public function authorName() {
-        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info))
-            return null;
-        $author = $this->_info[HyperLanguage::AUTHOR];
-        if (is_string($author))
-            return $author;
-        if (!array_key_exists(HyperLanguage::NAME, $author))
-            return null;
-        return $author[HyperLanguage::NAME];
-    }
-
-    public function authorWebsite() {
-        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info) or
-            !is_array($this->_info[HyperLanguage::AUTHOR]) or
-            !array_key_exists(HyperLanguage::WEBSITE, $this->_info[HyperLanguage::AUTHOR]))
-            return null;
-        return $this->_info[HyperLanguage::AUTHOR][HyperLanguage::WEBSITE];
-    }
-
-    public function authorEmail() {
-        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info) or
-            !is_array($this->_info[HyperLanguage::AUTHOR]) or
-            !array_key_exists(HyperLanguage::EMAIL, $this->_info[HyperLanguage::AUTHOR]))
-            return null;
-        return $this->_info[HyperLanguage::AUTHOR][HyperLanguage::EMAIL];
-    }
-
-    public function authorContact() {
-        $email = $this->authorEmail();
-        return $email !== null ? $email : $this->authorWebsite();
-    }
-
-    public function extensions() {
-        return $this->_extensions;
-    }
-
-    public function state($stateName) {
-        return $this->_states[$stateName];
-    }
-
-    public function rule($ruleName) {
-        return $this->_rules[$ruleName];
-    }
-
-    public function className($state) {
-        if (array_key_exists($state, $this->_mappings))
-            return $this->_mappings[$state];
-        else if (strstr($state, ' ') === false)
-            // No mapping for state.
-            return $state;
-        else {
-            // Try mapping parts of nested state name.
-            $parts = explode(' ', $state);
-            $ret = array();
-
-            foreach ($parts as $part) {
-                if (array_key_exists($part, $this->_mappings))
-                    $ret[] = $this->_mappings[$part];
-                else
-                    $ret[] = $part;
-            }
-
-            return implode(' ', $ret);
-        }
-    }
-
-    public function postProcessors() {
-        return $this->_postProcessors;
-    }
-
-    private function compileStates($states) {
+    private function compileStates($states)
+    {
         $ret = array();
 
         foreach ($states as $name => $state) {
@@ -570,8 +524,7 @@ class HyperlightCompiledLanguage {
                         else
                             $newstate[] = "$key $el2";
                     }
-                }
-                else
+                } else
                     $newstate[] = $elem;
             }
 
@@ -581,7 +534,8 @@ class HyperlightCompiledLanguage {
         return $ret;
     }
 
-    private function compileRules($rules) {
+    private function compileRules($rules)
+    {
         $tmp = array();
 
         // Preprocess keyword list and flatten nested lists:
@@ -603,14 +557,12 @@ class HyperlightCompiledLanguage {
                         else
                             $tmp["$name $key"] = $value;
                     }
-                }
-                else {
+                } else {
                     // Array represents a list of keywords.
                     $rule = '/\b(?:' . implode('|', $rule) . $end;
                     $tmp[$name] = $rule;
                 }
-            }
-            else {
+            } else {
                 $tmp[$name] = $rule;
             } // if (is_array($rule))
         } // foreach
@@ -641,22 +593,114 @@ class HyperlightCompiledLanguage {
         return $ret;
     }
 
-    private static function isAssocArray(array $array) {
-        foreach($array as $key => $_)
+    private static function isAssocArray(array $array)
+    {
+        foreach ($array as $key => $_)
             if (is_string($key))
                 return true;
         return false;
     }
+
+    public function id()
+    {
+        return $this->_id;
+    }
+
+    public function name()
+    {
+        return $this->_info[HyperLanguage::NAME];
+    }
+
+    public function authorName()
+    {
+        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info))
+            return null;
+        $author = $this->_info[HyperLanguage::AUTHOR];
+        if (is_string($author))
+            return $author;
+        if (!array_key_exists(HyperLanguage::NAME, $author))
+            return null;
+        return $author[HyperLanguage::NAME];
+    }
+
+    public function authorContact()
+    {
+        $email = $this->authorEmail();
+        return $email !== null ? $email : $this->authorWebsite();
+    }
+
+    public function authorEmail()
+    {
+        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info) or
+            !is_array($this->_info[HyperLanguage::AUTHOR]) or
+            !array_key_exists(HyperLanguage::EMAIL, $this->_info[HyperLanguage::AUTHOR]))
+            return null;
+        return $this->_info[HyperLanguage::AUTHOR][HyperLanguage::EMAIL];
+    }
+
+    public function authorWebsite()
+    {
+        if (!array_key_exists(HyperLanguage::AUTHOR, $this->_info) or
+            !is_array($this->_info[HyperLanguage::AUTHOR]) or
+            !array_key_exists(HyperLanguage::WEBSITE, $this->_info[HyperLanguage::AUTHOR]))
+            return null;
+        return $this->_info[HyperLanguage::AUTHOR][HyperLanguage::WEBSITE];
+    }
+
+    public function extensions()
+    {
+        return $this->_extensions;
+    }
+
+    public function state($stateName)
+    {
+        return $this->_states[$stateName];
+    }
+
+    public function rule($ruleName)
+    {
+        return $this->_rules[$ruleName];
+    }
+
+    public function className($state)
+    {
+        if (array_key_exists($state, $this->_mappings))
+            return $this->_mappings[$state];
+        else if (strstr($state, ' ') === false)
+            // No mapping for state.
+            return $state;
+        else {
+            // Try mapping parts of nested state name.
+            $parts = explode(' ', $state);
+            $ret = array();
+
+            foreach ($parts as $part) {
+                if (array_key_exists($part, $this->_mappings))
+                    $ret[] = $this->_mappings[$part];
+                else
+                    $ret[] = $part;
+            }
+
+            return implode(' ', $ret);
+        }
+    }
+
+    public function postProcessors()
+    {
+        return $this->_postProcessors;
+    }
 }
 
-class Hyperlight {
+class Hyperlight
+{
     private $_lang;
     private $_result;
     private $_states;
     private $_omitSpans;
     private $_postProcessors = array();
 
-    public function __construct($lang) {
+    public function __construct($lang)
+    {
         if (is_string($lang))
             $this->_lang = HyperLanguage::compileFromName(strtolower($lang));
         else if ($lang instanceof HyperlightCompiledLanguage)
@@ -675,28 +719,32 @@ class Hyperlight {
         $this->reset();
     }
 
-    public function language() {
-        return $this->_lang;
-    }
-
-    public function reset() {
+    public function reset()
+    {
         $this->_states = array('init');
         $this->_omitSpans = array();
     }
 
-    public function render($code) {
+    public function renderAndPrint($code)
+    {
+        echo $this->render($code);
+    }
+
+    public function render($code)
+    {
         // Normalize line breaks.
         $this->_code = preg_replace('/\r\n?/', "\n", $code);
         $fm = hyperlight_calculate_fold_marks($this->_code, $this->language()->id());
         return hyperlight_apply_fold_marks($this->renderCode(), $fm);
     }
 
-    public function renderAndPrint($code) {
-        echo $this->render($code);
+    public function language()
+    {
+        return $this->_lang;
     }
 
-
-    private function renderCode() {
+    private function renderCode()
+    {
         $code = $this->_code;
         $pos = 0;
         $len = strlen($code);
@@ -788,21 +836,19 @@ class Hyperlight {
                 $lastState = array_pop($this->_states);
                 $state = array_peek($this->_states);
                 $this->emitPop($closest_hit[0], $lastState);
-            }
-            else if (array_key_exists($closest_rule, $this->_lang->rule($state))) {
+            } else if (array_key_exists($closest_rule, $this->_lang->rule($state))) {
                 // Push state.
                 array_push($this->_states, $closest_rule);
                 $state = $closest_rule;
                 $this->emitPartial($closest_hit[0], $closest_rule);
-            }
-            else
+            } else
                 $this->emit($closest_hit[0], $closest_rule);
         } // while ($pos < $len)
 
         // Close any tags that are still open (can happen in incomplete code
         // fragments that don't necessarily signify an error (consider PHP
         // embedded in HTML, or a C++ preprocessor code not ending on newline).
-        
+
         $omitSpansBackup = $this->_omitSpans;
         for ($i = count($this->_states); $i > 1; --$i)
             $this->emitPop();
@@ -811,7 +857,13 @@ class Hyperlight {
         return $this->_result;
     }
 
-    private function matchIfCloser($expr, $next, $pos, &$closest_hit, &$closest_rule) {
+    private function write($text)
+    {
+        $this->_result .= $text;
+    }
+
+    private function matchIfCloser($expr, $next, $pos, &$closest_hit, &$closest_rule)
+    {
         $matches = array();
         if (preg_match($expr, $this->_code, $matches, PREG_OFFSET_CAPTURE, $pos) == 1) {
             if (
@@ -829,18 +881,8 @@ class Hyperlight {
         }
     }
 
-    private function processToken($token) {
-        if ($token === '')
-            return '';
-        $nest_lang = array_peek($this->_states);
-        if (array_key_exists($nest_lang, $this->_postProcessors))
-            return $this->_postProcessors[$nest_lang]->render($token);
-        else
-            #return self::htmlentities($token);
-            return htmlspecialchars($token, ENT_NOQUOTES);
-    }
-
-    private function emit($token, $class = '') {
+    private function emit($token, $class = '')
+    {
         $token = $this->processToken($token);
         if ($token === '')
             return;
@@ -851,21 +893,34 @@ class Hyperlight {
             $this->write("<span class=\"$class\">$token</span>");
     }
 
-    private function emitPartial($token, $class) {
+    private function processToken($token)
+    {
+        if ($token === '')
+            return '';
+        $nest_lang = array_peek($this->_states);
+        if (array_key_exists($nest_lang, $this->_postProcessors))
+            return $this->_postProcessors[$nest_lang]->render($token);
+        else
+            #return self::htmlentities($token);
+            return htmlspecialchars($token, ENT_NOQUOTES);
+    }
+
+    private function emitPartial($token, $class)
+    {
         $token = $this->processToken($token);
         $class = $this->_lang->className($class);
         if ($class === '') {
             if ($token !== '')
                 $this->write($token);
             array_push($this->_omitSpans, true);
-        }
-        else {
+        } else {
             $this->write("<span class=\"$class\">$token");
             array_push($this->_omitSpans, false);
         }
     }
 
-    private function emitPop($token = '', $class = '') {
+    private function emitPop($token = '', $class = '')
+    {
         $token = $this->processToken($token);
         if (array_pop($this->_omitSpans))
             $this->write($token);
@@ -873,11 +928,7 @@ class Hyperlight {
             $this->write("$token</span>");
     }
 
-    private function write($text) {
-        $this->_result .= $text;
-    }
-
-//      // DAMN! What did I need them for? Something to do with encoding …
+//      // DAMN! What did I need them for? Something to do with encoding ï¿½
 //      // but why not use the `$charset` argument on `htmlspecialchars`?
 //    private static function htmlentitiesCallback($match) {
 //        switch ($match[0]) {
@@ -915,7 +966,8 @@ class Hyperlight {
  *          behaviour will be assumed if the third argument is an array.
  *          Attributes must be given as a hash of key value pairs.
  */
-function hyperlight($code, $lang, $tag = 'pre', array $attributes = array()) {
+function hyperlight($code, $lang, $tag = 'pre', array $attributes = array())
+{
     if ($code == '')
         die("`hyperlight` needs a code to work on!");
     if ($lang == '')
@@ -937,7 +989,7 @@ function hyperlight($code, $lang, $tag = 'pre', array $attributes = array()) {
             $class .= ' ' . htmlspecialchars($value);
         else
             $attr[] = htmlspecialchars($key) . '="' .
-                      htmlspecialchars($value) . '"';
+                htmlspecialchars($value) . '"';
     }
 
     $attr = empty($attr) ? '' : ' ' . implode(' ', $attr);
@@ -955,7 +1007,8 @@ function hyperlight($code, $lang, $tag = 'pre', array $attributes = array()) {
  * </code>
  * @see hyperlight()
  */
-function hyperlight_file($filename, $lang = null, $tag = 'pre', array $attributes = array()) {
+function hyperlight_file($filename, $lang = null, $tag = 'pre', array $attributes = array())
+{
     if ($lang == '') {
         // Try to guess it from file extension.
         $pos = strrpos($filename, '.');
@@ -968,17 +1021,21 @@ function hyperlight_file($filename, $lang = null, $tag = 'pre', array $attribute
 }
 
 if (defined('HYPERLIGHT_SHORTCUT')) {
-    function hy() {
+    function hy()
+    {
         $args = func_get_args();
         call_user_func_array('hyperlight', $args);
     }
-    function hyf() {
+
+    function hyf()
+    {
         $args = func_get_args();
         call_user_func_array('hyperlight_file', $args);
     }
 }
 
-function hyperlight_calculate_fold_marks($code, $lang) {
+function hyperlight_calculate_fold_marks($code, $lang)
+{
     $supporting_languages = array('csharp', 'vb');
 
     if (!in_array($lang, $supporting_languages))
@@ -1015,7 +1072,8 @@ function hyperlight_calculate_fold_marks($code, $lang) {
     return $ret;
 }
 
-function hyperlight_apply_fold_marks($code, array $fold_marks) {
+function hyperlight_apply_fold_marks($code, array $fold_marks)
+{
     if ($fold_marks === null or count($fold_marks) === 0)
         return $code;
 

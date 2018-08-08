@@ -1,198 +1,215 @@
 <?php
+
 namespace openbay;
 
-class fba {
-	private $api_key;
-	private $api_account_id;
-	private $url = 'https://api.openbaypro.io/';
-	private $registry;
+class fba
+{
+    private $api_key;
+    private $api_account_id;
+    private $url = 'https://api.openbaypro.io/';
+    private $registry;
 
-	private $logging = 1;
-	private $logging_verbose = 1;
-	private $max_log_size = 50;
+    private $logging = 1;
+    private $logging_verbose = 1;
+    private $max_log_size = 50;
 
-	/**
-	 * Status IDs =
-	 * 0 = new
-	 * 1 = error
-	 * 2 = held
-	 * 3 = shipped
-	 * 4 = cancelled
-	 */
+    /**
+     * Status IDs =
+     * 0 = new
+     * 1 = error
+     * 2 = held
+     * 3 = shipped
+     * 4 = cancelled
+     */
 
-	/**
-	 * Type IDs =
-	 * 0 = new
-	 * 1 = shipping
-	 * 2 = cancel
-	 */
+    /**
+     * Type IDs =
+     * 0 = new
+     * 1 = shipping
+     * 2 = cancel
+     */
 
-	public function __construct($registry) {
-		$this->registry = $registry;
+    public function __construct($registry)
+    {
+        $this->registry = $registry;
 
-		$this->api_key = $this->config->get('openbay_fba_api_key');
-		$this->api_account_id = $this->config->get('openbay_fba_api_account_id');
-		$this->logging = $this->config->get('openbay_fba_debug_log');
+        $this->api_key = $this->config->get('openbay_fba_api_key');
+        $this->api_account_id = $this->config->get('openbay_fba_api_account_id');
+        $this->logging = $this->config->get('openbay_fba_debug_log');
 
-		$this->setLogger();
-	}
+        $this->setLogger();
+    }
 
-	public function __get($name) {
-		return $this->registry->get($name);
-	}
+    private function setLogger()
+    {
+        if (file_exists(DIR_LOGS . 'fulfillment_by_amazon.log')) {
+            if (filesize(DIR_LOGS . 'fulfillment_by_amazon.log') > ($this->max_log_size * 1000000)) {
+                rename(DIR_LOGS . 'fulfillment_by_amazon.log', DIR_LOGS . '_fulfillment_by_amazon_' . date('Y-m-d_H-i-s') . '.log');
+            }
+        }
 
-	public function setApiKey($api_key) {
-		$this->api_key = $api_key;
-	}
+        $this->logger = new \Log('fulfillment_by_amazon.log');
+    }
 
-	public function setAccountId($api_account_id) {
-		$this->api_account_id = $api_account_id;
-	}
+    public function __get($name)
+    {
+        return $this->registry->get($name);
+    }
 
-	public function call($uri, $data = array(), $request_type = 'GET') {
-		$this->log("Request: " . $request_type . " : " . $this->url . $uri);
+    public function setApiKey($api_key)
+    {
+        $this->api_key = $api_key;
+    }
 
-		$headers = array();
-		$headers[] = 'X-Auth-Token: ' . $this->api_key;
-		$headers[] = 'Content-Type: application/json';
-		$headers[] = 'X-Account-ID: ' . $this->api_account_id;
+    public function setAccountId($api_account_id)
+    {
+        $this->api_account_id = $api_account_id;
+    }
 
-		$defaults = array(
-			CURLOPT_HTTPHEADER      => $headers,
-			CURLOPT_URL             => $this->url . $uri,
-			CURLOPT_USERAGENT       => 'OpenBay Pro for Fulfillment by Amazon',
-			CURLOPT_FRESH_CONNECT   => 1,
-			CURLOPT_RETURNTRANSFER  => 1,
-			CURLOPT_FORBID_REUSE    => 1,
-			CURLOPT_TIMEOUT         => 30,
-			CURLOPT_SSL_VERIFYPEER  => 0,
-			CURLOPT_SSL_VERIFYHOST  => 0,
-		);
+    public function call($uri, $data = array(), $request_type = 'GET')
+    {
+        $this->log("Request: " . $request_type . " : " . $this->url . $uri);
 
-		if ($this->logging_verbose == 1) {
-			$defaults[CURLOPT_VERBOSE] = 1;
-			$defaults[CURLOPT_STDERR] = fopen(DIR_LOGS . 'fba_verbose.log', "a+");
-		}
+        $headers = array();
+        $headers[] = 'X-Auth-Token: ' . $this->api_key;
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'X-Account-ID: ' . $this->api_account_id;
 
-		if ($request_type == "POST") {
-			$this->log('Request body:');
-			$this->log(print_r($data, true));
-			$defaults[CURLOPT_POST] = json_encode($data);
-			$defaults[CURLOPT_POSTFIELDS] = json_encode($data);
-		} else {
-			$defaults[CURLOPT_CUSTOMREQUEST] = "GET";
-		}
+        $defaults = array(
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_URL => $this->url . $uri,
+            CURLOPT_USERAGENT => 'OpenBay Pro for Fulfillment by Amazon',
+            CURLOPT_FRESH_CONNECT => 1,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_FORBID_REUSE => 1,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 0,
+        );
 
-		$ch = curl_init();
+        if ($this->logging_verbose == 1) {
+            $defaults[CURLOPT_VERBOSE] = 1;
+            $defaults[CURLOPT_STDERR] = fopen(DIR_LOGS . 'fba_verbose.log', "a+");
+        }
 
-		curl_setopt_array($ch, $defaults);
+        if ($request_type == "POST") {
+            $this->log('Request body:');
+            $this->log(print_r($data, true));
+            $defaults[CURLOPT_POST] = json_encode($data);
+            $defaults[CURLOPT_POSTFIELDS] = json_encode($data);
+        } else {
+            $defaults[CURLOPT_CUSTOMREQUEST] = "GET";
+        }
 
-		$result = curl_exec($ch);
+        $ch = curl_init();
 
-		if (!$result) {
-			$this->log('call() - Curl Failed ' . curl_error($ch) . ' ' . curl_errno($ch));
+        curl_setopt_array($ch, $defaults);
 
-			$response = array('error' => true, 'error_messages' => array(curl_error($ch) . ' ' . curl_errno($ch)), 'body' => null, 'response_http' => 0);
-		} else {
-			$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $result = curl_exec($ch);
 
-			$this->log("Response: " . $http_code . " : " . strlen($result) . " bytes");
+        if (!$result) {
+            $this->log('call() - Curl Failed ' . curl_error($ch) . ' ' . curl_errno($ch));
 
-			$encoding = mb_detect_encoding($result);
+            $response = array('error' => true, 'error_messages' => array(curl_error($ch) . ' ' . curl_errno($ch)), 'body' => null, 'response_http' => 0);
+        } else {
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-			if ($encoding == 'UTF-8') {
-				$result = preg_replace('/[^(\x20-\x7F)]*/', '', $result);
-			}
+            $this->log("Response: " . $http_code . " : " . strlen($result) . " bytes");
 
-			$result_parsed = json_decode($result, 1);
+            $encoding = mb_detect_encoding($result);
 
-			$this->log('Raw json response:');
-			$this->log($result);
+            if ($encoding == 'UTF-8') {
+                $result = preg_replace('/[^(\x20-\x7F)]*/', '', $result);
+            }
 
-			$this->log('Parsed response:');
-			$this->log(print_r($result_parsed, true));
+            $result_parsed = json_decode($result, 1);
 
-			$response = array(
-				'error' => false,
-				'error_messages' => array(),
-				'body' => (isset($result_parsed['result']) ? $result_parsed['result'] : ''),
-				'response_http' => $http_code
-			);
+            $this->log('Raw json response:');
+            $this->log($result);
 
-			if (isset($result_parsed['errors']) && !empty($result_parsed['errors'])) {
-				$response['error'] = true;
-				$response['error_messages'] = $result_parsed['errors'];
-			}
-		}
+            $this->log('Parsed response:');
+            $this->log(print_r($result_parsed, true));
 
-		curl_close($ch);
+            $response = array(
+                'error' => false,
+                'error_messages' => array(),
+                'body' => (isset($result_parsed['result']) ? $result_parsed['result'] : ''),
+                'response_http' => $http_code
+            );
 
-		return $response;
-	}
+            if (isset($result_parsed['errors']) && !empty($result_parsed['errors'])) {
+                $response['error'] = true;
+                $response['error_messages'] = $result_parsed['errors'];
+            }
+        }
 
-	public function getServerUrl() {
-		return $this->url;
-	}
+        curl_close($ch);
 
-	public function validate() {
-		if ($this->config->get('openbay_fba_api_key') && $this->config->get('openbay_fba_api_account_id')) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+        return $response;
+    }
 
-	private function setLogger() {
-		if(file_exists(DIR_LOGS . 'fulfillment_by_amazon.log')) {
-			if(filesize(DIR_LOGS . 'fulfillment_by_amazon.log') > ($this->max_log_size * 1000000)) {
-				rename(DIR_LOGS . 'fulfillment_by_amazon.log', DIR_LOGS . '_fulfillment_by_amazon_' . date('Y-m-d_H-i-s') . '.log');
-			}
-		}
+    public function log($data)
+    {
+        if (function_exists('getmypid')) {
+            $process_id = getmypid();
+            $data = $process_id . ' - ' . $data;
+        }
 
-		$this->logger = new \Log('fulfillment_by_amazon.log');
-	}
+        if ($this->logging == 1) {
+            $this->logger->write($data);
+        }
+    }
 
-	public function log($data) {
-		if (function_exists('getmypid')) {
-			$process_id = getmypid();
-			$data = $process_id . ' - ' . $data;
-		}
+    public function getServerUrl()
+    {
+        return $this->url;
+    }
 
-		if ($this->logging == 1) {
-			$this->logger->write($data);
-		}
-	}
+    public function validate()
+    {
+        if ($this->config->get('openbay_fba_api_key') && $this->config->get('openbay_fba_api_account_id')) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	public function createFBAOrderID($order_id) {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "fba_order` SET `order_id` = '" . (int)$order_id . "', `status` = 0, `created` = now()");
+    public function createFBAOrderID($order_id)
+    {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "fba_order` SET `order_id` = '" . (int)$order_id . "', `status` = 0, `created` = now()");
 
-		return $this->db->getLastId();
-	}
+        return $this->db->getLastId();
+    }
 
-	public function updateFBAOrderStatus($order_id, $status_id) {
-		$this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `status` = '" . (int)$status_id . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
-	}
+    public function updateFBAOrderStatus($order_id, $status_id)
+    {
+        $this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `status` = '" . (int)$status_id . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
+    }
 
-	public function updateFBAOrderRef($order_id, $ref) {
-		$this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_ref` = '" . $this->db->escape($ref) . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
-	}
+    public function updateFBAOrderRef($order_id, $ref)
+    {
+        $this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_ref` = '" . $this->db->escape($ref) . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
+    }
 
-	public function updateFBAOrderFulfillmentID($order_id, $fba_order_fulfillment_id) {
-		$this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_id` = '" . (int)$fba_order_fulfillment_id . "' WHERE `order_id` = '" . (int)$order_id . "'");
-	}
+    public function updateFBAOrderFulfillmentID($order_id, $fba_order_fulfillment_id)
+    {
+        $this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_id` = '" . (int)$fba_order_fulfillment_id . "' WHERE `order_id` = '" . (int)$order_id . "'");
+    }
 
-	public function createFBAFulfillmentID($order_id, $type) {
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "fba_order_fulfillment` SET `created` = now(), `order_id` = '" . (int)$order_id . "', `type` = '" . (int)$type . "'");
+    public function createFBAFulfillmentID($order_id, $type)
+    {
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "fba_order_fulfillment` SET `created` = now(), `order_id` = '" . (int)$order_id . "', `type` = '" . (int)$type . "'");
 
-		$id = $this->db->getLastId();
+        $id = $this->db->getLastId();
 
-		$this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_id` = '" . (int)$id . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
+        $this->db->query("UPDATE `" . DB_PREFIX . "fba_order` SET `fba_order_fulfillment_id` = '" . (int)$id . "' WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
 
-		return $id;
-	}
+        return $id;
+    }
 
-	public function populateFBAFulfillment($request_body, $response_body, $header_code, $fba_order_fulfillment_id) {
-		$this->db->query("
+    public function populateFBAFulfillment($request_body, $response_body, $header_code, $fba_order_fulfillment_id)
+    {
+        $this->db->query("
 			UPDATE `" . DB_PREFIX . "fba_order_fulfillment`
 				SET
 					`request_body` = '" . $this->db->escape($request_body) . "',
@@ -202,79 +219,84 @@ class fba {
 					`fba_order_fulfillment_id` = '" . (int)$fba_order_fulfillment_id . "'
 		");
 
-		$insert_id = $this->db->getLastId();
+        $insert_id = $this->db->getLastId();
 
-		return $insert_id;
-	}
+        return $insert_id;
+    }
 
-	public function getFBAOrders($filter) {
-		$sql = "";
+    public function getFBAOrders($filter)
+    {
+        $sql = "";
 
-		// start date filter
-		if (isset($filter['filter_start'])) {
-			$sql .= " AND `created` >= '".$filter['filter_start']."'";
-		}
-		// end date filter
-		if (isset($filter['filter_end'])) {
-			$sql .= " AND `created` <= '".$filter['filter_end']."'";
-		}
-		// status filter
-		if (isset($filter['filter_status'])) {
-			$sql .= " AND `status` = '".$filter['filter_status']."'";
-		}
+        // start date filter
+        if (isset($filter['filter_start'])) {
+            $sql .= " AND `created` >= '" . $filter['filter_start'] . "'";
+        }
+        // end date filter
+        if (isset($filter['filter_end'])) {
+            $sql .= " AND `created` <= '" . $filter['filter_end'] . "'";
+        }
+        // status filter
+        if (isset($filter['filter_status'])) {
+            $sql .= " AND `status` = '" . $filter['filter_status'] . "'";
+        }
 
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE 1 ".$sql." ORDER BY `created` DESC");
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE 1 " . $sql . " ORDER BY `created` DESC");
 
-		if ($query->num_rows == 0) {
-			return false;
-		} else {
-			return $query->rows;
-		}
-	}
+        if ($query->num_rows == 0) {
+            return false;
+        } else {
+            return $query->rows;
+        }
+    }
 
-	public function getFBAOrder($order_id) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
+    public function getFBAOrder($order_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE `order_id` = '" . (int)$order_id . "' LIMIT 1");
 
-		if ($query->num_rows == 0) {
-			return false;
-		} else {
-			$fba_order = $query->row;
-			$fba_order['fulfillments'] = $this->getFBAOrderFulfillments($order_id);
+        if ($query->num_rows == 0) {
+            return false;
+        } else {
+            $fba_order = $query->row;
+            $fba_order['fulfillments'] = $this->getFBAOrderFulfillments($order_id);
 
-			return $fba_order;
-		}
-	}
+            return $fba_order;
+        }
+    }
 
-	public function getFBAOrderByRef($ref) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE `fba_order_fulfillment_ref` = '" . $this->db->escape($ref) . "' LIMIT 1");
+    public function getFBAOrderFulfillments($order_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order_fulfillment` WHERE `order_id` = '" . (int)$order_id . "' ORDER BY `created` DESC");
 
-		if ($query->num_rows == 0) {
-			return false;
-		} else {
-			$fba_order = $query->row;
-			$fba_order['fulfillments'] = $fba_order['order_id'];
+        if ($query->num_rows == 0) {
+            return false;
+        } else {
+            return $query->rows;
+        }
+    }
 
-			return $fba_order;
-		}
-	}
+    public function getFBAOrderByRef($ref)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order` WHERE `fba_order_fulfillment_ref` = '" . $this->db->escape($ref) . "' LIMIT 1");
 
-	public function getFBAOrderFulfillments($order_id) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "fba_order_fulfillment` WHERE `order_id` = '" . (int)$order_id . "' ORDER BY `created` DESC");
+        if ($query->num_rows == 0) {
+            return false;
+        } else {
+            $fba_order = $query->row;
+            $fba_order['fulfillments'] = $fba_order['order_id'];
 
-		if ($query->num_rows == 0) {
-			return false;
-		} else {
-			return $query->rows;
-		}
-	}
+            return $fba_order;
+        }
+    }
 
-	public function hasOrderFBAItems($order_id) {
-		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "order_product` `op` LEFT JOIN `" . DB_PREFIX . "product` `p` ON `op`.`product_id` = `p`.`product_id` WHERE `p`.`location` = 'FBA' AND `op`.`order_id` = '".(int)$order_id."'");
+    public function hasOrderFBAItems($order_id)
+    {
+        $query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "order_product` `op` LEFT JOIN `" . DB_PREFIX . "product` `p` ON `op`.`product_id` = `p`.`product_id` WHERE `p`.`location` = 'FBA' AND `op`.`order_id` = '" . (int)$order_id . "'");
 
-		if ($query->num_rows == 0) {
-			return false;
-		} else {
-			return $query->row['total'];
-		}
-	}
+        if ($query->num_rows == 0) {
+            return false;
+        } else {
+            return $query->row['total'];
+        }
+    }
 }

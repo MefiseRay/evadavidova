@@ -50,9 +50,9 @@ class Twig_Error extends Exception
      *
      * By default, automatic guessing is enabled.
      *
-     * @param string    $message  The error message
-     * @param int       $lineno   The template line where the error occurred
-     * @param string    $filename The template file name where the error occurred
+     * @param string $message The error message
+     * @param int $lineno The template line where the error occurred
+     * @param string $filename The template file name where the error occurred
      * @param Exception $previous The previous exception
      */
     public function __construct($message, $lineno = -1, $filename = null, Exception $previous = null)
@@ -74,132 +74,6 @@ class Twig_Error extends Exception
         $this->rawMessage = $message;
 
         $this->updateRepr();
-    }
-
-    /**
-     * Gets the raw message.
-     *
-     * @return string The raw message
-     */
-    public function getRawMessage()
-    {
-        return $this->rawMessage;
-    }
-
-    /**
-     * Gets the filename where the error occurred.
-     *
-     * @return string The filename
-     */
-    public function getTemplateFile()
-    {
-        return $this->filename;
-    }
-
-    /**
-     * Sets the filename where the error occurred.
-     *
-     * @param string $filename The filename
-     */
-    public function setTemplateFile($filename)
-    {
-        $this->filename = $filename;
-
-        $this->updateRepr();
-    }
-
-    /**
-     * Gets the template line where the error occurred.
-     *
-     * @return int The template line
-     */
-    public function getTemplateLine()
-    {
-        return $this->lineno;
-    }
-
-    /**
-     * Sets the template line where the error occurred.
-     *
-     * @param int $lineno The template line
-     */
-    public function setTemplateLine($lineno)
-    {
-        $this->lineno = $lineno;
-
-        $this->updateRepr();
-    }
-
-    public function guess()
-    {
-        $this->guessTemplateInfo();
-        $this->updateRepr();
-    }
-
-    /**
-     * For PHP < 5.3.0, provides access to the getPrevious() method.
-     *
-     * @param string $method    The method name
-     * @param array  $arguments The parameters to be passed to the method
-     *
-     * @return Exception The previous exception or null
-     *
-     * @throws BadMethodCallException
-     */
-    public function __call($method, $arguments)
-    {
-        if ('getprevious' == strtolower($method)) {
-            return $this->previous;
-        }
-
-        throw new BadMethodCallException(sprintf('Method "Twig_Error::%s()" does not exist.', $method));
-    }
-
-    public function appendMessage($rawMessage)
-    {
-        $this->rawMessage .= $rawMessage;
-        $this->updateRepr();
-    }
-
-    /**
-     * @internal
-     */
-    protected function updateRepr()
-    {
-        $this->message = $this->rawMessage;
-
-        $dot = false;
-        if ('.' === substr($this->message, -1)) {
-            $this->message = substr($this->message, 0, -1);
-            $dot = true;
-        }
-
-        $questionMark = false;
-        if ('?' === substr($this->message, -1)) {
-            $this->message = substr($this->message, 0, -1);
-            $questionMark = true;
-        }
-
-        if ($this->filename) {
-            if (is_string($this->filename) || (is_object($this->filename) && method_exists($this->filename, '__toString'))) {
-                $filename = sprintf('"%s"', $this->filename);
-            } else {
-                $filename = json_encode($this->filename);
-            }
-            $this->message .= sprintf(' in %s', $filename);
-        }
-
-        if ($this->lineno && $this->lineno >= 0) {
-            $this->message .= sprintf(' at line %d', $this->lineno);
-        }
-
-        if ($dot) {
-            $this->message .= '.';
-        }
-
-        if ($questionMark) {
-            $this->message .= '?';
-        }
     }
 
     /**
@@ -268,5 +142,131 @@ class Twig_Error extends Exception
                 }
             }
         }
+    }
+
+    /**
+     * @internal
+     */
+    protected function updateRepr()
+    {
+        $this->message = $this->rawMessage;
+
+        $dot = false;
+        if ('.' === substr($this->message, -1)) {
+            $this->message = substr($this->message, 0, -1);
+            $dot = true;
+        }
+
+        $questionMark = false;
+        if ('?' === substr($this->message, -1)) {
+            $this->message = substr($this->message, 0, -1);
+            $questionMark = true;
+        }
+
+        if ($this->filename) {
+            if (is_string($this->filename) || (is_object($this->filename) && method_exists($this->filename, '__toString'))) {
+                $filename = sprintf('"%s"', $this->filename);
+            } else {
+                $filename = json_encode($this->filename);
+            }
+            $this->message .= sprintf(' in %s', $filename);
+        }
+
+        if ($this->lineno && $this->lineno >= 0) {
+            $this->message .= sprintf(' at line %d', $this->lineno);
+        }
+
+        if ($dot) {
+            $this->message .= '.';
+        }
+
+        if ($questionMark) {
+            $this->message .= '?';
+        }
+    }
+
+    /**
+     * Gets the raw message.
+     *
+     * @return string The raw message
+     */
+    public function getRawMessage()
+    {
+        return $this->rawMessage;
+    }
+
+    /**
+     * Gets the filename where the error occurred.
+     *
+     * @return string The filename
+     */
+    public function getTemplateFile()
+    {
+        return $this->filename;
+    }
+
+    /**
+     * Sets the filename where the error occurred.
+     *
+     * @param string $filename The filename
+     */
+    public function setTemplateFile($filename)
+    {
+        $this->filename = $filename;
+
+        $this->updateRepr();
+    }
+
+    /**
+     * Gets the template line where the error occurred.
+     *
+     * @return int The template line
+     */
+    public function getTemplateLine()
+    {
+        return $this->lineno;
+    }
+
+    /**
+     * Sets the template line where the error occurred.
+     *
+     * @param int $lineno The template line
+     */
+    public function setTemplateLine($lineno)
+    {
+        $this->lineno = $lineno;
+
+        $this->updateRepr();
+    }
+
+    public function guess()
+    {
+        $this->guessTemplateInfo();
+        $this->updateRepr();
+    }
+
+    /**
+     * For PHP < 5.3.0, provides access to the getPrevious() method.
+     *
+     * @param string $method The method name
+     * @param array $arguments The parameters to be passed to the method
+     *
+     * @return Exception The previous exception or null
+     *
+     * @throws BadMethodCallException
+     */
+    public function __call($method, $arguments)
+    {
+        if ('getprevious' == strtolower($method)) {
+            return $this->previous;
+        }
+
+        throw new BadMethodCallException(sprintf('Method "Twig_Error::%s()" does not exist.', $method));
+    }
+
+    public function appendMessage($rawMessage)
+    {
+        $this->rawMessage .= $rawMessage;
+        $this->updateRepr();
     }
 }

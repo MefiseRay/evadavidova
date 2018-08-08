@@ -10,22 +10,26 @@
  * - api calls wrapper
  * - error wrapper
  */
+
 /**
  * Thrown when an API call returns an exception.
  *
  * @author Filip Sobczak <f@digitalinvaders.pl>
  */
-class LastfmException extends Exception {
+class LastfmException extends Exception
+{
     /**
      * The result from the API server that represents the exception information.
      */
     protected $result;
+
     /**
      * Make a new API Exception with the given result.
      *
      * @param Array $result the result from the API server
      */
-    public function __construct($result) {
+    public function __construct($result)
+    {
         $this->result = $result;
         $code = isset($result['error']) ? $result['error'] : 0;
         if (isset($result['message'])) {
@@ -35,20 +39,24 @@ class LastfmException extends Exception {
         }
         parent::__construct($msg, $code);
     }
+
     /**
      * Return the associated result object returned by the API server.
      *
      * @returns Array the result from the API server
      */
-    public function getResult() {
+    public function getResult()
+    {
         return $this->result;
     }
+
     /**
      * To make debugging easier.
      *
      * @returns String the string representation of the error
      */
-    public function __toString() {
+    public function __toString()
+    {
         $str = '';
         if ($this->code != 0) {
             $str .= $this->code . ': ';
@@ -57,18 +65,26 @@ class LastfmException extends Exception {
     }
 }
 
-class LastfmInvalidSessionException extends LastfmException {
-    public function __construct($result) {
+class LastfmInvalidSessionException extends LastfmException
+{
+    public function __construct($result)
+    {
         parent::__construct($result);
     }
 }
+
 /**
  * Provides access to the LastFM platform.
  *
  * @author Filip Sobczak <f@digitalinvaders.pl>
  */
-class LastFM {
+class LastFM
+{
     const VERSION = '0.9';
+    const method_auth = 1;
+    const method_write = 2;
+    const method_get_auth = 3;
+    const method_unknown = 4;
     /**
      * Default options for curl.
      */
@@ -78,38 +94,10 @@ class LastFM {
         CURLOPT_TIMEOUT => 60,
         CURLOPT_USERAGENT => 'lastfm-php-0.9',
     );
-    /**
-     * The Application API Secret.
-     */
-    protected $apiSecret;
-    /**
-     * The Application API Key.
-     */
-    protected $apiKey;
-    /**
-     * The active user session key, if one is available.
-     */
-    protected $sk;
     public static $DOMAIN_MAP = array(
         'www' => 'https://www.last.fm/',
         'webservice' => 'https://ws.audioscrobbler.com/2.0/',
     );
-    const method_auth = 1;
-    const method_write = 2;
-    const method_get_auth = 3;
-    const method_unknown = 4;
-    /*
-     * Some methods require authentication (type auth),
-     * they all send api_sig and sk
-     * some methods are used to get authenticated (type get_auth)
-     * they all send api_sig
-     * some methods are used to write data (type write)
-     * they all send api_sig and sk, and use POST http method
-     * 
-     * All letters are small because users might use 
-     * variations of letter sizes, and we need to 
-     * find these values fast, so strtolower is executed on method name.
-     */
     public static $METHOD_TYPE =
         array(
             'auth.getmobilesession' => self::method_get_auth,
@@ -154,11 +142,37 @@ class LastFM {
             'user.shout' => self::method_write,
         );
     /**
+     * The Application API Secret.
+     */
+    protected $apiSecret;
+    /**
+     * The Application API Key.
+     */
+    protected $apiKey;
+    /*
+     * Some methods require authentication (type auth),
+     * they all send api_sig and sk
+     * some methods are used to get authenticated (type get_auth)
+     * they all send api_sig
+     * some methods are used to write data (type write)
+     * they all send api_sig and sk, and use POST http method
+     * 
+     * All letters are small because users might use 
+     * variations of letter sizes, and we need to 
+     * find these values fast, so strtolower is executed on method name.
+     */
+    /**
+     * The active user session key, if one is available.
+     */
+    protected $sk;
+
+    /**
      * Initialize LastFM application.
      *
      * @param type $config configuration
      */
-    public function __construct($config) {
+    public function __construct($config)
+    {
 //$this->setAppId($config['appId']);
         $this->setApiKey($config['api_key']);
         $this->setApiSecret($config['api_secret']);
@@ -166,34 +180,13 @@ class LastFM {
             $this->setSessionKey($config['sk']);
         }
     }
-    public function setApiSecret($apiSecret) {
-        $this->apiSecret = $apiSecret;
-        return $this;
-    }
-    public function getApiSecret() {
-        return $this->apiSecret;
-    }
-    public function setApiKey($apiKey) {
-        $this->apiKey = $apiKey;
-        return $this;
-    }
-    public function getApiKey() {
-        return $this->apiKey;
-    }
-    public function setSessionKey($sk) {
+
+    public function setSessionKey($sk)
+    {
         $this->sk = $sk;
         return $this;
     }
-    public function getSessionKey() {
-        return $this->sk;
-    }
-    private function methodType($method) {
-        if (isset(self::$METHOD_TYPE[strtolower($method)])) {
-            return self::$METHOD_TYPE[strtolower($method)];
-        } else {
-            return self::method_unknown;
-        }
-    }
+
     /**
      * Get a Login URL for use with redirects.
      *
@@ -203,16 +196,53 @@ class LastFM {
      * @param Array $callback override default redirect
      * @return String the URL for the login flow
      */
-    public function getLoginUrl($callback=array()) {
+    public function getLoginUrl($callback = array())
+    {
         $params = array('api_key' => $this->getApiKey());
         if ($callback)
             $params['cb'] = $callback;
         return $this->getUrl('www', 'api/auth', $params);
     }
+
+    public function getApiKey()
+    {
+        return $this->apiKey;
+    }
+
+    public function setApiKey($apiKey)
+    {
+        $this->apiKey = $apiKey;
+        return $this;
+    }
+
+    /**
+     * Build the URL for given domain alias, path and parameters.
+     *
+     * @param $name String the name of the domain
+     * @param $path String optional path (without a leading slash)
+     * @param $params Array optional query parameters
+     * @return String the URL for the given parameters
+     */
+    protected function getUrl($name, $path = '', $params = array())
+    {
+        $url = self::$DOMAIN_MAP[$name];
+        if ($path) {
+            if ($path[0] === '/') {
+                $path = substr($path, 1);
+            }
+            $url .= $path;
+        }
+        if ($params) {
+            $url .= '?' . http_build_query($params, null, '&');
+        }
+        return $url;
+    }
+
     /**
      * @param type $token 32-char ASCII MD5 hash, gained by granting permissions
      */
-    public function fetchSession($token = '') {
+    public function fetchSession($token = '')
+    {
         if (!$token) {
             if (isset($_GET['token']))
                 $token = $_GET['token'];
@@ -226,6 +256,7 @@ class LastFM {
 
         return array('name' => $name, 'sk' => $sessionKey);
     }
+
     /**
      * Make an API call
      *
@@ -233,7 +264,8 @@ class LastFM {
      * @return the decoded response object
      * @throws LastFMApiException
      */
-    public function api($method, $params = array()) {
+    public function api($method, $params = array())
+    {
         // generic application level parameters
         $params['api_key'] = $this->getApiKey();
         $params['format'] = 'json';
@@ -268,6 +300,52 @@ class LastFM {
         }
         return $result;
     }
+
+    private function methodType($method)
+    {
+        if (isset(self::$METHOD_TYPE[strtolower($method)])) {
+            return self::$METHOD_TYPE[strtolower($method)];
+        } else {
+            return self::method_unknown;
+        }
+    }
+
+    public function getSessionKey()
+    {
+        return $this->sk;
+    }
+
+    /**
+     * Generate a signature for the given params and secret.
+     *
+     * @param Array $params the parameters to sign
+     * @return String the generated signature
+     */
+    protected function generateSignature($params)
+    {
+        // work with sorted data
+        ksort($params);
+        $base_string = '';
+        foreach ($params as $key => $value) {
+            if ($key == 'format' || $key == 'callback')
+                continue;
+            $base_string .= $key . $value;
+        }
+        $base_string .= $this->getApiSecret();
+        return md5(utf8_encode($base_string));
+    }
+
+    public function getApiSecret()
+    {
+        return $this->apiSecret;
+    }
+
+    public function setApiSecret($apiSecret)
+    {
+        $this->apiSecret = $apiSecret;
+        return $this;
+    }
+
     /**
      * Makes an HTTP request.
      *
@@ -275,7 +353,8 @@ class LastFM {
      * @param Array $params the parameters to use for the POST body
      * @return String the response text
      */
-    protected function makeRequest($url, $params) {
+    protected function makeRequest($url, $params)
+    {
         $ch = curl_init();
         $opts = self::$CURL_OPTS;
         $opts[CURLOPT_POSTFIELDS] = http_build_query($params, null, '&');
@@ -296,44 +375,5 @@ class LastFM {
         }
         curl_close($ch);
         return $result;
-    }
-    /**
-     * Build the URL for given domain alias, path and parameters.
-     *
-     * @param $name String the name of the domain
-     * @param $path String optional path (without a leading slash)
-     * @param $params Array optional query parameters
-     * @return String the URL for the given parameters
-     */
-    protected function getUrl($name, $path='', $params=array()) {
-        $url = self::$DOMAIN_MAP[$name];
-        if ($path) {
-            if ($path[0] === '/') {
-                $path = substr($path, 1);
-            }
-            $url .= $path;
-        }
-        if ($params) {
-            $url .= '?' . http_build_query($params, null, '&');
-        }
-        return $url;
-    }
-    /**
-     * Generate a signature for the given params and secret.
-     *
-     * @param Array $params the parameters to sign
-     * @return String the generated signature
-     */
-    protected function generateSignature($params) {
-        // work with sorted data
-        ksort($params);
-        $base_string = '';
-        foreach ($params as $key => $value) {
-            if ($key == 'format' || $key == 'callback')
-                continue;
-            $base_string .= $key . $value;
-        }
-        $base_string .= $this->getApiSecret();
-        return md5(utf8_encode($base_string));
     }
 }

@@ -8,6 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 {
     protected function compileCallable(Twig_Compiler $compiler)
@@ -138,8 +139,8 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 
                 if (!empty($missingArguments)) {
                     throw new Twig_Error_Syntax(sprintf(
-                        'Argument "%s" could not be assigned for %s "%s(%s)" because it is mapped to an internal PHP function which cannot determine default value for optional argument%s "%s".',
-                        $name, $callType, $callName, implode(', ', $names), count($missingArguments) > 1 ? 's' : '', implode('", "', $missingArguments))
+                            'Argument "%s" could not be assigned for %s "%s(%s)" because it is mapped to an internal PHP function which cannot determine default value for optional argument%s "%s".',
+                            $name, $callType, $callName, implode(', ', $names), count($missingArguments) > 1 ? 's' : '', implode('", "', $missingArguments))
                     );
                 }
 
@@ -241,7 +242,7 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
             } else {
                 $callableName = $r->name;
                 if ($r->getDeclaringClass()) {
-                    $callableName = $r->getDeclaringClass()->name.'::'.$callableName;
+                    $callableName = $r->getDeclaringClass()->name . '::' . $callableName;
                 }
 
                 throw new LogicException(sprintf('The last parameter of "%s" for %s "%s" must be an array with default value, eg. "array $arg = array()".', $callableName, $this->getAttribute('type'), $this->getAttribute('name')));

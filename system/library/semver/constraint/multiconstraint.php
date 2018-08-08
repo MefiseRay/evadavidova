@@ -86,14 +86,6 @@ class MultiConstraint implements ConstraintInterface
     }
 
     /**
-     * @param string $prettyString
-     */
-    public function setPrettyString($prettyString)
-    {
-        $this->prettyString = $prettyString;
-    }
-
-    /**
      * @return string
      */
     public function getPrettyString()
@@ -106,13 +98,21 @@ class MultiConstraint implements ConstraintInterface
     }
 
     /**
+     * @param string $prettyString
+     */
+    public function setPrettyString($prettyString)
+    {
+        $this->prettyString = $prettyString;
+    }
+
+    /**
      * @return string
      */
     public function __toString()
     {
         $constraints = array();
         foreach ($this->constraints as $constraint) {
-            $constraints[] = (string) $constraint;
+            $constraints[] = (string)$constraint;
         }
 
         return '[' . implode($this->conjunctive ? ' ' : ' || ', $constraints) . ']';

@@ -38,14 +38,6 @@ abstract class AbstractConstraint implements ConstraintInterface
     }
 
     /**
-     * @param string $prettyString
-     */
-    public function setPrettyString($prettyString)
-    {
-        $this->prettyString = $prettyString;
-    }
-
-    /**
      * @return string
      */
     public function getPrettyString()
@@ -55,6 +47,14 @@ abstract class AbstractConstraint implements ConstraintInterface
         }
 
         return $this->__toString();
+    }
+
+    /**
+     * @param string $prettyString
+     */
+    public function setPrettyString($prettyString)
+    {
+        $this->prettyString = $prettyString;
     }
 
     // implementations must implement a method of this format:

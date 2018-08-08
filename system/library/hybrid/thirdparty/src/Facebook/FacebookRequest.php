@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use Facebook\Authentication\AccessToken;
@@ -86,13 +87,13 @@ class FacebookRequest
     /**
      * Creates a new Request entity.
      *
-     * @param FacebookApp|null        $app
+     * @param FacebookApp|null $app
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $method
-     * @param string|null             $endpoint
-     * @param array|null              $params
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
+     * @param string|null $method
+     * @param string|null $endpoint
+     * @param array|null $params
+     * @param string|null $eTag
+     * @param string|null $graphVersion
      */
     public function __construct(FacebookApp $app = null, $accessToken = null, $method = null, $endpoint = null, array $params = [], $eTag = null, $graphVersion = null)
     {
@@ -106,20 +107,13 @@ class FacebookRequest
     }
 
     /**
-     * Set the access token for this request.
+     * Sets the eTag value.
      *
-     * @param AccessToken|string
-     *
-     * @return FacebookRequest
+     * @param string $eTag
      */
-    public function setAccessToken($accessToken)
+    public function setETag($eTag)
     {
-        $this->accessToken = $accessToken;
-        if ($accessToken instanceof AccessToken) {
-            $this->accessToken = $accessToken->getValue();
-        }
-
-        return $this;
+        $this->eTag = $eTag;
     }
 
     /**
@@ -154,23 +148,20 @@ class FacebookRequest
     }
 
     /**
-     * Return the access token for this request an an AccessToken entity.
+     * Set the access token for this request.
      *
-     * @return AccessToken|null
+     * @param AccessToken|string
+     *
+     * @return FacebookRequest
      */
-    public function getAccessTokenEntity()
+    public function setAccessToken($accessToken)
     {
-        return $this->accessToken ? new AccessToken($this->accessToken) : null;
-    }
+        $this->accessToken = $accessToken;
+        if ($accessToken instanceof AccessToken) {
+            $this->accessToken = $accessToken->getValue();
+        }
 
-    /**
-     * Set the FacebookApp entity used for this request.
-     *
-     * @param FacebookApp|null $app
-     */
-    public function setApp(FacebookApp $app = null)
-    {
-        $this->app = $app;
+        return $this;
     }
 
     /**
@@ -184,17 +175,13 @@ class FacebookRequest
     }
 
     /**
-     * Generate an app secret proof to sign this request.
+     * Set the FacebookApp entity used for this request.
      *
-     * @return string|null
+     * @param FacebookApp|null $app
      */
-    public function getAppSecretProof()
+    public function setApp(FacebookApp $app = null)
     {
-        if (!$accessTokenEntity = $this->getAccessTokenEntity()) {
-            return null;
-        }
-
-        return $accessTokenEntity->getAppSecretProof($this->app->getSecret());
+        $this->app = $app;
     }
 
     /**
@@ -208,79 +195,6 @@ class FacebookRequest
         if (!$accessToken) {
             throw new FacebookSDKException('You must provide an access token.');
         }
-    }
-
-    /**
-     * Set the HTTP method for this request.
-     *
-     * @param string
-     *
-     * @return FacebookRequest
-     */
-    public function setMethod($method)
-    {
-        $this->method = strtoupper($method);
-    }
-
-    /**
-     * Return the HTTP method for this request.
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->method;
-    }
-
-    /**
-     * Validate that the HTTP method is set.
-     *
-     * @throws FacebookSDKException
-     */
-    public function validateMethod()
-    {
-        if (!$this->method) {
-            throw new FacebookSDKException('HTTP method not specified.');
-        }
-
-        if (!in_array($this->method, ['GET', 'POST', 'DELETE'])) {
-            throw new FacebookSDKException('Invalid HTTP method specified.');
-        }
-    }
-
-    /**
-     * Set the endpoint for this request.
-     *
-     * @param string
-     *
-     * @return FacebookRequest
-     *
-     * @throws FacebookSDKException
-     */
-    public function setEndpoint($endpoint)
-    {
-        // Harvest the access token from the endpoint to keep things in sync
-        $params = FacebookUrlManipulator::getParamsAsArray($endpoint);
-        if (isset($params['access_token'])) {
-            $this->setAccessTokenFromParams($params['access_token']);
-        }
-
-        // Clean the token & app secret proof from the endpoint.
-        $filterParams = ['access_token', 'appsecret_proof'];
-        $this->endpoint = FacebookUrlManipulator::removeParamsFromUrl($endpoint, $filterParams);
-
-        return $this;
-    }
-
-    /**
-     * Return the HTTP method for this request.
-     *
-     * @return string
-     */
-    public function getEndpoint()
-    {
-        // For batch requests, this will be empty
-        return $this->endpoint;
     }
 
     /**
@@ -310,39 +224,16 @@ class FacebookRequest
     }
 
     /**
-     * Sets the eTag value.
+     * Return the default headers that every request should use.
      *
-     * @param string $eTag
+     * @return array
      */
-    public function setETag($eTag)
+    public static function getDefaultHeaders()
     {
-        $this->eTag = $eTag;
-    }
-
-    /**
-     * Set the params for this request.
-     *
-     * @param array $params
-     *
-     * @return FacebookRequest
-     *
-     * @throws FacebookSDKException
-     */
-    public function setParams(array $params = [])
-    {
-        if (isset($params['access_token'])) {
-            $this->setAccessTokenFromParams($params['access_token']);
-        }
-
-        // Don't let these buggers slip in.
-        unset($params['access_token'], $params['appsecret_proof']);
-
-        // @TODO Refactor code above with this
-        //$params = $this->sanitizeAuthenticationParams($params);
-        $params = $this->sanitizeFileParams($params);
-        $this->dangerouslySetParams($params);
-
-        return $this;
+        return [
+            'User-Agent' => 'fb-php-' . Facebook::VERSION,
+            'Accept-Encoding' => '*',
+        ];
     }
 
     /**
@@ -381,7 +272,7 @@ class FacebookRequest
     /**
      * Add a file to be uploaded.
      *
-     * @param string       $key
+     * @param string $key
      * @param FacebookFile $file
      */
     public function addFile($key, FacebookFile $file)
@@ -446,15 +337,39 @@ class FacebookRequest
     }
 
     /**
-     * Returns the body of the request as URL-encoded.
+     * Only return params on POST requests.
      *
-     * @return RequestBodyUrlEncoded
+     * @return array
      */
-    public function getUrlEncodedBody()
+    public function getPostParams()
     {
-        $params = $this->getPostParams();
+        if ($this->getMethod() === 'POST') {
+            return $this->getParams();
+        }
 
-        return new RequestBodyUrlEncoded($params);
+        return [];
+    }
+
+    /**
+     * Return the HTTP method for this request.
+     *
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * Set the HTTP method for this request.
+     *
+     * @param string
+     *
+     * @return FacebookRequest
+     */
+    public function setMethod($method)
+    {
+        $this->method = strtoupper($method);
     }
 
     /**
@@ -476,17 +391,65 @@ class FacebookRequest
     }
 
     /**
-     * Only return params on POST requests.
+     * Set the params for this request.
      *
-     * @return array
+     * @param array $params
+     *
+     * @return FacebookRequest
+     *
+     * @throws FacebookSDKException
      */
-    public function getPostParams()
+    public function setParams(array $params = [])
     {
-        if ($this->getMethod() === 'POST') {
-            return $this->getParams();
+        if (isset($params['access_token'])) {
+            $this->setAccessTokenFromParams($params['access_token']);
         }
 
-        return [];
+        // Don't let these buggers slip in.
+        unset($params['access_token'], $params['appsecret_proof']);
+
+        // @TODO Refactor code above with this
+        //$params = $this->sanitizeAuthenticationParams($params);
+        $params = $this->sanitizeFileParams($params);
+        $this->dangerouslySetParams($params);
+
+        return $this;
+    }
+
+    /**
+     * Generate an app secret proof to sign this request.
+     *
+     * @return string|null
+     */
+    public function getAppSecretProof()
+    {
+        if (!$accessTokenEntity = $this->getAccessTokenEntity()) {
+            return null;
+        }
+
+        return $accessTokenEntity->getAppSecretProof($this->app->getSecret());
+    }
+
+    /**
+     * Return the access token for this request an an AccessToken entity.
+     *
+     * @return AccessToken|null
+     */
+    public function getAccessTokenEntity()
+    {
+        return $this->accessToken ? new AccessToken($this->accessToken) : null;
+    }
+
+    /**
+     * Returns the body of the request as URL-encoded.
+     *
+     * @return RequestBodyUrlEncoded
+     */
+    public function getUrlEncodedBody()
+    {
+        $params = $this->getPostParams();
+
+        return new RequestBodyUrlEncoded($params);
     }
 
     /**
@@ -522,15 +485,53 @@ class FacebookRequest
     }
 
     /**
-     * Return the default headers that every request should use.
+     * Validate that the HTTP method is set.
      *
-     * @return array
+     * @throws FacebookSDKException
      */
-    public static function getDefaultHeaders()
+    public function validateMethod()
     {
-        return [
-            'User-Agent' => 'fb-php-' . Facebook::VERSION,
-            'Accept-Encoding' => '*',
-        ];
+        if (!$this->method) {
+            throw new FacebookSDKException('HTTP method not specified.');
+        }
+
+        if (!in_array($this->method, ['GET', 'POST', 'DELETE'])) {
+            throw new FacebookSDKException('Invalid HTTP method specified.');
+        }
+    }
+
+    /**
+     * Return the HTTP method for this request.
+     *
+     * @return string
+     */
+    public function getEndpoint()
+    {
+        // For batch requests, this will be empty
+        return $this->endpoint;
+    }
+
+    /**
+     * Set the endpoint for this request.
+     *
+     * @param string
+     *
+     * @return FacebookRequest
+     *
+     * @throws FacebookSDKException
+     */
+    public function setEndpoint($endpoint)
+    {
+        // Harvest the access token from the endpoint to keep things in sync
+        $params = FacebookUrlManipulator::getParamsAsArray($endpoint);
+        if (isset($params['access_token'])) {
+            $this->setAccessTokenFromParams($params['access_token']);
+        }
+
+        // Clean the token & app secret proof from the endpoint.
+        $filterParams = ['access_token', 'appsecret_proof'];
+        $this->endpoint = FacebookUrlManipulator::removeParamsFromUrl($endpoint, $filterParams);
+
+        return $this;
     }
 }

@@ -1,7 +1,8 @@
-<?php  
+<?php
 
-interface exchange {
-	public function getMethod();
+interface exchange
+{
+    public function getMethod();
 }
 
 ?>

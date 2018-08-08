@@ -6,7 +6,7 @@
 
 namespace Httpful\Handlers;
 
-class FormHandler extends MimeHandlerAdapter 
+class FormHandler extends MimeHandlerAdapter
 {
     /**
      * @param string $body
@@ -18,7 +18,7 @@ class FormHandler extends MimeHandlerAdapter
         parse_str($body, $parsed);
         return $parsed;
     }
-    
+
     /**
      * @param mixed $payload
      * @return string

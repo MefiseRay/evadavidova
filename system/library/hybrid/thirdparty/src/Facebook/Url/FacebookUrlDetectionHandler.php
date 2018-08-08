@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Url;
 
 /**
@@ -67,6 +68,30 @@ class FacebookUrlDetectionHandler implements UrlDetectionInterface
         }
 
         return (string)$this->getServerVar('SERVER_PORT') === '443';
+    }
+
+    /**
+     * Gets a value from the HTTP request headers.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    protected function getHeader($key)
+    {
+        return $this->getServerVar('HTTP_' . $key);
+    }
+
+    /**
+     * Returns the a value from the $_SERVER super global.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    protected function getServerVar($key)
+    {
+        return isset($_SERVER[$key]) ? $_SERVER[$key] : '';
     }
 
     /**
@@ -135,29 +160,5 @@ class FacebookUrlDetectionHandler implements UrlDetectionInterface
         }
 
         return (string)$this->getServerVar('SERVER_PORT');
-    }
-
-    /**
-     * Returns the a value from the $_SERVER super global.
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    protected function getServerVar($key)
-    {
-        return isset($_SERVER[$key]) ? $_SERVER[$key] : '';
-    }
-
-    /**
-     * Gets a value from the HTTP request headers.
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    protected function getHeader($key)
-    {
-        return $this->getServerVar('HTTP_' . $key);
     }
 }

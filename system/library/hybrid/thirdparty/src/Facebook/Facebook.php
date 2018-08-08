@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook;
 
 use Facebook\Authentication\AccessToken;
@@ -205,42 +206,6 @@ class Facebook
     }
 
     /**
-     * Returns the FacebookApp entity.
-     *
-     * @return FacebookApp
-     */
-    public function getApp()
-    {
-        return $this->app;
-    }
-
-    /**
-     * Returns the FacebookClient service.
-     *
-     * @return FacebookClient
-     */
-    public function getClient()
-    {
-        return $this->client;
-    }
-
-    /**
-     * Returns the OAuth 2.0 client service.
-     *
-     * @return OAuth2Client
-     */
-    public function getOAuth2Client()
-    {
-        if (!$this->oAuth2Client instanceof OAuth2Client) {
-            $app = $this->getApp();
-            $client = $this->getClient();
-            $this->oAuth2Client = new OAuth2Client($app, $client, $this->defaultGraphVersion);
-        }
-
-        return $this->oAuth2Client;
-    }
-
-    /**
      * Returns the last response returned from Graph.
      *
      * @return FacebookResponse|FacebookBatchResponse|null
@@ -324,6 +289,42 @@ class Facebook
     }
 
     /**
+     * Returns the OAuth 2.0 client service.
+     *
+     * @return OAuth2Client
+     */
+    public function getOAuth2Client()
+    {
+        if (!$this->oAuth2Client instanceof OAuth2Client) {
+            $app = $this->getApp();
+            $client = $this->getClient();
+            $this->oAuth2Client = new OAuth2Client($app, $client, $this->defaultGraphVersion);
+        }
+
+        return $this->oAuth2Client;
+    }
+
+    /**
+     * Returns the FacebookApp entity.
+     *
+     * @return FacebookApp
+     */
+    public function getApp()
+    {
+        return $this->app;
+    }
+
+    /**
+     * Returns the FacebookClient service.
+     *
+     * @return FacebookClient
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
      * Returns the JavaScript helper.
      *
      * @return FacebookJavaScriptHelper
@@ -356,10 +357,10 @@ class Facebook
     /**
      * Sends a GET request to Graph and returns the result.
      *
-     * @param string                  $endpoint
+     * @param string $endpoint
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
+     * @param string|null $eTag
+     * @param string|null $graphVersion
      *
      * @return FacebookResponse
      *
@@ -378,13 +379,66 @@ class Facebook
     }
 
     /**
+     * Sends a request to Graph and returns the result.
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param array $params
+     * @param AccessToken|string|null $accessToken
+     * @param string|null $eTag
+     * @param string|null $graphVersion
+     *
+     * @return FacebookResponse
+     *
+     * @throws FacebookSDKException
+     */
+    public function sendRequest($method, $endpoint, array $params = [], $accessToken = null, $eTag = null, $graphVersion = null)
+    {
+        $accessToken = $accessToken ?: $this->defaultAccessToken;
+        $graphVersion = $graphVersion ?: $this->defaultGraphVersion;
+        $request = $this->request($method, $endpoint, $params, $accessToken, $eTag, $graphVersion);
+
+        return $this->lastResponse = $this->client->sendRequest($request);
+    }
+
+    /**
+     * Instantiates a new FacebookRequest entity.
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param array $params
+     * @param AccessToken|string|null $accessToken
+     * @param string|null $eTag
+     * @param string|null $graphVersion
+     *
+     * @return FacebookRequest
+     *
+     * @throws FacebookSDKException
+     */
+    public function request($method, $endpoint, array $params = [], $accessToken = null, $eTag = null, $graphVersion = null)
+    {
+        $accessToken = $accessToken ?: $this->defaultAccessToken;
+        $graphVersion = $graphVersion ?: $this->defaultGraphVersion;
+
+        return new FacebookRequest(
+            $this->app,
+            $accessToken,
+            $method,
+            $endpoint,
+            $params,
+            $eTag,
+            $graphVersion
+        );
+    }
+
+    /**
      * Sends a POST request to Graph and returns the result.
      *
-     * @param string                  $endpoint
-     * @param array                   $params
+     * @param string $endpoint
+     * @param array $params
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
+     * @param string|null $eTag
+     * @param string|null $graphVersion
      *
      * @return FacebookResponse
      *
@@ -405,11 +459,11 @@ class Facebook
     /**
      * Sends a DELETE request to Graph and returns the result.
      *
-     * @param string                  $endpoint
-     * @param array                   $params
+     * @param string $endpoint
+     * @param array $params
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
+     * @param string|null $eTag
+     * @param string|null $graphVersion
      *
      * @return FacebookResponse
      *
@@ -442,24 +496,10 @@ class Facebook
     }
 
     /**
-     * Sends a request to Graph for the previous page of results.
-     *
-     * @param GraphEdge $graphEdge The GraphEdge to paginate over.
-     *
-     * @return GraphEdge|null
-     *
-     * @throws FacebookSDKException
-     */
-    public function previous(GraphEdge $graphEdge)
-    {
-        return $this->getPaginationResults($graphEdge, 'previous');
-    }
-
-    /**
      * Sends a request to Graph for the next page of results.
      *
      * @param GraphEdge $graphEdge The GraphEdge to paginate over.
-     * @param string    $direction The direction of the pagination: next|previous.
+     * @param string $direction The direction of the pagination: next|previous.
      *
      * @return GraphEdge|null
      *
@@ -482,34 +522,25 @@ class Facebook
     }
 
     /**
-     * Sends a request to Graph and returns the result.
+     * Sends a request to Graph for the previous page of results.
      *
-     * @param string                  $method
-     * @param string                  $endpoint
-     * @param array                   $params
-     * @param AccessToken|string|null $accessToken
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
+     * @param GraphEdge $graphEdge The GraphEdge to paginate over.
      *
-     * @return FacebookResponse
+     * @return GraphEdge|null
      *
      * @throws FacebookSDKException
      */
-    public function sendRequest($method, $endpoint, array $params = [], $accessToken = null, $eTag = null, $graphVersion = null)
+    public function previous(GraphEdge $graphEdge)
     {
-        $accessToken = $accessToken ?: $this->defaultAccessToken;
-        $graphVersion = $graphVersion ?: $this->defaultGraphVersion;
-        $request = $this->request($method, $endpoint, $params, $accessToken, $eTag, $graphVersion);
-
-        return $this->lastResponse = $this->client->sendRequest($request);
+        return $this->getPaginationResults($graphEdge, 'previous');
     }
 
     /**
      * Sends a batched request to Graph and returns the result.
      *
-     * @param array                   $requests
+     * @param array $requests
      * @param AccessToken|string|null $accessToken
-     * @param string|null             $graphVersion
+     * @param string|null $graphVersion
      *
      * @return FacebookBatchResponse
      *
@@ -527,36 +558,6 @@ class Facebook
         );
 
         return $this->lastResponse = $this->client->sendBatchRequest($batchRequest);
-    }
-
-    /**
-     * Instantiates a new FacebookRequest entity.
-     *
-     * @param string                  $method
-     * @param string                  $endpoint
-     * @param array                   $params
-     * @param AccessToken|string|null $accessToken
-     * @param string|null             $eTag
-     * @param string|null             $graphVersion
-     *
-     * @return FacebookRequest
-     *
-     * @throws FacebookSDKException
-     */
-    public function request($method, $endpoint, array $params = [], $accessToken = null, $eTag = null, $graphVersion = null)
-    {
-        $accessToken = $accessToken ?: $this->defaultAccessToken;
-        $graphVersion = $graphVersion ?: $this->defaultGraphVersion;
-
-        return new FacebookRequest(
-            $this->app,
-            $accessToken,
-            $method,
-            $endpoint,
-            $params,
-            $eTag,
-            $graphVersion
-        );
     }
 
     /**

@@ -5,7 +5,8 @@
  *
  * @author Dmitry (dio) Levashov
  **/
-class elFinderConnector {
+class elFinderConnector
+{
     /**
      * elFinder instance
      *
@@ -34,7 +35,8 @@ class elFinderConnector {
      * @return void
      * @author Dmitry (dio) Levashov
      **/
-    public function __construct($elFinder, $debug=false) {
+    public function __construct($elFinder, $debug = false)
+    {
 
         $this->elFinder = $elFinder;
         if ($debug) {
@@ -48,15 +50,16 @@ class elFinderConnector {
      * @return void
      * @author Dmitry (dio) Levashov
      **/
-    public function run() {
+    public function run()
+    {
         $isPost = $_SERVER["REQUEST_METHOD"] == 'POST';
-        $src    = $_SERVER["REQUEST_METHOD"] == 'POST' ? $_POST : $_GET;
-        $cmd    = isset($src['cmd']) ? $src['cmd'] : '';
-        $args   = array();
+        $src = $_SERVER["REQUEST_METHOD"] == 'POST' ? $_POST : $_GET;
+        $cmd = isset($src['cmd']) ? $src['cmd'] : '';
+        $args = array();
 
         if (!function_exists('json_encode')) {
             $error = $this->elFinder->error(elFinder::ERROR_CONF, elFinder::ERROR_CONF_NO_JSON);
-            $this->output(array('error' => '{"error":["'.implode('","', $error).'"]}', 'raw' => true));
+            $this->output(array('error' => '{"error":["' . implode('","', $error) . '"]}', 'raw' => true));
         }
 
         if (!$this->elFinder->loaded()) {
@@ -100,7 +103,8 @@ class elFinderConnector {
      * @return void
      * @author Dmitry (dio) Levashov
      **/
-    protected function output(array $data) {
+    protected function output(array $data)
+    {
         $header = isset($data['header']) ? $data['header'] : $this->header;
         unset($data['header']);
         if ($header) {

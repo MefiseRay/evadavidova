@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Url;
 
 /**
@@ -33,8 +34,8 @@ class FacebookUrlManipulator
     /**
      * Remove params from a URL.
      *
-     * @param string $url            The URL to filter.
-     * @param array  $paramsToFilter The params to filter from the URL.
+     * @param string $url The URL to filter.
+     * @param array $paramsToFilter The params to filter from the URL.
      *
      * @return string The URL with the params removed.
      */
@@ -67,10 +68,50 @@ class FacebookUrlManipulator
     }
 
     /**
+     * Adds the params of the first URL to the second URL.
+     *
+     * Any params that already exist in the second URL will go untouched.
+     *
+     * @param string $urlToStealFrom The URL harvest the params from.
+     * @param string $urlToAddTo The URL that will receive the new params.
+     *
+     * @return string The $urlToAddTo with any new params from $urlToStealFrom.
+     */
+    public static function mergeUrlParams($urlToStealFrom, $urlToAddTo)
+    {
+        $newParams = static::getParamsAsArray($urlToStealFrom);
+        // Nothing new to add, return as-is
+        if (!$newParams) {
+            return $urlToAddTo;
+        }
+
+        return static::appendParamsToUrl($urlToAddTo, $newParams);
+    }
+
+    /**
+     * Returns the params from a URL in the form of an array.
+     *
+     * @param string $url The URL to parse the params from.
+     *
+     * @return array
+     */
+    public static function getParamsAsArray($url)
+    {
+        $query = parse_url($url, PHP_URL_QUERY);
+        if (!$query) {
+            return [];
+        }
+        $params = [];
+        parse_str($query, $params);
+
+        return $params;
+    }
+
+    /**
      * Gracefully appends params to the URL.
      *
-     * @param string $url       The URL that will receive the params.
-     * @param array  $newParams The params to append to the URL.
+     * @param string $url The URL that will receive the params.
+     * @param array $newParams The params to append to the URL.
      *
      * @return string
      */
@@ -95,46 +136,6 @@ class FacebookUrlManipulator
         ksort($newParams);
 
         return $path . '?' . http_build_query($newParams, null, '&');
-    }
-
-    /**
-     * Returns the params from a URL in the form of an array.
-     *
-     * @param string $url The URL to parse the params from.
-     *
-     * @return array
-     */
-    public static function getParamsAsArray($url)
-    {
-        $query = parse_url($url, PHP_URL_QUERY);
-        if (!$query) {
-            return [];
-        }
-        $params = [];
-        parse_str($query, $params);
-
-        return $params;
-    }
-
-    /**
-     * Adds the params of the first URL to the second URL.
-     *
-     * Any params that already exist in the second URL will go untouched.
-     *
-     * @param string $urlToStealFrom The URL harvest the params from.
-     * @param string $urlToAddTo     The URL that will receive the new params.
-     *
-     * @return string The $urlToAddTo with any new params from $urlToStealFrom.
-     */
-    public static function mergeUrlParams($urlToStealFrom, $urlToAddTo)
-    {
-        $newParams = static::getParamsAsArray($urlToStealFrom);
-        // Nothing new to add, return as-is
-        if (!$newParams) {
-            return $urlToAddTo;
-        }
-
-        return static::appendParamsToUrl($urlToAddTo, $newParams);
     }
 
     /**

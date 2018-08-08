@@ -30,26 +30,9 @@ class Minify_CSS_Compressor
 {
 
     /**
-     * Minify a CSS string
-     *
-     * @param string $css
-     *
-     * @param array $options (currently ignored)
-     *
-     * @return string
-     */
-    public static function process($css, $options = array())
-    {
-        $obj = new Minify_CSS_Compressor($options);
-
-        return $obj->_process($css);
-    }
-
-    /**
      * @var array
      */
     protected $_options = null;
-
     /**
      * Are we "in" a hack? I.e. are some browsers targetted until the next comment?
      *
@@ -65,6 +48,22 @@ class Minify_CSS_Compressor
     private function __construct($options)
     {
         $this->_options = $options;
+    }
+
+    /**
+     * Minify a CSS string
+     *
+     * @param string $css
+     *
+     * @param array $options (currently ignored)
+     *
+     * @return string
+     */
+    public static function process($css, $options = array())
+    {
+        $obj = new Minify_CSS_Compressor($options);
+
+        return $obj->_process($css);
     }
 
     /**

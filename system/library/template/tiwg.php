@@ -1,32 +1,36 @@
 <?php
+
 namespace Template;
-final class PHP {
-	private $data = array();
-	
-	public function set($key, $value) {
-		$this->data[$key] = $value;
-	}
-	
-	public function render($template) {
-		$loader = new Twig_Loader_Array(array(
-			'index' => 'Hello {{ name }}!',
-		));
-		
-		$twig = new Twig_Environment($loader);
-		
-		$file = DIR_TEMPLATE . $template;
+final class PHP
+{
+    private $data = array();
 
-		if (is_file($file)) {
-			extract($this->data);
+    public function set($key, $value)
+    {
+        $this->data[$key] = $value;
+    }
 
-			ob_start();
+    public function render($template)
+    {
+        $loader = new Twig_Loader_Array(array(
+            'index' => 'Hello {{ name }}!',
+        ));
 
-			require($file);
+        $twig = new Twig_Environment($loader);
 
-			return ob_get_clean();
-		}
+        $file = DIR_TEMPLATE . $template;
 
-		trigger_error('Error: Could not load template ' . $file . '!');
-		exit();
-	}	
+        if (is_file($file)) {
+            extract($this->data);
+
+            ob_start();
+
+            require($file);
+
+            return ob_get_clean();
+        }
+
+        trigger_error('Error: Could not load template ' . $file . '!');
+        exit();
+    }
 }

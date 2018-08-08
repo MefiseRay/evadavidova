@@ -42,41 +42,6 @@ class VersionParser
     private static $stabilities = array('stable', 'RC', 'beta', 'alpha', 'dev');
 
     /**
-     * Returns the stability of a version.
-     *
-     * @param string $version
-     *
-     * @return string
-     */
-    public static function parseStability($version)
-    {
-        $version = preg_replace('{#.+$}i', '', $version);
-
-        if ('dev-' === substr($version, 0, 4) || '-dev' === substr($version, -4)) {
-            return 'dev';
-        }
-
-        preg_match('{' . self::$modifierRegex . '(?:\+.*)?$}i', strtolower($version), $match);
-        if (!empty($match[3])) {
-            return 'dev';
-        }
-
-        if (!empty($match[1])) {
-            if ('beta' === $match[1] || 'b' === $match[1]) {
-                return 'beta';
-            }
-            if ('alpha' === $match[1] || 'a' === $match[1]) {
-                return 'alpha';
-            }
-            if ('rc' === $match[1]) {
-                return 'RC';
-            }
-        }
-
-        return 'stable';
-    }
-
-    /**
      * @param string $stability
      *
      * @return string
@@ -86,90 +51,6 @@ class VersionParser
         $stability = strtolower($stability);
 
         return $stability === 'rc' ? 'RC' : $stability;
-    }
-
-    /**
-     * Normalizes a version string to be able to perform comparisons on it.
-     *
-     * @param string $version
-     * @param string $fullVersion optional complete version string to give more context
-     *
-     * @throws \UnexpectedValueException
-     *
-     * @return string
-     */
-    public function normalize($version, $fullVersion = null)
-    {
-        $version = trim($version);
-        if (null === $fullVersion) {
-            $fullVersion = $version;
-        }
-
-        // strip off aliasing
-        if (preg_match('{^([^,\s]++) ++as ++([^,\s]++)$}', $version, $match)) {
-            $version = $match[1];
-        }
-
-        // match master-like branches
-        if (preg_match('{^(?:dev-)?(?:master|trunk|default)$}i', $version)) {
-            return '9999999-dev';
-        }
-
-        // if requirement is branch-like, use full name
-        if ('dev-' === strtolower(substr($version, 0, 4))) {
-            return 'dev-' . substr($version, 4);
-        }
-
-        // strip off build metadata
-        if (preg_match('{^([^,\s+]++)\+[^\s]++$}', $version, $match)) {
-            $version = $match[1];
-        }
-
-        // match classical versioning
-        if (preg_match('{^v?(\d{1,5})(\.\d++)?(\.\d++)?(\.\d++)?' . self::$modifierRegex . '$}i', $version, $matches)) {
-            $version = $matches[1]
-                . (!empty($matches[2]) ? $matches[2] : '.0')
-                . (!empty($matches[3]) ? $matches[3] : '.0')
-                . (!empty($matches[4]) ? $matches[4] : '.0');
-            $index = 5;
-        // match date(time) based versioning
-        } elseif (preg_match('{^v?(\d{4}(?:[.:-]?\d{2}){1,6}(?:[.:-]?\d{1,3})?)' . self::$modifierRegex . '$}i', $version, $matches)) {
-            $version = preg_replace('{\D}', '.', $matches[1]);
-            $index = 2;
-        }
-
-        // add version modifiers if a version was matched
-        if (isset($index)) {
-            if (!empty($matches[$index])) {
-                if ('stable' === $matches[$index]) {
-                    return $version;
-                }
-                $version .= '-' . $this->expandStability($matches[$index]) . (!empty($matches[$index + 1]) ? ltrim($matches[$index + 1], '.-') : '');
-            }
-
-            if (!empty($matches[$index + 2])) {
-                $version .= '-dev';
-            }
-
-            return $version;
-        }
-
-        // match dev branches
-        if (preg_match('{(.*?)[.-]?dev$}i', $version, $match)) {
-            try {
-                return $this->normalizeBranch($match[1]);
-            } catch (\Exception $e) {
-            }
-        }
-
-        $extraMessage = '';
-        if (preg_match('{ +as +' . preg_quote($version) . '$}', $fullVersion)) {
-            $extraMessage = ' in "' . $fullVersion . '", the alias must be an exact version';
-        } elseif (preg_match('{^' . preg_quote($version) . ' +as +}', $fullVersion)) {
-            $extraMessage = ' in "' . $fullVersion . '", the alias source must be an exact version, if it is a branch name you should prefix it with dev-';
-        }
-
-        throw new \UnexpectedValueException('Invalid version string "' . $version . '"' . $extraMessage);
     }
 
     /**
@@ -186,33 +67,6 @@ class VersionParser
         }
 
         return false;
-    }
-
-    /**
-     * Normalizes a branch name to be able to perform comparisons on it.
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    public function normalizeBranch($name)
-    {
-        $name = trim($name);
-
-        if (in_array($name, array('master', 'trunk', 'default'))) {
-            return $this->normalize($name);
-        }
-
-        if (preg_match('{^v?(\d++)(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?$}i', $name, $matches)) {
-            $version = '';
-            for ($i = 1; $i < 5; ++$i) {
-                $version .= isset($matches[$i]) ? str_replace(array('*', 'X'), 'x', $matches[$i]) : '.x';
-            }
-
-            return str_replace('x', '9999999', $version) . '-dev';
-        }
-
-        return 'dev-' . $name;
     }
 
     /**
@@ -267,9 +121,9 @@ class VersionParser
             && $orGroups[1] instanceof MultiConstraint
             && 2 === count($orGroups[0]->getConstraints())
             && 2 === count($orGroups[1]->getConstraints())
-            && ($a = (string) $orGroups[0])
+            && ($a = (string)$orGroups[0])
             && substr($a, 0, 3) === '[>=' && (false !== ($posA = strpos($a, '<', 4)))
-            && ($b = (string) $orGroups[1])
+            && ($b = (string)$orGroups[1])
             && substr($b, 0, 3) === '[>=' && (false !== ($posB = strpos($b, '<', 4)))
             && substr($a, $posA + 2, -1) === substr($b, 4, $posB - 5)
         ) {
@@ -521,6 +375,90 @@ class VersionParser
     }
 
     /**
+     * Normalizes a version string to be able to perform comparisons on it.
+     *
+     * @param string $version
+     * @param string $fullVersion optional complete version string to give more context
+     *
+     * @throws \UnexpectedValueException
+     *
+     * @return string
+     */
+    public function normalize($version, $fullVersion = null)
+    {
+        $version = trim($version);
+        if (null === $fullVersion) {
+            $fullVersion = $version;
+        }
+
+        // strip off aliasing
+        if (preg_match('{^([^,\s]++) ++as ++([^,\s]++)$}', $version, $match)) {
+            $version = $match[1];
+        }
+
+        // match master-like branches
+        if (preg_match('{^(?:dev-)?(?:master|trunk|default)$}i', $version)) {
+            return '9999999-dev';
+        }
+
+        // if requirement is branch-like, use full name
+        if ('dev-' === strtolower(substr($version, 0, 4))) {
+            return 'dev-' . substr($version, 4);
+        }
+
+        // strip off build metadata
+        if (preg_match('{^([^,\s+]++)\+[^\s]++$}', $version, $match)) {
+            $version = $match[1];
+        }
+
+        // match classical versioning
+        if (preg_match('{^v?(\d{1,5})(\.\d++)?(\.\d++)?(\.\d++)?' . self::$modifierRegex . '$}i', $version, $matches)) {
+            $version = $matches[1]
+                . (!empty($matches[2]) ? $matches[2] : '.0')
+                . (!empty($matches[3]) ? $matches[3] : '.0')
+                . (!empty($matches[4]) ? $matches[4] : '.0');
+            $index = 5;
+            // match date(time) based versioning
+        } elseif (preg_match('{^v?(\d{4}(?:[.:-]?\d{2}){1,6}(?:[.:-]?\d{1,3})?)' . self::$modifierRegex . '$}i', $version, $matches)) {
+            $version = preg_replace('{\D}', '.', $matches[1]);
+            $index = 2;
+        }
+
+        // add version modifiers if a version was matched
+        if (isset($index)) {
+            if (!empty($matches[$index])) {
+                if ('stable' === $matches[$index]) {
+                    return $version;
+                }
+                $version .= '-' . $this->expandStability($matches[$index]) . (!empty($matches[$index + 1]) ? ltrim($matches[$index + 1], '.-') : '');
+            }
+
+            if (!empty($matches[$index + 2])) {
+                $version .= '-dev';
+            }
+
+            return $version;
+        }
+
+        // match dev branches
+        if (preg_match('{(.*?)[.-]?dev$}i', $version, $match)) {
+            try {
+                return $this->normalizeBranch($match[1]);
+            } catch (\Exception $e) {
+            }
+        }
+
+        $extraMessage = '';
+        if (preg_match('{ +as +' . preg_quote($version) . '$}', $fullVersion)) {
+            $extraMessage = ' in "' . $fullVersion . '", the alias must be an exact version';
+        } elseif (preg_match('{^' . preg_quote($version) . ' +as +}', $fullVersion)) {
+            $extraMessage = ' in "' . $fullVersion . '", the alias source must be an exact version, if it is a branch name you should prefix it with dev-';
+        }
+
+        throw new \UnexpectedValueException('Invalid version string "' . $version . '"' . $extraMessage);
+    }
+
+    /**
      * Expand shorthand stability string to long version.
      *
      * @param string $stability
@@ -544,5 +482,67 @@ class VersionParser
             default:
                 return $stability;
         }
+    }
+
+    /**
+     * Normalizes a branch name to be able to perform comparisons on it.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    public function normalizeBranch($name)
+    {
+        $name = trim($name);
+
+        if (in_array($name, array('master', 'trunk', 'default'))) {
+            return $this->normalize($name);
+        }
+
+        if (preg_match('{^v?(\d++)(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?$}i', $name, $matches)) {
+            $version = '';
+            for ($i = 1; $i < 5; ++$i) {
+                $version .= isset($matches[$i]) ? str_replace(array('*', 'X'), 'x', $matches[$i]) : '.x';
+            }
+
+            return str_replace('x', '9999999', $version) . '-dev';
+        }
+
+        return 'dev-' . $name;
+    }
+
+    /**
+     * Returns the stability of a version.
+     *
+     * @param string $version
+     *
+     * @return string
+     */
+    public static function parseStability($version)
+    {
+        $version = preg_replace('{#.+$}i', '', $version);
+
+        if ('dev-' === substr($version, 0, 4) || '-dev' === substr($version, -4)) {
+            return 'dev';
+        }
+
+        preg_match('{' . self::$modifierRegex . '(?:\+.*)?$}i', strtolower($version), $match);
+        if (!empty($match[3])) {
+            return 'dev';
+        }
+
+        if (!empty($match[1])) {
+            if ('beta' === $match[1] || 'b' === $match[1]) {
+                return 'beta';
+            }
+            if ('alpha' === $match[1] || 'a' === $match[1]) {
+                return 'alpha';
+            }
+            if ('rc' === $match[1]) {
+                return 'RC';
+            }
+        }
+
+        return 'stable';
     }
 }

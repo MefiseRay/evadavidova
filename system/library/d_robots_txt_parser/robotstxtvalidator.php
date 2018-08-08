@@ -3,204 +3,201 @@
  * Class RobotsTxtValidator
  * Class designed to check is url allowed or not to crawl by specific user-agent according to robots.txt rules.
  */
- 
+
 namespace d_robots_txt_parser;
 
 use Exception;
 
 class RobotsTxtValidator
 {
-	/**
-	 * @var array  Data with ordered rules to determine isUrl Allow/Disallow
-	 */
-	private $orderedDirectivesCache;
+    /**
+     * @var array  Data with ordered rules to determine isUrl Allow/Disallow
+     */
+    private $orderedDirectivesCache;
 
-	/**
-	 * @var array All rules from RobotsTxtParser
-	 */
-	private $rules;
+    /**
+     * @var array All rules from RobotsTxtParser
+     */
+    private $rules;
 
-	/**
-	 * RobotsTxtValidator constructor
-	 *
-	 * @param array $rules  Array of all rules from class RobotsTxtParser
-	 */
-	public function __construct(array $rules)
-	{
-		$this->rules = $rules;
-	}
+    /**
+     * RobotsTxtValidator constructor
+     *
+     * @param array $rules Array of all rules from class RobotsTxtParser
+     */
+    public function __construct(array $rules)
+    {
+        $this->rules = $rules;
+    }
 
-	/**
-	 * Return true if url is allow to crawl by robots.txt rules otherwise false
-	 *
-	 * @param string $url
-	 * @param string $userAgent
-	 * @return bool
-	 */
-	public function isUrlAllow($url, $userAgent = '*')
-	{
-		$relativeUrl = $this->getRelativeUrl($url);
+    /**
+     * Return true if url is disallow to crawl by robots.txt rules otherwise false
+     *
+     * @param string $url
+     * @param string $userAgent
+     * @return bool
+     */
+    public function isUrlDisallow($url, $userAgent = '*')
+    {
+        return !$this->isUrlAllow($url, $userAgent);
+    }
 
-		$orderedDirectives = $this->getOrderedDirectivesByUserAgent($userAgent);
+    /**
+     * Return true if url is allow to crawl by robots.txt rules otherwise false
+     *
+     * @param string $url
+     * @param string $userAgent
+     * @return bool
+     */
+    public function isUrlAllow($url, $userAgent = '*')
+    {
+        $relativeUrl = $this->getRelativeUrl($url);
 
-		// if has not allow rules we can determine when url disallowed even on one coincidence - just to do it faster.
-		$hasAllowDirectives = true;
-		foreach ($orderedDirectives as $directiveRow) {
-			if ($directiveRow['directive'] == 'allow' ) {
-				$hasAllowDirectives = true;
-				break;
-			}
-		}
+        $orderedDirectives = $this->getOrderedDirectivesByUserAgent($userAgent);
 
-		$isAllow = true;
-		foreach ($orderedDirectives as $directiveRow) {
-			if (!in_array($directiveRow['directive'], array('allow', 'disallow'))) {
-				continue;
-			}
+        // if has not allow rules we can determine when url disallowed even on one coincidence - just to do it faster.
+        $hasAllowDirectives = true;
+        foreach ($orderedDirectives as $directiveRow) {
+            if ($directiveRow['directive'] == 'allow') {
+                $hasAllowDirectives = true;
+                break;
+            }
+        }
 
-			if (preg_match($directiveRow['rule_regexp'], $relativeUrl)) {
-				if ($directiveRow['directive'] == 'allow' ) {
-					$isAllow = true;
-				}
-				else {
-					if (!$hasAllowDirectives) {
-						return false;
-					}
+        $isAllow = true;
+        foreach ($orderedDirectives as $directiveRow) {
+            if (!in_array($directiveRow['directive'], array('allow', 'disallow'))) {
+                continue;
+            }
 
-					$isAllow = false;
-				}
-			}
-		}
+            if (preg_match($directiveRow['rule_regexp'], $relativeUrl)) {
+                if ($directiveRow['directive'] == 'allow') {
+                    $isAllow = true;
+                } else {
+                    if (!$hasAllowDirectives) {
+                        return false;
+                    }
 
-		return $isAllow;
-	}
+                    $isAllow = false;
+                }
+            }
+        }
 
-	/**
-	 * Return true if url is disallow to crawl by robots.txt rules otherwise false
-	 *
-	 * @param string $url
-	 * @param string $userAgent
-	 * @return bool
-	 */
-	public function isUrlDisallow($url, $userAgent = '*')
-	{
-		return !$this->isUrlAllow($url, $userAgent);
-	}
+        return $isAllow;
+    }
 
-	/**
-	 * Get array of ordered by length rules from allow and disallow directives by specific user-agent
-	 * If you have already stored robots.txt rules into database, you can use query like this to fetch ordered rules:
-	 * mysql> SELECT directive,value FROM robots_txt where site_id = ?d and directive IN ('allow','disallow) AND user_agent = ? ORDER BY CHAR_LENGTH(value) ASC;
-	 *
-	 * @param string $userAgent
-	 * @return array
-	 */
-	private function getOrderedDirectivesByUserAgent($userAgent)
-	{
-		if (!isset($this->orderedDirectivesCache[$userAgent])) {
-			if (!empty($this->rules[$userAgent])) {
-				//put data to execution cache
-				$this->orderedDirectivesCache[$userAgent] = $this->orderDirectives($this->rules[$userAgent]);
-			}
-			else {
-				$this->orderedDirectivesCache[$userAgent] = array();
-			}
-		}
+    /**
+     * Always returns relative url without domain which start from "/", e.g.:
+     *
+     * http://example.com/test       -> /test
+     * https://example.com/test/path -> /test/path
+     * /test/any/path                -> /test/any/path
+     * http://example.com            -> /
+     * /                             -> /
+     * /some/path                    -> /some/path
+     *
+     * @param string $url
+     * @return string
+     * @throws Exception
+     */
+    private function getRelativeUrl($url)
+    {
+        try {
+            if (!$url) {
+                throw new Exception('Url should not be empty');
+            }
 
-		return $this->orderedDirectivesCache[$userAgent];
-	}
+            if (!preg_match('!^https?://!i', $url)) {
+                if (empty($url[0]) || $url[0] !== '/') {
+                    throw new Exception('Url should start from "/" or has protocol with domain, got ' . $url);
+                } else {
+                    return $url;
+                }
+            }
 
-	/**
-	 * Order directives by rule char length
-	 *
-	 * @param array $rules
-	 * @return array $directives
-	 */
-	private function orderDirectives(array $rules)
-	{
-		$directives = array();
+        } catch (Exception $e) {
+            var_dump($e->getMessage());
+        }
 
-		$allowRules = !empty($rules['allow']) ? $rules['allow'] : array();
-		$disallowRules = !empty($rules['disallow']) ? $rules['disallow'] : array();
+        return parse_url($url, PHP_URL_PATH);
+    }
 
-		foreach ($allowRules as $rule) {
-			$directives[] = array(
-				'directive' => 'allow',
-				'rule' => $rule,
-				'rule_regexp' => $this->prepareRegexpRule($rule),
-			);
-		}
+    /**
+     * Get array of ordered by length rules from allow and disallow directives by specific user-agent
+     * If you have already stored robots.txt rules into database, you can use query like this to fetch ordered rules:
+     * mysql> SELECT directive,value FROM robots_txt where site_id = ?d and directive IN ('allow','disallow) AND user_agent = ? ORDER BY CHAR_LENGTH(value) ASC;
+     *
+     * @param string $userAgent
+     * @return array
+     */
+    private function getOrderedDirectivesByUserAgent($userAgent)
+    {
+        if (!isset($this->orderedDirectivesCache[$userAgent])) {
+            if (!empty($this->rules[$userAgent])) {
+                //put data to execution cache
+                $this->orderedDirectivesCache[$userAgent] = $this->orderDirectives($this->rules[$userAgent]);
+            } else {
+                $this->orderedDirectivesCache[$userAgent] = array();
+            }
+        }
 
-		foreach ($disallowRules as $rule) {
-			$directives[] = array(
-				'directive' => 'disallow',
-				'rule' => $rule,
-				'rule_regexp' => $this->prepareRegexpRule($rule),
-			);
-		}
+        return $this->orderedDirectivesCache[$userAgent];
+    }
 
-		usort($directives, function ($row1, $row2) {
-			return mb_strlen($row1['rule']) > mb_strlen($row2['rule']);
-		});
+    /**
+     * Order directives by rule char length
+     *
+     * @param array $rules
+     * @return array $directives
+     */
+    private function orderDirectives(array $rules)
+    {
+        $directives = array();
 
-		return $directives;
-	}
+        $allowRules = !empty($rules['allow']) ? $rules['allow'] : array();
+        $disallowRules = !empty($rules['disallow']) ? $rules['disallow'] : array();
 
-	/**
-	 * Always returns relative url without domain which start from "/", e.g.:
-	 *
-	 * http://example.com/test       -> /test
-	 * https://example.com/test/path -> /test/path
-	 * /test/any/path                -> /test/any/path
-	 * http://example.com            -> /
-	 * /                             -> /
-	 * /some/path                    -> /some/path
-	 *
-	 * @param string $url
-	 * @return string
-	 * @throws Exception
-	 */
-	private function getRelativeUrl($url)
-	{
-		try {
-			if (!$url) {
-				throw new Exception('Url should not be empty');
-			}
+        foreach ($allowRules as $rule) {
+            $directives[] = array(
+                'directive' => 'allow',
+                'rule' => $rule,
+                'rule_regexp' => $this->prepareRegexpRule($rule),
+            );
+        }
 
-			if (!preg_match('!^https?://!i', $url)) {
-				if (empty($url[0]) || $url[0] !== '/') {
-					throw new Exception('Url should start from "/" or has protocol with domain, got ' . $url);
-				}
-				else {
-					return $url;
-				}
-			}
-		
-		} catch (Exception $e) {
-			var_dump($e->getMessage());
-		}
+        foreach ($disallowRules as $rule) {
+            $directives[] = array(
+                'directive' => 'disallow',
+                'rule' => $rule,
+                'rule_regexp' => $this->prepareRegexpRule($rule),
+            );
+        }
 
-		return parse_url($url, PHP_URL_PATH);
-	}
+        usort($directives, function ($row1, $row2) {
+            return mb_strlen($row1['rule']) > mb_strlen($row2['rule']);
+        });
 
-	/**
-	 * Convert robots.txt rule to php RegExp
-	 *
-	 * @param string $ruleValue
-	 * @return string
-	 */
-	private static function prepareRegexpRule($ruleValue)
-	{
-		$replacements = array(
-			'/\$./' => '\$',
-			'/\?/' => '\?',
-			'/\./' => '\.',
-			'/\*/' => '.*',
-		);
+        return $directives;
+    }
 
-		$ruleValue = preg_replace(array_keys($replacements), array_values($replacements), $ruleValue);
+    /**
+     * Convert robots.txt rule to php RegExp
+     *
+     * @param string $ruleValue
+     * @return string
+     */
+    private static function prepareRegexpRule($ruleValue)
+    {
+        $replacements = array(
+            '/\$./' => '\$',
+            '/\?/' => '\?',
+            '/\./' => '\.',
+            '/\*/' => '.*',
+        );
 
-		$regexp = '/^' . str_replace('/', '\/', $ruleValue) . '/';
-		return str_replace('\\\\/', '\/', $regexp);
-	}
+        $ruleValue = preg_replace(array_keys($replacements), array_values($replacements), $ruleValue);
+
+        $regexp = '/^' . str_replace('/', '\/', $ruleValue) . '/';
+        return str_replace('\\\\/', '\/', $regexp);
+    }
 }

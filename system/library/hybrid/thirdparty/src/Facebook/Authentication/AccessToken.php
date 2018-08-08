@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 namespace Facebook\Authentication;
 
 /**
@@ -48,7 +49,7 @@ class AccessToken
      * Create a new access token entity.
      *
      * @param string $accessToken
-     * @param int    $expiresAt
+     * @param int $expiresAt
      */
     public function __construct($accessToken, $expiresAt = 0)
     {
@@ -56,6 +57,18 @@ class AccessToken
         if ($expiresAt) {
             $this->setExpiresAtFromTimeStamp($expiresAt);
         }
+    }
+
+    /**
+     * Setter for expires_at.
+     *
+     * @param int $timeStamp
+     */
+    protected function setExpiresAtFromTimeStamp($timeStamp)
+    {
+        $dt = new \DateTime();
+        $dt->setTimestamp($timeStamp);
+        $this->expiresAt = $dt;
     }
 
     /**
@@ -68,26 +81,6 @@ class AccessToken
     public function getAppSecretProof($appSecret)
     {
         return hash_hmac('sha256', $this->value, $appSecret);
-    }
-
-    /**
-     * Getter for expiresAt.
-     *
-     * @return \DateTime|null
-     */
-    public function getExpiresAt()
-    {
-        return $this->expiresAt;
-    }
-
-    /**
-     * Determines whether or not this is an app access token.
-     *
-     * @return bool
-     */
-    public function isAppAccessToken()
-    {
-        return strpos($this->value, '|') !== false;
     }
 
     /**
@@ -109,6 +102,16 @@ class AccessToken
     }
 
     /**
+     * Determines whether or not this is an app access token.
+     *
+     * @return bool
+     */
+    public function isAppAccessToken()
+    {
+        return strpos($this->value, '|') !== false;
+    }
+
+    /**
      * Checks the expiration of the access token.
      *
      * @return boolean|null
@@ -127,13 +130,13 @@ class AccessToken
     }
 
     /**
-     * Returns the access token as a string.
+     * Getter for expiresAt.
      *
-     * @return string
+     * @return \DateTime|null
      */
-    public function getValue()
+    public function getExpiresAt()
     {
-        return $this->value;
+        return $this->expiresAt;
     }
 
     /**
@@ -147,14 +150,12 @@ class AccessToken
     }
 
     /**
-     * Setter for expires_at.
+     * Returns the access token as a string.
      *
-     * @param int $timeStamp
+     * @return string
      */
-    protected function setExpiresAtFromTimeStamp($timeStamp)
+    public function getValue()
     {
-        $dt = new \DateTime();
-        $dt->setTimestamp($timeStamp);
-        $this->expiresAt = $dt;
+        return $this->value;
     }
 }
