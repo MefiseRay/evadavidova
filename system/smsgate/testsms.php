@@ -1,3 +1,7 @@
 <?php
-final class TestSms extends SmsGate { }
+
+final class TestSms extends SmsGate
+{
+}
+
 ?>
