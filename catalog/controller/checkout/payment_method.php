@@ -1,192 +1,196 @@
 <?php
-class ControllerCheckoutPaymentMethod extends Controller {
-	public function index() {
-		$this->load->language('checkout/checkout');
 
-		if (isset($this->session->data['payment_address'])) {
-			// Totals
-			$totals = array();
-			$taxes = $this->cart->getTaxes();
-			$total = 0;
+class ControllerCheckoutPaymentMethod extends Controller
+{
+    public function index()
+    {
+        $this->load->language('checkout/checkout');
 
-			// Because __call can not keep var references so we put them into an array.
-			$total_data = array(
-				'totals' => &$totals,
-				'taxes'  => &$taxes,
-				'total'  => &$total
-			);
-			
-			$this->load->model('extension/extension');
+        if (isset($this->session->data['payment_address'])) {
+            // Totals
+            $totals = array();
+            $taxes = $this->cart->getTaxes();
+            $total = 0;
 
-			$sort_order = array();
+            // Because __call can not keep var references so we put them into an array.
+            $total_data = array(
+                'totals' => &$totals,
+                'taxes' => &$taxes,
+                'total' => &$total
+            );
 
-			$results = $this->model_extension_extension->getExtensions('total');
+            $this->load->model('extension/extension');
 
-			foreach ($results as $key => $value) {
-				$sort_order[$key] = $this->config->get($value['code'] . '_sort_order');
-			}
+            $sort_order = array();
 
-			array_multisort($sort_order, SORT_ASC, $results);
+            $results = $this->model_extension_extension->getExtensions('total');
 
-			foreach ($results as $result) {
-				if ($this->config->get($result['code'] . '_status')) {
-					$this->load->model('extension/total/' . $result['code']);
-					
-					// We have to put the totals in an array so that they pass by reference.
-					$this->{'model_extension_total_' . $result['code']}->getTotal($total_data);
-				}
-			}
+            foreach ($results as $key => $value) {
+                $sort_order[$key] = $this->config->get($value['code'] . '_sort_order');
+            }
 
-			// Payment Methods
-			$method_data = array();
+            array_multisort($sort_order, SORT_ASC, $results);
 
-			$this->load->model('extension/extension');
+            foreach ($results as $result) {
+                if ($this->config->get($result['code'] . '_status')) {
+                    $this->load->model('extension/total/' . $result['code']);
 
-			$results = $this->model_extension_extension->getExtensions('payment');
+                    // We have to put the totals in an array so that they pass by reference.
+                    $this->{'model_extension_total_' . $result['code']}->getTotal($total_data);
+                }
+            }
 
-			$recurring = $this->cart->hasRecurringProducts();
+            // Payment Methods
+            $method_data = array();
 
-			foreach ($results as $result) {
-				if ($this->config->get($result['code'] . '_status')) {
-					$this->load->model('extension/payment/' . $result['code']);
+            $this->load->model('extension/extension');
 
-					$method = $this->{'model_extension_payment_' . $result['code']}->getMethod($this->session->data['payment_address'], $total);
+            $results = $this->model_extension_extension->getExtensions('payment');
 
-					if ($method) {
-						if ($recurring) {
-							if (property_exists($this->{'model_extension_payment_' . $result['code']}, 'recurringPayments') && $this->{'model_extension_payment_' . $result['code']}->recurringPayments()) {
-								$method_data[$result['code']] = $method;
-							}
-						} else {
-							$method_data[$result['code']] = $method;
-						}
-					}
-				}
-			}
+            $recurring = $this->cart->hasRecurringProducts();
 
-			$sort_order = array();
+            foreach ($results as $result) {
+                if ($this->config->get($result['code'] . '_status')) {
+                    $this->load->model('extension/payment/' . $result['code']);
 
-			foreach ($method_data as $key => $value) {
-				$sort_order[$key] = $value['sort_order'];
-			}
+                    $method = $this->{'model_extension_payment_' . $result['code']}->getMethod($this->session->data['payment_address'], $total);
 
-			array_multisort($sort_order, SORT_ASC, $method_data);
+                    if ($method) {
+                        if ($recurring) {
+                            if (property_exists($this->{'model_extension_payment_' . $result['code']}, 'recurringPayments') && $this->{'model_extension_payment_' . $result['code']}->recurringPayments()) {
+                                $method_data[$result['code']] = $method;
+                            }
+                        } else {
+                            $method_data[$result['code']] = $method;
+                        }
+                    }
+                }
+            }
 
-			$this->session->data['payment_methods'] = $method_data;
-		}
+            $sort_order = array();
 
-		$data['text_payment_method'] = $this->language->get('text_payment_method');
-		$data['text_comments'] = $this->language->get('text_comments');
-		$data['text_loading'] = $this->language->get('text_loading');
+            foreach ($method_data as $key => $value) {
+                $sort_order[$key] = $value['sort_order'];
+            }
 
-		$data['button_continue'] = $this->language->get('button_continue');
+            array_multisort($sort_order, SORT_ASC, $method_data);
 
-		if (empty($this->session->data['payment_methods'])) {
-			$data['error_warning'] = sprintf($this->language->get('error_no_payment'), $this->url->link('information/contact'));
-		} else {
-			$data['error_warning'] = '';
-		}
+            $this->session->data['payment_methods'] = $method_data;
+        }
 
-		if (isset($this->session->data['payment_methods'])) {
-			$data['payment_methods'] = $this->session->data['payment_methods'];
-		} else {
-			$data['payment_methods'] = array();
-		}
+        $data['text_payment_method'] = $this->language->get('text_payment_method');
+        $data['text_comments'] = $this->language->get('text_comments');
+        $data['text_loading'] = $this->language->get('text_loading');
 
-		if (isset($this->session->data['payment_method']['code'])) {
-			$data['code'] = $this->session->data['payment_method']['code'];
-		} else {
-			$data['code'] = '';
-		}
+        $data['button_continue'] = $this->language->get('button_continue');
 
-		if (isset($this->session->data['comment'])) {
-			$data['comment'] = $this->session->data['comment'];
-		} else {
-			$data['comment'] = '';
-		}
+        if (empty($this->session->data['payment_methods'])) {
+            $data['error_warning'] = sprintf($this->language->get('error_no_payment'), $this->url->link('information/contact'));
+        } else {
+            $data['error_warning'] = '';
+        }
 
-		$data['scripts'] = $this->document->getScripts();
+        if (isset($this->session->data['payment_methods'])) {
+            $data['payment_methods'] = $this->session->data['payment_methods'];
+        } else {
+            $data['payment_methods'] = array();
+        }
 
-		if ($this->config->get('config_checkout_id')) {
-			$this->load->model('catalog/information');
+        if (isset($this->session->data['payment_method']['code'])) {
+            $data['code'] = $this->session->data['payment_method']['code'];
+        } else {
+            $data['code'] = '';
+        }
 
-			$information_info = $this->model_catalog_information->getInformation($this->config->get('config_checkout_id'));
+        if (isset($this->session->data['comment'])) {
+            $data['comment'] = $this->session->data['comment'];
+        } else {
+            $data['comment'] = '';
+        }
 
-			if ($information_info) {
-				$data['text_agree'] = sprintf($this->language->get('text_agree'), $this->url->link('information/information/agree', 'information_id=' . $this->config->get('config_checkout_id'), true), $information_info['title'], $information_info['title']);
-			} else {
-				$data['text_agree'] = '';
-			}
-		} else {
-			$data['text_agree'] = '';
-		}
+        $data['scripts'] = $this->document->getScripts();
 
-		if (isset($this->session->data['agree'])) {
-			$data['agree'] = $this->session->data['agree'];
-		} else {
-			$data['agree'] = '';
-		}
+        if ($this->config->get('config_checkout_id')) {
+            $this->load->model('catalog/information');
 
-		$this->response->setOutput($this->load->view('checkout/payment_method', $data));
-	}
+            $information_info = $this->model_catalog_information->getInformation($this->config->get('config_checkout_id'));
 
-	public function save() {
-		$this->load->language('checkout/checkout');
+            if ($information_info) {
+                $data['text_agree'] = sprintf($this->language->get('text_agree'), $this->url->link('information/information/agree', 'information_id=' . $this->config->get('config_checkout_id'), true), $information_info['title'], $information_info['title']);
+            } else {
+                $data['text_agree'] = '';
+            }
+        } else {
+            $data['text_agree'] = '';
+        }
 
-		$json = array();
+        if (isset($this->session->data['agree'])) {
+            $data['agree'] = $this->session->data['agree'];
+        } else {
+            $data['agree'] = '';
+        }
 
-		// Validate if payment address has been set.
-		if (!isset($this->session->data['payment_address'])) {
-			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
-		}
+        $this->response->setOutput($this->load->view('checkout/payment_method', $data));
+    }
 
-		// Validate cart has products and has stock.
-		if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {
-			$json['redirect'] = $this->url->link('checkout/cart');
-		}
+    public function save()
+    {
+        $this->load->language('checkout/checkout');
 
-		// Validate minimum quantity requirements.
-		$products = $this->cart->getProducts();
+        $json = array();
 
-		foreach ($products as $product) {
-			$product_total = 0;
+        // Validate if payment address has been set.
+        if (!isset($this->session->data['payment_address'])) {
+            $json['redirect'] = $this->url->link('checkout/checkout', '', true);
+        }
 
-			foreach ($products as $product_2) {
-				if ($product_2['product_id'] == $product['product_id']) {
-					$product_total += $product_2['quantity'];
-				}
-			}
+        // Validate cart has products and has stock.
+        if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {
+            $json['redirect'] = $this->url->link('checkout/cart');
+        }
 
-			if ($product['minimum'] > $product_total) {
-				$json['redirect'] = $this->url->link('checkout/cart');
+        // Validate minimum quantity requirements.
+        $products = $this->cart->getProducts();
 
-				break;
-			}
-		}
+        foreach ($products as $product) {
+            $product_total = 0;
 
-		if (!isset($this->request->post['payment_method'])) {
-			$json['error']['warning'] = $this->language->get('error_payment');
-		} elseif (!isset($this->session->data['payment_methods'][$this->request->post['payment_method']])) {
-			$json['error']['warning'] = $this->language->get('error_payment');
-		}
+            foreach ($products as $product_2) {
+                if ($product_2['product_id'] == $product['product_id']) {
+                    $product_total += $product_2['quantity'];
+                }
+            }
 
-		if ($this->config->get('config_checkout_id')) {
-			$this->load->model('catalog/information');
+            if ($product['minimum'] > $product_total) {
+                $json['redirect'] = $this->url->link('checkout/cart');
 
-			$information_info = $this->model_catalog_information->getInformation($this->config->get('config_checkout_id'));
+                break;
+            }
+        }
 
-			if ($information_info && !isset($this->request->post['agree'])) {
-				$json['error']['warning'] = sprintf($this->language->get('error_agree'), $information_info['title']);
-			}
-		}
+        if (!isset($this->request->post['payment_method'])) {
+            $json['error']['warning'] = $this->language->get('error_payment');
+        } elseif (!isset($this->session->data['payment_methods'][$this->request->post['payment_method']])) {
+            $json['error']['warning'] = $this->language->get('error_payment');
+        }
 
-		if (!$json) {
-			$this->session->data['payment_method'] = $this->session->data['payment_methods'][$this->request->post['payment_method']];
+        if ($this->config->get('config_checkout_id')) {
+            $this->load->model('catalog/information');
 
-			$this->session->data['comment'] = strip_tags($this->request->post['comment']);
-		}
+            $information_info = $this->model_catalog_information->getInformation($this->config->get('config_checkout_id'));
 
-		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
-	}
+            if ($information_info && !isset($this->request->post['agree'])) {
+                $json['error']['warning'] = sprintf($this->language->get('error_agree'), $information_info['title']);
+            }
+        }
+
+        if (!$json) {
+            $this->session->data['payment_method'] = $this->session->data['payment_methods'][$this->request->post['payment_method']];
+
+            $this->session->data['comment'] = strip_tags($this->request->post['comment']);
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
 }

@@ -1,66 +1,70 @@
 <?php
-class ControllerCommonCurrency extends Controller {
-	public function index() {
-		$this->load->language('common/currency');
 
-		$data['text_currency'] = $this->language->get('text_currency');
+class ControllerCommonCurrency extends Controller
+{
+    public function index()
+    {
+        $this->load->language('common/currency');
 
-		$data['action'] = $this->url->link('common/currency/currency', '', isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1')));
+        $data['text_currency'] = $this->language->get('text_currency');
 
-		$data['code'] = $this->session->data['currency'];
+        $data['action'] = $this->url->link('common/currency/currency', '', isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1')));
 
-		$this->load->model('localisation/currency');
+        $data['code'] = $this->session->data['currency'];
 
-		$data['currencies'] = array();
+        $this->load->model('localisation/currency');
 
-		$results = $this->model_localisation_currency->getCurrencies();
+        $data['currencies'] = array();
 
-		foreach ($results as $result) {
-			if ($result['status']) {
-				$data['currencies'][] = array(
-					'title'        => $result['title'],
-					'code'         => $result['code'],
-					'symbol_left'  => $result['symbol_left'],
-					'symbol_right' => $result['symbol_right']
-				);
-			}
-		}
+        $results = $this->model_localisation_currency->getCurrencies();
 
-		if (!isset($this->request->get['route'])) {
-			$data['redirect'] = $this->url->link('common/home');
-		} else {
-			$url_data = $this->request->get;
+        foreach ($results as $result) {
+            if ($result['status']) {
+                $data['currencies'][] = array(
+                    'title' => $result['title'],
+                    'code' => $result['code'],
+                    'symbol_left' => $result['symbol_left'],
+                    'symbol_right' => $result['symbol_right']
+                );
+            }
+        }
 
-			unset($url_data['_route_']);
+        if (!isset($this->request->get['route'])) {
+            $data['redirect'] = $this->url->link('common/home');
+        } else {
+            $url_data = $this->request->get;
 
-			$route = $url_data['route'];
+            unset($url_data['_route_']);
 
-			unset($url_data['route']);
+            $route = $url_data['route'];
 
-			$url = '';
+            unset($url_data['route']);
 
-			if ($url_data) {
-				$url = '&' . urldecode(http_build_query($url_data, '', '&'));
-			}
+            $url = '';
 
-			$data['redirect'] = $this->url->link($route, $url, isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1')));
-		}
+            if ($url_data) {
+                $url = '&' . urldecode(http_build_query($url_data, '', '&'));
+            }
 
-		return $this->load->view('common/currency', $data);
-	}
+            $data['redirect'] = $this->url->link($route, $url, isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1')));
+        }
 
-	public function currency() {
-		if (isset($this->request->post['code'])) {
-			$this->session->data['currency'] = $this->request->post['code'];
-		
-			unset($this->session->data['shipping_method']);
-			unset($this->session->data['shipping_methods']);
-		}
-		
-		if (isset($this->request->post['redirect'])) {
-			$this->response->redirect($this->request->post['redirect']);
-		} else {
-			$this->response->redirect($this->url->link('common/home'));
-		}
-	}
+        return $this->load->view('common/currency', $data);
+    }
+
+    public function currency()
+    {
+        if (isset($this->request->post['code'])) {
+            $this->session->data['currency'] = $this->request->post['code'];
+
+            unset($this->session->data['shipping_method']);
+            unset($this->session->data['shipping_methods']);
+        }
+
+        if (isset($this->request->post['redirect'])) {
+            $this->response->redirect($this->request->post['redirect']);
+        } else {
+            $this->response->redirect($this->url->link('common/home'));
+        }
+    }
 }
