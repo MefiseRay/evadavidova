@@ -1,8 +1,8 @@
 <?php
 // Heading 
 $_['heading_title'] = '<b>Revolution Slider</b>';
-$_['decimal_point']         = '.';
-$_['thousand_point']        = ',';
+$_['decimal_point'] = '.';
+$_['thousand_point'] = ',';
 $_['help'] = 'Help';
 $_['Revolution_Sliders'] = 'Revolution Sliders';
 $_['general_settings'] = 'General Settings';

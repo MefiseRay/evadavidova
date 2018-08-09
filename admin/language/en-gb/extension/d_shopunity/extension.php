@@ -7,7 +7,6 @@ $_['text_edit'] = 'Extensions';
 $_['error_download'] = 'Oops! We counldn\'t download this extension. The following files seem to be missing.';
 
 
-
 $_['text_tester_status_1'] = 'Testing';
 $_['text_tester_status_2'] = 'Submitted';
 $_['text_tester_status_3'] = 'Error';

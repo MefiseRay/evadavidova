@@ -1,6 +1,6 @@
 <?php
-$_['text_instruction']          = 'Instructions';
-$_['text_instructions_full']    = '
+$_['text_instruction'] = 'Instructions';
+$_['text_instructions_full'] = '
     <p>Social login lets you implement login buttons of the most popular social networks in the world. With the new version you get more options. When updating, check the instructions manual.</p>
     <h2>Set up buttons</h2>
     <ol>
@@ -27,13 +27,13 @@ $_['text_instructions_full']    = '
 
             <div class="bs-callout bs-callout-warning">
                 <h4>Important if Updating from older versions!</h4>
-                <p>We have rethought the process of logging. This is why we have changed the callback urls which solved alot of issues. But now you must reset the callback urls for some of the social logins. If you social login is not working - its probably the callback url.<br/><br/>'.HTTPS_CATALOG.'<strong>d_social_login.php?</strong>hauth.done=Google<br/><br/> </p>
+                <p>We have rethought the process of logging. This is why we have changed the callback urls which solved alot of issues. But now you must reset the callback urls for some of the social logins. If you social login is not working - its probably the callback url.<br/><br/>' . HTTPS_CATALOG . '<strong>d_social_login.php?</strong>hauth.done=Google<br/><br/> </p>
             </div>
 
             <li>Check that your newly created App is activated. i.e. Facebook keeps new apps deactivated and Twitter needs extra checkbox to allow social logins.</li>
 
 
-            <li>Check that you have access to your callback path - visit <a href="'.HTTPS_CATALOG.'d_social_login.php">'.HTTPS_CATALOG.'d_social_login.php</a>. You should see this text HybridAuth Open Source Social Sign On PHP Library. hybridauth.sourceforge.net/. If you do not see it - try adding permissions 755 or 777 to your folder '.HTTPS_CATALOG.'catalog/model/d_social_login/ </li>
+            <li>Check that you have access to your callback path - visit <a href="' . HTTPS_CATALOG . 'd_social_login.php">' . HTTPS_CATALOG . 'd_social_login.php</a>. You should see this text HybridAuth Open Source Social Sign On PHP Library. hybridauth.sourceforge.net/. If you do not see it - try adding permissions 755 or 777 to your folder ' . HTTPS_CATALOG . 'catalog/model/d_social_login/ </li>
             <li>Give it 1 hour to refresh the cache on the social network side and try again.</li>
             <li>Send us a support ticket at <a href="http://dreamvention.com/support">dreamvention.com/support</a></li>
         </ol>

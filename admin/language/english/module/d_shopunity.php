@@ -1,1 +1,1 @@
-<?php include (DIR_APPLICATION.'language/en-gb/extension/module/d_shopunity.php');
+<?php include(DIR_APPLICATION . 'language/en-gb/extension/module/d_shopunity.php');

@@ -7,7 +7,7 @@ $_['masstxt_menu_name'] = 'Product Name'; ///
 $_['heading_title'] = 'MASS products update: <strong>Product Name</strong>'; ///
 
 $_['text_module'] = 'Modules';
-$_['text_extension']   = 'Extensions';
+$_['text_extension'] = 'Extensions';
 
 
 // Messages

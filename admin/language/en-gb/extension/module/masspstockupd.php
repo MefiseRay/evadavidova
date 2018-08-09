@@ -7,7 +7,7 @@ $_['masstxt_menu_quantity'] = 'Quantity (stock), ...'; ///
 $_['heading_title'] = 'MASS products update: <strong>Quantity (stock), Minimum Quantity, Subtract Stock, Out Of Stock Status, Requires Shipping, Date Available, Status</strong>'; ///
 
 $_['text_module'] = 'Modules';
-$_['text_extension']   = 'Extensions';
+$_['text_extension'] = 'Extensions';
 
 // Messages
 $_['masstxt_succes_products_filtered'] = 'The products have been filtered !';

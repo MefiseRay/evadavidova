@@ -7,7 +7,7 @@ $_['masstxt_menu_d_w'] = 'Dimensions, Weight, ...'; ///
 $_['heading_title'] = 'MASS products update: <strong>Dimensions (L x W x H), Length Class, Weight, Weight Class, Date Available, Status</strong>'; ///
 
 $_['text_module'] = 'Modules';
-$_['text_extension']   = 'Extensions';
+$_['text_extension'] = 'Extensions';
 
 // Messages
 $_['masstxt_succes_products_filtered'] = 'The products have been filtered !';

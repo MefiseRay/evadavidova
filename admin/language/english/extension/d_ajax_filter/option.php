@@ -1,1 +1,1 @@
-<?php include (DIR_APPLICATION.'language/en-gb/extension/d_ajax_filter/option.php');
+<?php include(DIR_APPLICATION . 'language/en-gb/extension/d_ajax_filter/option.php');

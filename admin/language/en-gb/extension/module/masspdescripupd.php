@@ -7,7 +7,7 @@ $_['masstxt_menu_description'] = 'Description'; ///
 $_['heading_title'] = 'MASS products update: <strong>Description</strong>'; ///
 
 $_['text_module'] = 'Modules';
-$_['text_extension']   = 'Extensions';
+$_['text_extension'] = 'Extensions';
 
 // Messages
 $_['masstxt_succes_products_filtered'] = 'The products have been filtered !';

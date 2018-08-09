@@ -7,7 +7,7 @@ $_['masstxt_menu_disco_spec'] = 'Discounts, Specials'; ///
 $_['heading_title'] = 'MASS products update: <strong>Discounts, Specials</strong>'; ///
 
 $_['text_module'] = 'Modules';
-$_['text_extension']   = 'Extensions';
+$_['text_extension'] = 'Extensions';
 
 // Messages
 $_['masstxt_succes_products_filtered'] = 'The products have been filtered !';
@@ -131,14 +131,14 @@ $_['masstxt_upd_price_type'] = 'Price type / Value :';
 $_['masstxt_upd_date_start'] = 'Date Start:';
 $_['masstxt_upd_date_end'] = 'Date End:';
 
-$_['entry_quantity']         = 'Quantity';
-$_['entry_priority']         = 'Priority';
-$_['entry_price']            = 'Value';
-$_['entry_date_start']       = 'Date Start';
-$_['entry_date_end']         = 'Date End';
-$_['button_discount_add']           = 'Add Discount';
-$_['button_special_add']            = 'Add Special';
-$_['button_remove']                 = 'Remove';
+$_['entry_quantity'] = 'Quantity';
+$_['entry_priority'] = 'Priority';
+$_['entry_price'] = 'Value';
+$_['entry_date_start'] = 'Date Start';
+$_['entry_date_end'] = 'Date End';
+$_['button_discount_add'] = 'Add Discount';
+$_['button_special_add'] = 'Add Special';
+$_['button_remove'] = 'Remove';
 
 $_['masstxt_upd_flat'] = 'Flat (fixed) value';
 $_['masstxt_upd_subtraction_price'] = 'Subtract a value from base price';

