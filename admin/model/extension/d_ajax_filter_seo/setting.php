@@ -3,7 +3,8 @@
  *  location: admin/model
  */
 
-class ModelExtensionDAjaxFilterSeoSetting extends Model {
+class ModelExtensionDAjaxFilterSeoSetting extends Model
+{
 
 
 }

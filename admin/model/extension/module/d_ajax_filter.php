@@ -3,13 +3,15 @@
 *  location: admin/model
 */
 
-class ModelExtensionModuleDAjaxFilter extends Model {
+class ModelExtensionModuleDAjaxFilter extends Model
+{
 
     public $codename = 'd_ajax_filter';
 
-    public function CreateDatabase(){
+    public function CreateDatabase()
+    {
 
-        $this->db->query("CREATE TABLE IF NOT EXISTS `".DB_PREFIX."af_translit` (
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "af_translit` (
            `type` VARCHAR(64) NOT NULL,
            `group_id` INT(11) NOT NULL,
            `value` INT(11) NOT NULL,
@@ -19,45 +21,15 @@ class ModelExtensionModuleDAjaxFilter extends Model {
            COLLATE='utf8_general_ci' ENGINE=InnoDB;");
     }
 
-    public function DropDatabase(){
-        $this->db->query("DROP TABLE IF EXISTS ". DB_PREFIX . "af_translit");
-        $this->load->model('extension/'.$this->codename.'/cache');
-        $this->{'model_extension_'.$this->codename.'_cache'}->disableCache();
+    public function DropDatabase()
+    {
+        $this->db->query("DROP TABLE IF EXISTS " . DB_PREFIX . "af_translit");
+        $this->load->model('extension/' . $this->codename . '/cache');
+        $this->{'model_extension_' . $this->codename . '_cache'}->disableCache();
     }
-    
-    public function checkCache($redirect = true){
-        $this->load->model('setting/setting');
-        $setting = $this->model_setting_setting->getSetting($this->codename.'_cache');
 
-        if(!empty($setting)){
-
-            $this->load->model('extension/'.$this->codename.'/cache');
-
-            $steps = $this->{'model_extension_'.$this->codename.'_cache'}->getModulesForCache();
-
-            $steps[] = 'product';
-            
-            if(!empty($setting[$this->codename.'_cache']['steps']) && !$redirect){
-
-                $results = array_diff($steps, $setting[$this->codename.'_cache']['steps']);
-                if(!empty($results)){
-                    return false;
-                }
-                else{
-                    return true;
-                }
-            }
-            else{
-                return true;
-            }
-            
-        }
-        else{
-            return false;
-        }
-    }
-    
-    public function clearFileCache(){
+    public function clearFileCache()
+    {
         $this->cache->delete('af-attribute');
         $this->cache->delete('af-price');
         $this->cache->delete('af-total-attribute');
@@ -70,13 +42,14 @@ class ModelExtensionModuleDAjaxFilter extends Model {
         $this->cache->delete('af-total-tag');
     }
 
-    public function getTabs($active){
-        $dir = DIR_APPLICATION.'controller/extension/'.$this->codename.'/*.php';
+    public function getTabs($active)
+    {
+        $dir = DIR_APPLICATION . 'controller/extension/' . $this->codename . '/*.php';
         $files = glob($dir);
         $result = array('layout');
-        foreach($files as $file){
+        foreach ($files as $file) {
             $name = basename($file, '.php');
-            if(!in_array($name, array('setting', 'layout', 'cache'))){
+            if (!in_array($name, array('setting', 'layout', 'cache'))) {
                 $result[] = $name;
             }
         }
@@ -84,37 +57,37 @@ class ModelExtensionModuleDAjaxFilter extends Model {
         return $this->prepareTabs($result, $active);
     }
 
-    public function prepareTabs($tabs, $active){
+    public function prepareTabs($tabs, $active)
+    {
 
         $this->load->model('extension/d_opencart_patch/url');
         $this->load->model('extension/d_opencart_patch/load');
 
-        $this->load->language('extension/module/'.$this->codename);
+        $this->load->language('extension/module/' . $this->codename);
         $data['tabs'] = array();
-        $icons =array('setting'=> 'fa fa-cog', 'layout' => 'fa fa-file');
+        $icons = array('setting' => 'fa fa-cog', 'layout' => 'fa fa-file');
         $url = '';
-        if(isset($this->request->get['module_id'])){
-            $url .="&module_id=".$this->request->get['module_id'];
+        if (isset($this->request->get['module_id'])) {
+            $url .= "&module_id=" . $this->request->get['module_id'];
         }
         foreach ($tabs as $tab) {
-            $this->load->language('extension/'.$this->codename.'/'.$tab);
+            $this->load->language('extension/' . $this->codename . '/' . $tab);
 
             $module_setting = $this->getModuleSetting($tab);
-            if(isset($icons[$tab])){
+            if (isset($icons[$tab])) {
                 $icon = 'fa fa-cog';
-            }elseif(isset($module_setting['icon'])){
+            } elseif (isset($module_setting['icon'])) {
                 $icon = $module_setting['icon'];
-            }
-            else{
+            } else {
                 $icon = 'fa fa-list';
             }
 
             $data['tabs'][] = array(
                 'title' => $this->language->get('text_title'),
-                'active' => ($tab == $active)?true:false,
+                'active' => ($tab == $active) ? true : false,
                 'icon' => $icon,
-                'href' => $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/'.$tab, $url)
-                );
+                'href' => $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/' . $tab, $url)
+            );
         }
 
         $data['status_cache'] = $this->checkCache(false);
@@ -125,19 +98,20 @@ class ModelExtensionModuleDAjaxFilter extends Model {
 
         $data['text_complete_version'] = $this->language->get('text_complete_version');
 
-        $this->load->model('extension/'.$this->codename.'/layout');
-        $data['notify'] = $this->{'model_extension_'.$this->codename.'_layout'}->checkCompleteVersion();
+        $this->load->model('extension/' . $this->codename . '/layout');
+        $data['notify'] = $this->{'model_extension_' . $this->codename . '_layout'}->checkCompleteVersion();
 
-        $data['install_cache'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/cache');
+        $data['install_cache'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/cache');
 
-        return $this->model_extension_d_opencart_patch_load->view('extension/'.$this->codename.'/partials/tabs', $data);
+        return $this->model_extension_d_opencart_patch_load->view('extension/' . $this->codename . '/partials/tabs', $data);
     }
 
-    public function getModuleSetting($type){
+    public function getModuleSetting($type)
+    {
         $results = array();
 
-        $file = DIR_CONFIG.$this->codename.'/'.$type.'.php';
-        
+        $file = DIR_CONFIG . $this->codename . '/' . $type . '.php';
+
         if (file_exists($file)) {
             $_ = array();
 
@@ -149,34 +123,67 @@ class ModelExtensionModuleDAjaxFilter extends Model {
         return $results;
     }
 
-    public function getStores(){
+    public function checkCache($redirect = true)
+    {
+        $this->load->model('setting/setting');
+        $setting = $this->model_setting_setting->getSetting($this->codename . '_cache');
+
+        if (!empty($setting)) {
+
+            $this->load->model('extension/' . $this->codename . '/cache');
+
+            $steps = $this->{'model_extension_' . $this->codename . '_cache'}->getModulesForCache();
+
+            $steps[] = 'product';
+
+            if (!empty($setting[$this->codename . '_cache']['steps']) && !$redirect) {
+
+                $results = array_diff($steps, $setting[$this->codename . '_cache']['steps']);
+                if (!empty($results)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+
+        } else {
+            return false;
+        }
+    }
+
+    public function getStores()
+    {
         $this->load->model('setting/store');
         $stores = $this->model_setting_store->getStores();
         $result = array();
-        if($stores){
+        if ($stores) {
             $result[] = array(
                 'store_id' => 0,
                 'name' => $this->config->get('config_name')
-                );
+            );
             foreach ($stores as $store) {
                 $result[] = array(
                     'store_id' => $store['store_id'],
                     'name' => $store['name']
-                    );
+                );
             }
         }
         return $result;
     }
 
-    public function getGroupId(){
-        if(VERSION >= '2.0.0.0'){
+    public function getGroupId()
+    {
+        if (VERSION >= '2.0.0.0') {
             $user_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "user WHERE user_id = '" . $this->user->getId() . "'");
             $user_group_id = (int)$user_query->row['user_group_id'];
-        }else{
+        } else {
             $user_group_id = $this->user->getGroupId();
         }
 
         return $user_group_id;
     }
 }
+
 ?>

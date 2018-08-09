@@ -3,7 +3,8 @@
  *  location: admin/model
  */
 
-class ModelExtensionModuleDQuickcheckout extends Model {
+class ModelExtensionModuleDQuickcheckout extends Model
+{
 
     public function __construct($registry)
     {
@@ -14,53 +15,28 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         }
     }
 
-    public function getCountries(){
-        $this->load->model('localisation/country');
-        $countries = $this->model_localisation_country->getCountries();
-        $options = array();
-        foreach ($countries as $country){
-            $country['value'] = $country['country_id'];
-            unset($country['country_id']);
-            $options[] = $country;
-        }
-        return $options;
-
-    }
-
-    public function getZonesByCountryId($country_id){
-        $this->load->model('localisation/zone');
-        $zones =  $this->model_localisation_zone->getZonesByCountryId($country_id);
-        $options = array();
-        foreach ($zones as $zone){
-            $zone['value'] = $zone['zone_id'];
-            unset($zone['zone_id']);
-            $options[] = $zone;
-        }
-        return $options;
-
-    }
-
-    public function getShippingMethods() {
-        if(VERSION >= '2.3.0.0'){
+    public function getShippingMethods()
+    {
+        if (VERSION >= '2.3.0.0') {
             $shipping_methods = glob(DIR_APPLICATION . 'controller/extension/shipping/*.php');
         } else {
             $shipping_methods = glob(DIR_APPLICATION . 'controller/shipping/*.php');
         }
         $result = array();
 
-        foreach ($shipping_methods as $shipping){
+        foreach ($shipping_methods as $shipping) {
             $shipping = basename($shipping, '.php');
-            if(VERSION >= '2.3.0.0'){
+            if (VERSION >= '2.3.0.0') {
                 $this->load->language('extension/shipping/' . $shipping);
             } else {
                 $this->load->language('shipping/' . $shipping);
             }
-            if(VERSION >= '3.0.0.0'){
-                $shipping_status = $this->config->get('shipping_'.$shipping.'_status');
-            }else{
-                $shipping_status = $this->config->get($shipping.'_status');
+            if (VERSION >= '3.0.0.0') {
+                $shipping_status = $this->config->get('shipping_' . $shipping . '_status');
+            } else {
+                $shipping_status = $this->config->get($shipping . '_status');
             }
-            if(isset($shipping_status)){
+            if (isset($shipping_status)) {
                 $result[] = array(
                     'code' => $shipping,
                     'title' => $this->language->get('heading_title')
@@ -70,27 +46,28 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $result;
     }
 
-    public function getPaymentMethods(){
-        if(VERSION >= '2.3.0.0'){
+    public function getPaymentMethods()
+    {
+        if (VERSION >= '2.3.0.0') {
             $payment_methods = glob(DIR_APPLICATION . 'controller/extension/payment/*.php');
         } else {
             $payment_methods = glob(DIR_APPLICATION . 'controller/payment/*.php');
         }
         $result = array();
-        foreach ($payment_methods as $payment){
+        foreach ($payment_methods as $payment) {
             $payment = basename($payment, '.php');
-            if(VERSION >= '2.3.0.0'){
+            if (VERSION >= '2.3.0.0') {
                 $this->load->language('extension/payment/' . $payment);
             } else {
                 $this->load->language('payment/' . $payment);
             }
-            if(VERSION>='3.0.0.0'){
-                $payment_status = $this->config->get('payment_'.$payment.'_status');
-            }else{
-                $payment_status = $this->config->get($payment.'_status');
+            if (VERSION >= '3.0.0.0') {
+                $payment_status = $this->config->get('payment_' . $payment . '_status');
+            } else {
+                $payment_status = $this->config->get($payment . '_status');
             }
 
-            if(isset($payment_status)){
+            if (isset($payment_status)) {
                 $result[] = array(
                     'status' => $this->config->get($payment . '_status'),
                     'code' => $payment,
@@ -101,55 +78,57 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $result;
     }
 
-    public function getThemes(){
-        $dir = DIR_CATALOG.'view/theme/default/stylesheet/d_quickcheckout/theme';
+    public function getThemes()
+    {
+        $dir = DIR_CATALOG . 'view/theme/default/stylesheet/d_quickcheckout/theme';
         $files = scandir($dir);
         $result = array();
-        foreach($files as $file){
-            if(strlen($file) > 6 && !strpos( $file, '.less')){
+        foreach ($files as $file) {
+            if (strlen($file) > 6 && !strpos($file, '.less')) {
                 $result[] = substr($file, 0, -4);
             }
         }
         return $result;
     }
 
-    public function languageFilter($data){
+    public function languageFilter($data)
+    {
         $this->load->model('catalog/information');
         $result = $data;
         $translate = array('title', 'description');
 
-        if(is_array($data)){
+        if (is_array($data)) {
 
-            foreach($data as $key => $value){
+            foreach ($data as $key => $value) {
 
-                if(in_array($key, $translate)){
+                if (in_array($key, $translate)) {
 
-                    if(!is_array($value)){
+                    if (!is_array($value)) {
 
                         $result[$key] = $this->escape($this->language->get($value));
-                    // }elseif(isset($value[(int)$this->config->get('config_language_id')])){
-                    //     $result[$key] = $this->escape($value[(int)$this->config->get('config_language_id')]);
-                    }else{
+                        // }elseif(isset($value[(int)$this->config->get('config_language_id')])){
+                        //     $result[$key] = $this->escape($value[(int)$this->config->get('config_language_id')]);
+                    } else {
                         $result[$key] = $this->languageFilter($value);
                     }
 
-                    if(is_string($result[$key]) && isset($result['information_id'])){
+                    if (is_string($result[$key]) && isset($result['information_id'])) {
                         $information_info = $this->model_catalog_information->getInformation($result['information_id']);
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 1){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 1) {
                             $result[$key] = sprintf($result[$key], $information_info['title']);
                         }
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 2){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 2) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title']);
                         }
 
-                        if(isset($information_info['title']) && substr_count($result[$key], '%s') == 3){
+                        if (isset($information_info['title']) && substr_count($result[$key], '%s') == 3) {
                             $result[$key] = sprintf($result[$key], $this->url->link('information/information/agree', 'information_id=' . $result['information_id'], 'SSL'), $information_info['title'], $information_info['title']);
                         }
                     }
 
-                }else{
+                } else {
                     $result[$key] = $this->languageFilter($value);
                 }
 
@@ -158,24 +137,21 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $result;
     }
 
-    public function escape($data){
+    public function escape($data)
+    {
         return $data;
     }
 
-
-    /*
-    *   Vqmod: turn on or off
-    */
-
-    public function setVqmod($xml, $action = 1){
-        $dir_vqmod =  str_replace("system", "vqmod/xml", DIR_SYSTEM);
-        $on  = $dir_vqmod.$xml;
-        $off = $dir_vqmod.$xml.'_';
-        if($action){
+    public function setVqmod($xml, $action = 1)
+    {
+        $dir_vqmod = str_replace("system", "vqmod/xml", DIR_SYSTEM);
+        $on = $dir_vqmod . $xml;
+        $off = $dir_vqmod . $xml . '_';
+        if ($action) {
             if (file_exists($off)) {
                 return rename($off, $on);
             }
-        }else{
+        } else {
             if (file_exists($on)) {
                 return rename($on, $off);
             }
@@ -183,18 +159,18 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return false;
     }
 
-    /*
-    *   Format the link to work with ajax requests
-    */
-    public function ajax($link){
+    public function ajax($link)
+    {
         return str_replace('&amp;', '&', $link);
     }
 
+
     /*
-    *   Get file contents, usualy for debug log files.
+    *   Vqmod: turn on or off
     */
 
-    public function getFileContents($file){
+    public function getFileContents($file)
+    {
 
         if (file_exists($file)) {
             $size = filesize($file);
@@ -210,7 +186,7 @@ class ModelExtensionModuleDQuickcheckout extends Model {
                     'EB',
                     'ZB',
                     'YB'
-                    );
+                );
 
                 $i = 0;
 
@@ -227,60 +203,84 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     }
 
     /*
-    *   Return name of config file.
+    *   Format the link to work with ajax requests
     */
-    public function getConfigFile($id, $sub_versions){
 
-        if(isset($this->request->post['config'])){
+    public function getConfigFile($id, $sub_versions)
+    {
+
+        if (isset($this->request->post['config'])) {
             return $this->request->post['config'];
         }
 
-        if(isset($this->request->get['setting_id'])){
+        if (isset($this->request->get['setting_id'])) {
             $setting_id = $this->request->get['setting_id'];
-        }else{
+        } else {
 
-            $setting_id = $this->config->get($id.'_setting');
+            $setting_id = $this->config->get($id . '_setting');
         }
 
         $setting = $this->getSetting($setting_id);
 
-        if(isset($setting['value']['general']['config'])){
+        if (isset($setting['value']['general']['config'])) {
             return $setting['value']['general']['config'];
         }
 
-        $full = DIR_SYSTEM . 'config/'. $id . '.php';
+        $full = DIR_SYSTEM . 'config/' . $id . '.php';
         if (file_exists($full)) {
             return $id;
         }
 
-        foreach ($sub_versions as $lite){
-            if (file_exists(DIR_SYSTEM . 'config/'. $id . '_' . $lite . '.php')) {
+        foreach ($sub_versions as $lite) {
+            if (file_exists(DIR_SYSTEM . 'config/' . $id . '_' . $lite . '.php')) {
                 return $id . '_' . $lite;
             }
         }
 
         return false;
     }
+
     /*
-    *   Return list of config files that contain the id of the module.
+    *   Get file contents, usualy for debug log files.
     */
-    public function getConfigFiles($id){
+
+    public function getSetting($setting_id)
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
+            WHERE setting_id = '" . (int)$setting_id . "'");
+
+        $result = $query->row;
+        if (isset($result['value'])) {
+            $result['value'] = json_decode($result['value'], true);
+        }
+
+        return $result;
+
+    }
+
+    /*
+    *   Return name of config file.
+    */
+
+    public function getConfigFiles($id)
+    {
         $files = array();
-        $results = glob(DIR_SYSTEM . 'config/'. $id .'*');
-        foreach($results as $result){
+        $results = glob(DIR_SYSTEM . 'config/' . $id . '*');
+        foreach ($results as $result) {
             $files[] = str_replace('.php', '', str_replace(DIR_SYSTEM . 'config/', '', $result));
         }
         return $files;
     }
 
     /*
-    *   Get config file values and merge with config database values
+    *   Return list of config files that contain the id of the module.
     */
 
-    public function installDatabase(){
+    public function installDatabase()
+    {
 
         //install oc_dqc_setting
-        $query = $this->db->query("CREATE TABLE IF NOT EXISTS `".DB_PREFIX."dqc_setting` (
+        $query = $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "dqc_setting` (
           `setting_id` int(11) NOT NULL AUTO_INCREMENT,
           `store_id` int(11) NOT NULL,
           `name` varchar(32) NOT NULL,
@@ -289,7 +289,7 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
 
         //install oc_dqc_statistic
-        $query = $this->db->query("CREATE TABLE IF NOT EXISTS `".DB_PREFIX."dqc_statistic` (
+        $query = $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "dqc_statistic` (
           `statistic_id` int(11) NOT NULL AUTO_INCREMENT,
           `setting_id` int(11) NOT NULL,
           `order_id` int(11) NOT NULL,
@@ -302,67 +302,40 @@ class ModelExtensionModuleDQuickcheckout extends Model {
           PRIMARY KEY (`statistic_id`)
         ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
     }
-    public function uninstallDatabase(){
 
-        $query = $this->db->query("DROP TABLE IF EXISTS `".DB_PREFIX."dqc_setting`");
-        $query = $this->db->query("DROP TABLE IF EXISTS `".DB_PREFIX."dqc_statistic`");
+    /*
+    *   Get config file values and merge with config database values
+    */
+
+    public function uninstallDatabase()
+    {
+
+        $query = $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "dqc_setting`");
+        $query = $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "dqc_statistic`");
     }
 
-    public function getCurrentSettingId($id, $store_id = 0){
-        $this->load->model('setting/setting');
-        $setting = $this->model_setting_setting->getSetting($id, $store_id);
-
-        if(isset($this->request->get['setting_id'])){
-            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-                WHERE store_id = '" . (int)$store_id . "'
-                AND setting_id = '" . (int)$this->request->get['setting_id'] . "'" );
-                if($query->row){
-                    return $query->row['setting_id'];
-                }
-        }
-
+    public function getSettingName($setting_id)
+    {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE store_id = '" . (int)$store_id . "'" );
-        if($query->row){
-            return $query->row['setting_id'];
-        }
-
-        return false;
-    }
-
-    public function getSettingName($setting_id){
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE setting_id = '" . (int)$setting_id . "'" );
-        if(isset($query->row['name'])){
+            WHERE setting_id = '" . (int)$setting_id . "'");
+        if (isset($query->row['name'])) {
             return $query->row['name'];
-        }else{
+        } else {
             return false;
         }
 
     }
 
-    public function getSetting($setting_id){
+    public function getSettings($store_id, $rating = false)
+    {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE setting_id = '" . (int)$setting_id . "'" );
-
-        $result = $query->row;
-        if(isset($result['value'])){
-            $result['value'] = json_decode($result['value'], true);
-        }
-
-        return $result;
-
-    }
-
-    public function getSettings($store_id, $rating = false){
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
-            WHERE store_id = '" . (int)$store_id . "'"  );
+            WHERE store_id = '" . (int)$store_id . "'");
 
         $results = $query->rows;
 
         foreach ($results as $key => $result) {
             $results[$key]['value'] = json_decode($result['value'], true);
-            if($rating){
+            if ($rating) {
                 $query = $this->db->query("SELECT AVG((date_modified - date_added)) as average_checkout_time, AVG(rating) as average_rating FROM " . DB_PREFIX . "dqc_statistic WHERE setting_id = '" . (int)$result['setting_id'] . "' LIMIT 50");
                 $results[$key]['average_checkout_time'] = $query->row['average_checkout_time'];
                 $results[$key]['average_rating'] = $query->row['average_rating'];
@@ -373,7 +346,8 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $results;
     }
 
-    public function setSetting($setting_name, $setting_value, $store_id = 0){
+    public function setSetting($setting_name, $setting_value, $store_id = 0)
+    {
 
         $this->db->query("INSERT INTO `" . DB_PREFIX . "dqc_setting`
             SET store_id = '" . (int)$store_id . "',
@@ -384,7 +358,8 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $this->db->getLastId();
     }
 
-    public function editSetting($setting_id, $data){
+    public function editSetting($setting_id, $data)
+    {
 
         $this->db->query("UPDATE `" . DB_PREFIX . "dqc_setting`
                 SET `name` = '" . $this->db->escape($data['name']) . "',
@@ -392,75 +367,82 @@ class ModelExtensionModuleDQuickcheckout extends Model {
                 WHERE setting_id = '" . (int)$setting_id . "'");
     }
 
-    public function deleteSetting($setting_id){
+    public function deleteSetting($setting_id)
+    {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "dqc_setting` WHERE setting_id = '" . (int)$setting_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "dqc_statistic` WHERE setting_id = '" . (int)$setting_id . "'");
     }
 
-    public function deleteStatisticsBySettingId($setting_id){
+    public function deleteStatisticsBySettingId($setting_id)
+    {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "dqc_statistic` WHERE setting_id = '" . (int)$setting_id . "'");
     }
 
-    public function rateStatistic($data){
-
-        $total = array('update' => 0, 'click' => 0 , 'error' => 0);
-        $field = 1;
-
-        if(isset($data['field'])){
-            $field = array_sum($data['field'][$data['account']]);
-        }
-
-        if(isset($data['update'])){
-            $total['update'] = array_sum($data['update']);
-        }
-
-        if(isset($data['click'])){
-            $total['click'] = array_sum($data['click']);
-        }
-
-        if(isset($data['error'])){
-            $total['error'] = array_sum($data['error']);
-        }
-        if(array_sum($total)){
-            $rating = ($field / array_sum($total)) - ($field/35);
-        }else{
-            $rating = 0;
-        }
-
-        if($rating > 1){
-            $rating = 1;
-        }
-        return array('rating' => round($rating, 2), 'data' => $data, 'account' => $data['account'] , 'total' => $total, 'field' => $field);
-
-    }
-
-    public function deleteStatistic($statistic_id){
+    public function deleteStatistic($statistic_id)
+    {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "dqc_statistic` WHERE statistic_id = '" . (int)$statistic_id . "'");
     }
 
-    public function getStatistic($statistic_id){
+    public function getStatistic($statistic_id)
+    {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_statistic` s LEFT JOIN " . DB_PREFIX . "order o ON (o.order_id = s.order_id) WHERE statistic_id = '" . (int)$statistic_id . "'");
         return $query->row;
     }
 
-    public function getStatistics($setting_id){
+    public function getStatistics($setting_id)
+    {
         $query = $this->db->query("SELECT *, (s.date_modified - s.date_added) as checkout_time FROM `" . DB_PREFIX . "dqc_statistic` s
             LEFT JOIN `" . DB_PREFIX . "order` o ON (o.order_id = s.order_id)
             WHERE setting_id = '" . (int)$setting_id . "' ORDER BY o.order_id DESC LIMIT 50");
 
-        foreach($query->rows as $key => $data){
+        foreach ($query->rows as $key => $data) {
             $query->rows[$key]['data'] = $this->rateStatistic(json_decode($data['data'], true));
-            if($data['rating'] == '0.00' && $data['order_status_id']){
+            if ($data['rating'] == '0.00' && $data['order_status_id']) {
                 $this->db->query("UPDATE `" . DB_PREFIX . "dqc_statistic` SET `rating` = '" . (int)$query->rows[$key]['data']['rating'] . "' WHERE `statistic_id` = '" . (float)$data['statistic_id'] . "'");
             }
-            if($data['order_status_id']){
+            if ($data['order_status_id']) {
                 $query->rows[$key]['rating'] = $query->rows[$key]['data']['rating'];
             }
         }
         return $query->rows;
     }
 
-    public function getTotalStatistics($setting_id){
+    public function rateStatistic($data)
+    {
+
+        $total = array('update' => 0, 'click' => 0, 'error' => 0);
+        $field = 1;
+
+        if (isset($data['field'])) {
+            $field = array_sum($data['field'][$data['account']]);
+        }
+
+        if (isset($data['update'])) {
+            $total['update'] = array_sum($data['update']);
+        }
+
+        if (isset($data['click'])) {
+            $total['click'] = array_sum($data['click']);
+        }
+
+        if (isset($data['error'])) {
+            $total['error'] = array_sum($data['error']);
+        }
+        if (array_sum($total)) {
+            $rating = ($field / array_sum($total)) - ($field / 35);
+        } else {
+            $rating = 0;
+        }
+
+        if ($rating > 1) {
+            $rating = 1;
+        }
+        return array('rating' => round($rating, 2), 'data' => $data, 'account' => $data['account'], 'total' => $total, 'field' => $field);
+
+    }
+
+    public function getTotalStatistics($setting_id)
+    {
         $query = $this->db->query("SELECT COUNT(*) as total FROM `" . DB_PREFIX . "dqc_statistic` WHERE setting_id = '" . (int)$setting_id . "'");
 
         return $query->row['total'];
@@ -486,12 +468,12 @@ class ModelExtensionModuleDQuickcheckout extends Model {
 
         $query = $this->db->query($sql);
 
-        foreach($query->rows as $key => $data){
+        foreach ($query->rows as $key => $data) {
             $query->rows[$key]['data'] = $this->rateStatistic(json_decode($data['data'], true));
-            if($data['rating'] == '0.00' && $data['order_status_id']){
+            if ($data['rating'] == '0.00' && $data['order_status_id']) {
                 $this->db->query("UPDATE `" . DB_PREFIX . "dqc_statistic` SET `rating` = '" . (int)$query->rows[$key]['data']['rating'] . "' WHERE `statistic_id` = '" . (float)$data['statistic_id'] . "'");
             }
-            if($data['order_status_id']){
+            if ($data['order_status_id']) {
                 $query->rows[$key]['rating'] = $query->rows[$key]['data']['rating'];
             }
         }
@@ -499,16 +481,17 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $query->rows;
     }
 
-    public function getConfigSetting($id, $config_key, $store_id, $config_file = false){
+    public function getConfigSetting($id, $config_key, $store_id, $config_file = false)
+    {
 
-        if($this->getCurrentSettingId($id, $store_id) !== false){
+        if ($this->getCurrentSettingId($id, $store_id) !== false) {
             $setting = $this->getSetting($this->getCurrentSettingId($id, $store_id));
             $setting[$config_key] = $setting['value'];
         }
 
-        if(isset($setting[$config_key]['general']['config'])){
+        if (isset($setting[$config_key]['general']['config'])) {
             $this->config->load($setting[$config_key]['general']['config']);
-        }elseif($config_file){
+        } elseif ($config_file) {
             $this->config->load($config_file);
         }
 
@@ -532,7 +515,7 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         $result['account']['logged']['payment_address']['fields'] = $result['account']['logged']['payment_address']['fields'] + $this->getCustomFieldsConfigDataAccount('address');
         $result['account']['logged']['shipping_address']['fields'] = $result['account']['logged']['shipping_address']['fields'] + $this->getCustomFieldsConfigDataAccount('address');
 
-        if(!isset($this->request->post['config'])){
+        if (!isset($this->request->post['config'])) {
             $this->load->model('setting/setting');
             if (isset($this->request->post[$config_key])) {
                 $setting = $this->request->post;
@@ -541,12 +524,12 @@ class ModelExtensionModuleDQuickcheckout extends Model {
 
             }
 
-            if($this->getCurrentSettingId($id, $store_id) !== false){
+            if ($this->getCurrentSettingId($id, $store_id) !== false) {
                 $setting = $this->getSetting($this->getCurrentSettingId($id, $store_id));
                 $setting[$config_key] = $setting['value'];
 
             }
-            if(isset($setting[$config_key])){
+            if (isset($setting[$config_key])) {
 
                 $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
 
@@ -555,72 +538,46 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         }
 
         $result['step']['payment_address']['fields']['country_id']['options'] = $this->getCountries();
-        $result['step']['payment_address']['fields']['zone_id']['options'] = $this->getZonesByCountryId((isset($result['step']['payment_address']['fields']['country_id']['value']))?$result['step']['payment_address']['fields']['country_id']['value']:0);
+        $result['step']['payment_address']['fields']['zone_id']['options'] = $this->getZonesByCountryId((isset($result['step']['payment_address']['fields']['country_id']['value'])) ? $result['step']['payment_address']['fields']['country_id']['value'] : 0);
         $result['step']['shipping_address']['fields']['country_id']['options'] = $this->getCountries();
-        $result['step']['shipping_address']['fields']['zone_id']['options'] = $this->getZonesByCountryId((isset($result['step']['payment_address']['fields']['country_id']['value']))?$result['step']['payment_address']['fields']['country_id']['value']:0);
+        $result['step']['shipping_address']['fields']['zone_id']['options'] = $this->getZonesByCountryId((isset($result['step']['payment_address']['fields']['country_id']['value'])) ? $result['step']['payment_address']['fields']['country_id']['value'] : 0);
 
         return $result;
     }
 
-    public function getConfigData($id, $config_key, $store_id, $config_file = false){
-        if(!$config_file){
-            $config_file = $this->config_file;
-        }
+    public function getCurrentSettingId($id, $store_id = 0)
+    {
+        $this->load->model('setting/setting');
+        $setting = $this->model_setting_setting->getSetting($id, $store_id);
 
-        if($config_file){
-            $this->config->load($config_file);
-
-        }
-
-        $result = ($this->config->get($config_key)) ? $this->config->get($config_key) : array();
-
-        if(!isset($this->request->post['config'])){
-            $this->load->model('setting/setting');
-            if (isset($this->request->post[$config_key])) {
-                $setting = $this->request->post;
-            } elseif ($this->model_setting_setting->getSetting($id, $store_id)) {
-                $setting = $this->model_setting_setting->getSetting($id, $store_id);
-
-            }
-
-            if(isset($setting[$config_key])){
-
-                if(is_array($setting[$config_key])){
-                    $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
-                }else{
-                    $result = $setting[$config_key];
-                }
+        if (isset($this->request->get['setting_id'])) {
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
+                WHERE store_id = '" . (int)$store_id . "'
+                AND setting_id = '" . (int)$this->request->get['setting_id'] . "'");
+            if ($query->row) {
+                return $query->row['setting_id'];
             }
         }
-        return $result;
+
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "dqc_setting`
+            WHERE store_id = '" . (int)$store_id . "'");
+        if ($query->row) {
+            return $query->row['setting_id'];
+        }
+
+        return false;
     }
 
-    public function getCustomFieldsByLocation($location){
-        if(VERSION >= '2.1.0.1'){
-            $this->load->model('customer/custom_field');
-            $results = $this->model_customer_custom_field->getCustomFields();
-        }else{
-            $this->load->model('sale/custom_field');
-            $results = $this->model_sale_custom_field->getCustomFields();
-        }
-
-        foreach($results as $key => $result){
-            if($result['location'] != $location){
-                unset($results[$key]);
-            }
-        }
-        return $results;
-    }
-
-    public function getCustomFieldsConfigDataStep($location){
+    public function getCustomFieldsConfigDataStep($location)
+    {
 
         $results = $this->getCustomFieldsByLocation($location);
 
         $custom_fields = array();
-        foreach($results as $key => $custom_field){
+        foreach ($results as $key => $custom_field) {
 
-            $custom_fields['custom_field.'.$location.'.'.$custom_field['custom_field_id']] = array(
-                'id' => 'custom_field.'.$location.'.'.$custom_field['custom_field_id'],
+            $custom_fields['custom_field.' . $location . '.' . $custom_field['custom_field_id']] = array(
+                'id' => 'custom_field.' . $location . '.' . $custom_field['custom_field_id'],
                 'title' => $custom_field['name'],
                 'tooltip' => '',
                 'error' => '',
@@ -636,13 +593,13 @@ class ModelExtensionModuleDQuickcheckout extends Model {
 
             );
 
-            if(!empty($custom_field['custom_field_value'])){
+            if (!empty($custom_field['custom_field_value'])) {
 
-                foreach($custom_field['custom_field_value'] as $option){
+                foreach ($custom_field['custom_field_value'] as $option) {
 
-                    $custom_fields['custom_field.'.$location.'.'.$custom_field['custom_field_id']]['options'][] = array(
-                        'name' =>  $option['name'],
-                        'value' =>  $option['custom_field_value_id'],
+                    $custom_fields['custom_field.' . $location . '.' . $custom_field['custom_field_id']]['options'][] = array(
+                        'name' => $option['name'],
+                        'value' => $option['custom_field_value_id'],
                     );
                 }
             }
@@ -651,15 +608,33 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $custom_fields;
     }
 
+    public function getCustomFieldsByLocation($location)
+    {
+        if (VERSION >= '2.1.0.1') {
+            $this->load->model('customer/custom_field');
+            $results = $this->model_customer_custom_field->getCustomFields();
+        } else {
+            $this->load->model('sale/custom_field');
+            $results = $this->model_sale_custom_field->getCustomFields();
+        }
 
-    public function getCustomFieldsConfigDataAccount($location){
+        foreach ($results as $key => $result) {
+            if ($result['location'] != $location) {
+                unset($results[$key]);
+            }
+        }
+        return $results;
+    }
+
+    public function getCustomFieldsConfigDataAccount($location)
+    {
 
         $results = $this->getCustomFieldsByLocation($location);
 
         $custom_fields = array();
-        foreach($results as $key => $custom_field){
+        foreach ($results as $key => $custom_field) {
 
-            $custom_fields['custom_field.'.$location.'.'.$custom_field['custom_field_id']] = array(
+            $custom_fields['custom_field.' . $location . '.' . $custom_field['custom_field_id']] = array(
 
                 'display' => 1,
                 'require' => 1,
@@ -671,21 +646,102 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         return $custom_fields;
     }
 
+    public function array_merge_recursive_distinct(array &$array1, array &$array2)
+    {
+        $merged = $array1;
+        foreach ($array2 as $key => &$value) {
+            if (is_array($value) && isset ($merged [$key]) && is_array($merged [$key])) {
+                $merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
+            } else {
+                $merged [$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
+
+    public function getCountries()
+    {
+        $this->load->model('localisation/country');
+        $countries = $this->model_localisation_country->getCountries();
+        $options = array();
+        foreach ($countries as $country) {
+            $country['value'] = $country['country_id'];
+            unset($country['country_id']);
+            $options[] = $country;
+        }
+        return $options;
+
+    }
+
+    public function getZonesByCountryId($country_id)
+    {
+        $this->load->model('localisation/zone');
+        $zones = $this->model_localisation_zone->getZonesByCountryId($country_id);
+        $options = array();
+        foreach ($zones as $zone) {
+            $zone['value'] = $zone['zone_id'];
+            unset($zone['zone_id']);
+            $options[] = $zone;
+        }
+        return $options;
+
+    }
+
     /* ******************************************************************************************
     *
     *   Return mbooth file.
     *
     *  ******************************************************************************************/
 
-    public function getMboothFile($id, $sub_versions){
-        $full = DIR_SYSTEM . 'mbooth/xml/mbooth_'. $id .'.xml';
+    public function getConfigData($id, $config_key, $store_id, $config_file = false)
+    {
+        if (!$config_file) {
+            $config_file = $this->config_file;
+        }
+
+        if ($config_file) {
+            $this->config->load($config_file);
+
+        }
+
+        $result = ($this->config->get($config_key)) ? $this->config->get($config_key) : array();
+
+        if (!isset($this->request->post['config'])) {
+            $this->load->model('setting/setting');
+            if (isset($this->request->post[$config_key])) {
+                $setting = $this->request->post;
+            } elseif ($this->model_setting_setting->getSetting($id, $store_id)) {
+                $setting = $this->model_setting_setting->getSetting($id, $store_id);
+
+            }
+
+            if (isset($setting[$config_key])) {
+
+                if (is_array($setting[$config_key])) {
+                    $result = $this->array_merge_recursive_distinct($result, $setting[$config_key]);
+                } else {
+                    $result = $setting[$config_key];
+                }
+            }
+        }
+        return $result;
+    }
+
+    /*
+    *   Return mbooth file.
+    */
+
+    public function getMboothFile($id, $sub_versions)
+    {
+        $full = DIR_SYSTEM . 'mbooth/xml/mbooth_' . $id . '.xml';
         if (file_exists($full)) {
-            return 'mbooth_'. $id . '.xml';
-        } else{
-            foreach ($sub_versions as $lite){
-                if (file_exists(DIR_SYSTEM . 'mbooth/xml/mbooth_'. $id . '_' . $lite . '.xml')) {
+            return 'mbooth_' . $id . '.xml';
+        } else {
+            foreach ($sub_versions as $lite) {
+                if (file_exists(DIR_SYSTEM . 'mbooth/xml/mbooth_' . $id . '_' . $lite . '.xml')) {
                     $this->prefix = '_' . $lite;
-                    return 'mbooth_'. $id . '_' . $lite . '.xml';
+                    return 'mbooth_' . $id . '_' . $lite . '.xml';
                 }
             }
         }
@@ -693,79 +749,74 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     }
 
     /*
-    *   Return mbooth file.
+    *   Return list of stores.
     */
-    public function getMboothInfo($mbooth_xml){
-        if(file_exists(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml)){
-            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml));
+
+    public function getMboothInfo($mbooth_xml)
+    {
+        if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml)) {
+            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml));
             return $xml;
-        }else{
+        } else {
             return false;
         }
     }
 
     /*
-    *   Return list of stores.
+    *   Check if another extension/module is installed.
     */
-    public function getStores(){
+
+    public function getStores()
+    {
         $this->load->model('setting/store');
         $stores = $this->model_setting_store->getStores();
         $result = array();
-        if($stores){
+        if ($stores) {
             $result[] = array(
                 'store_id' => 0,
                 'name' => $this->config->get('config_name')
-                );
+            );
             foreach ($stores as $store) {
                 $result[] = array(
                     'store_id' => $store['store_id'],
                     'name' => $store['name']
-                    );
+                );
             }
         }
         return $result;
     }
 
     /*
-    *   Check if another extension/module is installed.
-    */
-    public function isInstalled($code) {
-        $extension_data = array();
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension WHERE `code` = '" . $this->db->escape($code) . "'");
-        if($query->row) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    /*
     *   Get the version of this module
     */
-    public function getVersion($mbooth_xml){
-        if(file_exists(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml)){
-            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml));
-            return (string)$xml->version;
-        }else{
+
+    public function isInstalled($code)
+    {
+        $extension_data = array();
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension WHERE `code` = '" . $this->db->escape($code) . "'");
+        if ($query->row) {
+            return true;
+        } else {
             return false;
         }
     }
-
 
 
     /*
     *   Get extension info by mbooth from server (Check for update)
     */
-    public function getUpdateInfo($mbooth_xml, $status = 1){
+
+    public function getUpdateInfo($mbooth_xml, $status = 1)
+    {
         $result = array();
 
         $current_version = $this->getVersion($mbooth_xml);
         $customer_url = HTTP_SERVER;
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE language_id = " . (int)$this->config->get('config_language_id') );
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE language_id = " . (int)$this->config->get('config_language_id'));
         $language_code = $query->row['code'];
         $ip = $this->request->server['REMOTE_ADDR'];
 
-        $request = 'http://opencart.dreamvention.com/api/1/index.php?route=extension/check&mbooth=' . $mbooth_xml . '&store_url=' . $customer_url . '&module_version=' . $current_version . '&language_code=' . $language_code . '&opencart_version=' . VERSION . '&ip='.$ip . '&status=' .$status;
+        $request = 'http://opencart.dreamvention.com/api/1/index.php?route=extension/check&mbooth=' . $mbooth_xml . '&store_url=' . $customer_url . '&module_version=' . $current_version . '&language_code=' . $language_code . '&opencart_version=' . VERSION . '&ip=' . $ip . '&status=' . $status;
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $request);
@@ -781,14 +832,25 @@ class ModelExtensionModuleDQuickcheckout extends Model {
     *   Get the version of this module
     */
 
-    public function installDependencies($mbooth){
+    public function getVersion($mbooth_xml)
+    {
+        if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml)) {
+            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml));
+            return (string)$xml->version;
+        } else {
+            return false;
+        }
+    }
 
-        foreach($this->getDependencies($mbooth) as $extension){
-            if(isset($extension['codename'])){
-                if(!$this->getVersion('mbooth_'.$extension['codename'].'.xml') || ($extension['version'] > $this->getVersion('mbooth_'.$extension['codename'].'.xml'))){
+    public function installDependencies($mbooth)
+    {
+
+        foreach ($this->getDependencies($mbooth) as $extension) {
+            if (isset($extension['codename'])) {
+                if (!$this->getVersion('mbooth_' . $extension['codename'] . '.xml') || ($extension['version'] > $this->getVersion('mbooth_' . $extension['codename'] . '.xml'))) {
                     $this->download_extension($extension['codename'], $extension['version']);
                     $this->extract_extension();
-                    if(file_exists(DIR_SYSTEM . 'mbooth/xml/'.$mbooth)){
+                    if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth)) {
                         $result = $this->backup_files_by_mbooth($mbooth, 'update');
                     }
                     $this->move_dir(DIR_DOWNLOAD . 'upload/', DIR_ROOT, $result);
@@ -797,18 +859,18 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         }
     }
 
-
-    public function getDependencies($mbooth_xml){
-        if(file_exists(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml)){
-            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/'. $mbooth_xml));
+    public function getDependencies($mbooth_xml)
+    {
+        if (file_exists(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml)) {
+            $xml = new SimpleXMLElement(file_get_contents(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml));
             $result = array();
             $version = false;
 
-            foreach($xml->required->require as $require){
+            foreach ($xml->required->require as $require) {
 
-                foreach($require->attributes() as $key => $value){
+                foreach ($require->attributes() as $key => $value) {
                     $version = false;
-                    if($key == 'version'){
+                    if ($key == 'version') {
                         $version = $value;
                     }
                 }
@@ -818,14 +880,15 @@ class ModelExtensionModuleDQuickcheckout extends Model {
                 );
             }
             return $result;
-        }else{
+        } else {
             return false;
         }
     }
 
-    public function download_extension($codename, $version, $filename  = false ) {
+    public function download_extension($codename, $version, $filename = false)
+    {
 
-        if(!$filename){
+        if (!$filename) {
             $filename = DIR_DOWNLOAD . 'archive.zip';
         }
 
@@ -833,11 +896,11 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         $ch = curl_init();
         $fp = fopen($filename, "w");
         curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
-        curl_setopt($ch, CURLOPT_URL, 'http://opencart.dreamvention.com/api/1/extension/download/?codename=' . $codename.'&opencart_version='.VERSION.'&extension_version='. $version);
+        curl_setopt($ch, CURLOPT_URL, 'http://opencart.dreamvention.com/api/1/extension/download/?codename=' . $codename . '&opencart_version=' . VERSION . '&extension_version=' . $version);
         curl_setopt($ch, CURLOPT_FAILONERROR, true);
-        curl_setopt($ch, CURLOPT_HEADER,0);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER,true);
+        curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 100);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -850,18 +913,13 @@ class ModelExtensionModuleDQuickcheckout extends Model {
 
     }
 
-    public function get_extension_link($codename, $version ) {
-        return 'http://opencart.dreamvention.com/api/1/extension/download/?codename=' . $codename.'&opencart_version='.VERSION.'&extension_version='. $version;
-    }
-
-
-
-    public function extract_extension($filename = false, $location = false ) {
-        if(!$filename){
+    public function extract_extension($filename = false, $location = false)
+    {
+        if (!$filename) {
             $filename = DIR_DOWNLOAD . 'archive.zip';
         }
-        if(!$location){
-            $location = DIR_DOWNLOAD ;
+        if (!$location) {
+            $location = DIR_DOWNLOAD;
         }
 
         $result = array();
@@ -870,7 +928,7 @@ class ModelExtensionModuleDQuickcheckout extends Model {
             $result['error'][] = 'ZipArchive not working.';
         }
 
-        if($zip->open($filename) != "true") {
+        if ($zip->open($filename) != "true") {
             $result['error'][] = $filename;
         }
         $zip->extractTo($location);
@@ -882,14 +940,47 @@ class ModelExtensionModuleDQuickcheckout extends Model {
 
     }
 
+    public function backup_files_by_mbooth($mbooth_xml, $action = 'install')
+    {
+
+        $zip = new ZipArchive();
+
+        if (!file_exists(DIR_SYSTEM . 'mbooth/backup/')) {
+            mkdir(DIR_SYSTEM . 'mbooth/backup/', 0777, true);
+        }
+
+        $mbooth = $this->get_files_by_mbooth(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml);
+        $files = $mbooth['files'];
+
+        $zip->open(DIR_SYSTEM . 'mbooth/backup/' . date('Y-m-d.h-i-s') . '.' . $action . '.' . $mbooth_xml . '.v' . $mbooth['version'] . '.zip', ZipArchive::CREATE);
 
 
-    public function get_files_by_mbooth($mbooth_xml) {
+        foreach ($files as $file) {
+
+            if (file_exists(DIR_ROOT . $file)) {
+
+                if (is_file(DIR_ROOT . $file)) {
+                    $zip->addFile(DIR_ROOT . $file, 'upload/' . $file);
+                    $result['success'][] = $file;
+                } else {
+                    $result['error'][] = $file;
+                }
+            } else {
+                $result['error'][] = $file;
+            }
+        }
+        $zip->close();
+        return $result;
+
+    }
+
+    public function get_files_by_mbooth($mbooth_xml)
+    {
 
         $xml = new SimpleXMLElement(file_get_contents($mbooth_xml));
 
-        if(isset($xml->id)){
-            $result['file_name'] =   basename($mbooth_xml, '');
+        if (isset($xml->id)) {
+            $result['file_name'] = basename($mbooth_xml, '');
             $result['id'] = isset($xml->id) ? (string)$xml->id : '';
             $result['name'] = isset($xml->name) ? (string)$xml->name : '';
             $result['description'] = isset($xml->description) ? (string)$xml->description : '';
@@ -903,8 +994,8 @@ class ModelExtensionModuleDQuickcheckout extends Model {
             $required = $xml->required;
             $updates = $xml->update;
 
-            foreach ($files->file as $file){
-               $result['files'][] = (string)$file;
+            foreach ($files->file as $file) {
+                $result['files'][] = (string)$file;
             }
 
             if (!empty($dirs)) {
@@ -922,90 +1013,60 @@ class ModelExtensionModuleDQuickcheckout extends Model {
             }
 
             return $result;
-        }else{
+        } else {
             return false;
         }
 
     }
 
-    public function backup_files_by_mbooth($mbooth_xml, $action = 'install'){
+    public function scan_dir($dir, &$arr_files)
+    {
 
-        $zip = new ZipArchive();
-
-        if (!file_exists(DIR_SYSTEM . 'mbooth/backup/')) {
-            mkdir(DIR_SYSTEM . 'mbooth/backup/', 0777, true);
-        }
-
-        $mbooth = $this->get_files_by_mbooth(DIR_SYSTEM . 'mbooth/xml/' . $mbooth_xml);
-        $files = $mbooth['files'];
-
-        $zip->open(DIR_SYSTEM . 'mbooth/backup/' . date('Y-m-d.h-i-s'). '.'. $action .'.'.$mbooth_xml.'.v'.$mbooth['version'].'.zip', ZipArchive::CREATE);
-
-
-        foreach ($files as $file) {
-
-            if(file_exists(DIR_ROOT.$file)){
-
-                if (is_file(DIR_ROOT.$file)) {
-                    $zip->addFile(DIR_ROOT.$file, 'upload/'.$file);
-                    $result['success'][] = $file;
-                }else{
-                    $result['error'][] = $file;
-                }
-            }else{
-                    $result['error'][] = $file;
-            }
-        }
-        $zip->close();
-        return $result;
-
-    }
-
-    public function scan_dir($dir, &$arr_files){
-
-        if (is_dir($dir)){
+        if (is_dir($dir)) {
             $handle = opendir($dir);
-            while ($file = readdir($handle)){
-                    if ($file == '.' or $file == '..') continue;
-                    if (is_file($file)) $arr_files[]="$dir/$file";
-                    else $this->scan_dir("$dir/$file", $arr_files);
+            while ($file = readdir($handle)) {
+                if ($file == '.' or $file == '..') continue;
+                if (is_file($file)) $arr_files[] = "$dir/$file";
+                else $this->scan_dir("$dir/$file", $arr_files);
             }
             closedir($handle);
-        }else {
-            $arr_files[]=$dir;
+        } else {
+            $arr_files[] = $dir;
         }
     }
 
-    public function move_dir($souce, $dest, &$result) {
+    public function move_dir($souce, $dest, &$result)
+    {
 
         $files = scandir($souce);
 
-        foreach($files as $file){
+        foreach ($files as $file) {
 
-            if($file == '.' || $file == '..' || $file == '.DS_Store') continue;
+            if ($file == '.' || $file == '..' || $file == '.DS_Store') continue;
 
-            if(is_dir($souce.$file)){
-                if (!file_exists($dest.$file.'/')) {
-                    mkdir($dest.$file.'/', 0777, true);
+            if (is_dir($souce . $file)) {
+                if (!file_exists($dest . $file . '/')) {
+                    mkdir($dest . $file . '/', 0777, true);
                 }
-                $this->move_dir($souce.$file.'/', $dest.$file.'/', $result);
-            }elseif (rename($souce.$file, $dest.$file)) {
-                $result['success'][] = str_replace(DIR_ROOT, '', $dest.$file);
-            }else{
-                $result['error'][] = str_replace(DIR_ROOT, '', $dest.$file);
+                $this->move_dir($souce . $file . '/', $dest . $file . '/', $result);
+            } elseif (rename($souce . $file, $dest . $file)) {
+                $result['success'][] = str_replace(DIR_ROOT, '', $dest . $file);
+            } else {
+                $result['error'][] = str_replace(DIR_ROOT, '', $dest . $file);
             }
         }
 
         $this->delete_dir($souce);
     }
 
-    public function delete_dir($dir) {
+    public function delete_dir($dir)
+    {
         if (is_dir($dir)) {
             $objects = scandir($dir);
             foreach ($objects as $object) {
                 if ($object != "." && $object != "..") {
-                    if (filetype($dir."/".$object) == "dir") $this->delete_dir($dir."/".$object);
-                    else unlink($dir."/".$object);
+                    if (filetype($dir . "/" . $object) == "dir") $this->delete_dir($dir . "/" . $object);
+                    else unlink($dir . "/" . $object);
                 }
             }
             reset($objects);
@@ -1013,22 +1074,10 @@ class ModelExtensionModuleDQuickcheckout extends Model {
         }
     }
 
-    public function array_merge_recursive_distinct( array &$array1, array &$array2 )
+    public function get_extension_link($codename, $version)
     {
-      $merged = $array1;
-      foreach ( $array2 as $key => &$value )
-          {
-            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
-            {
-              $merged [$key] = $this->array_merge_recursive_distinct ( $merged [$key], $value );
-            }
-            else
-            {
-              $merged [$key] = $value;
-            }
-          }
-
-      return $merged;
+        return 'http://opencart.dreamvention.com/api/1/extension/download/?codename=' . $codename . '&opencart_version=' . VERSION . '&extension_version=' . $version;
     }
 }
+
 ?>

@@ -4,23 +4,25 @@
  *
  */
 
-class ModelExtensionDOpencartPatchStore extends Model {
+class ModelExtensionDOpencartPatchStore extends Model
+{
 
-    public function getAllStores(){
+    public function getAllStores()
+    {
         $this->load->model('setting/store');
         $stores = $this->model_setting_store->getStores();
         $result = array();
-        if($stores){
+        if ($stores) {
             $result[] = array(
-                'store_id' => 0, 
+                'store_id' => 0,
                 'name' => $this->config->get('config_name')
-                );
+            );
             foreach ($stores as $store) {
                 $result[] = array(
                     'store_id' => $store['store_id'],
-                    'name' => $store['name']    
-                    );
-            }   
+                    'name' => $store['name']
+                );
+            }
         }
         return $result;
     }

@@ -1,17 +1,26 @@
 <?php
-class ModelToolNitro extends Model {
+
+class ModelToolNitro extends Model
+{
     const AJAX_FILES_BATCH = 1000;
     const AJAX_FILES_TIMEOUT = 20;
 
     private $session_closed = false;
     private $ajax_trunk_start = 0;
 
-    public function __construct($register) {
+    public function __construct($register)
+    {
         $this->loadCore();
         parent::__construct($register);
     }
 
-    public function tryChmod() {
+    public function loadCore()
+    {
+        require_once(DIR_SYSTEM . 'nitro/core/core.php');
+    }
+
+    public function tryChmod()
+    {
         $modes = array(0755, 0775, 0777);
 
         $site_root = dirname(DIR_SYSTEM);
@@ -43,24 +52,28 @@ class ModelToolNitro extends Model {
                 }
             }
 
-        } catch(Exception $e) {}
+        } catch (Exception $e) {
+        }
 
-            restore_error_handler();
+        restore_error_handler();
     }
 
-    public function lockNitro() {
+    public function lockNitro()
+    {
         $lock_file = NITRO_FOLDER . 'nitro.lock';
         touch($lock_file);
     }
 
-    public function unlockNitro() {
+    public function unlockNitro()
+    {
         $lock_file = NITRO_FOLDER . 'nitro.lock';
         if (file_exists($lock_file)) {
             unlink($lock_file);
         }
     }
 
-    public function clearJournalCache() {
+    public function clearJournalCache()
+    {
         $journal_cache_file = DIR_SYSTEM . 'journal2/classes/journal2_cache.php';
         if (file_exists($journal_cache_file)) {
             require_once $journal_cache_file;
@@ -71,46 +84,111 @@ class ModelToolNitro extends Model {
         }
     }
 
-    public function clearImageCache($ajax = false) {
+    public function clearImageCache($ajax = false)
+    {
         return $this->trunc_folder(DIR_IMAGE . 'cache/', 'index.html', $ajax);
     }
 
-    public function clearPageCache($ajax = false) {
+    private function trunc_folder($folder, $touch = false, $ajax = false)
+    {
+        if ($ajax) {
+            if (!$this->ajax_trunk_start) {
+                $this->ajax_trunk_start = time();
+            }
+
+            if ($this->trunc_dir_recursive($folder)) {
+                if ($touch) {
+                    if (!is_dir($folder)) {
+                        mkdir($folder, 0755, true);
+                    }
+                    touch(rtrim($folder, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $touch);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            $this->loadCore();
+            cleanFolder($folder, $touch);
+        }
+
+        return true;
+    }
+
+    private function trunc_dir_recursive($dir)
+    {
+        if (!is_dir($dir)) return true;
+
+        $dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $dh = opendir($dir);
+        $excludes = array('.', '..');
+
+        while (!$this->trunk_ajax_timedout() && false !== ($entry = readdir($dh))) {
+            if (in_array($entry, $excludes)) continue;
+
+            $path = $dir . $entry;
+            if (is_dir($path)) {
+                $this->trunc_dir_recursive($path);
+
+                //We probably cleared the directory, so this is the place to delete it. This should happen here, because if it is outside the while block, this will delete the initial directory which is not the desired behavior. However we had cases where image cache files have been created while deleting the cache, which throws error that dir is not empty when trying to delete it. This is why we are not deleting the dirs. Sad but true (Metallica pun intended)
+            } else if (is_file($path)) {
+                unlink($path);
+            }
+        }
+
+        return !$this->trunk_ajax_timedout();
+    }
+
+    private function trunk_ajax_timedout()
+    {
+        return (time() - $this->ajax_trunk_start) > self::AJAX_FILES_TIMEOUT;
+    }
+
+    public function clearPageCache($ajax = false)
+    {
         truncateNitroProductCache();
 
         return $this->trunc_folder(NITRO_PAGECACHE_FOLDER, 'index.html', $ajax);
     }
 
-    public function clearHeadersCache($ajax = false) {
+    public function clearHeadersCache($ajax = false)
+    {
         return $this->trunc_folder(NITRO_HEADERS_FOLDER, 'index.html', $ajax);
     }
 
-    public function clearDBCache($ajax = false) {
+    public function clearDBCache($ajax = false)
+    {
         clearRAMCache();
         return $this->trunc_folder(NITRO_DBCACHE_FOLDER, 'index.html', $ajax);
     }
 
-    public function clearJSCache($ajax = false) {
+    public function clearJSCache($ajax = false)
+    {
         return $this->trunc_folder(dirname(DIR_APPLICATION) . DS . 'assets' . DS . 'js', 'index.html', $ajax);
     }
 
-    public function clearTempJSCache($ajax = false) {
+    public function clearTempJSCache($ajax = false)
+    {
         return $this->trunc_folder(NITRO_FOLDER . 'temp' . DS . 'js', 'index.html', $ajax);
     }
 
-    public function clearCSSCache($ajax = false) {
+    public function clearCSSCache($ajax = false)
+    {
         return $this->trunc_folder(dirname(DIR_APPLICATION) . DS . 'assets' . DS . 'css', 'index.html', $ajax);
     }
 
-    public function clearTempCSSCache($ajax = false) {
+    public function clearTempCSSCache($ajax = false)
+    {
         return $this->trunc_folder(NITRO_FOLDER . 'temp' . DS . 'css', 'index.html', $ajax);
     }
 
-    public function clearSystemCache($ajax = false) {
+    public function clearSystemCache($ajax = false)
+    {
         return $this->trunc_folder(DIR_CACHE, 'index.html', $ajax);
     }
 
-    public function clearVqmodCache($ajax = false) {
+    public function clearVqmodCache($ajax = false)
+    {
         if ($this->trunc_folder(dirname(DIR_APPLICATION) . DS . 'vqmod' . DS . 'vqcache', false, $ajax)) {
             $mods_cache = dirname(DIR_APPLICATION) . DS . 'vqmod' . DS . 'mods.cache';
             if (file_exists($mods_cache)) {
@@ -122,206 +200,204 @@ class ModelToolNitro extends Model {
         }
     }
 
-    public function loadCore() {
-        require_once(DIR_SYSTEM . 'nitro/core/core.php');
-    }
-
-    public function loadCDN() {
+    public function loadCDN()
+    {
         $this->loadCore();
         require_once(DIR_SYSTEM . 'nitro/core/cdn.php');
     }
 
-    public function setPersistence($data) {
+    public function setPersistence($data)
+    {
         $this->loadCore();
         return setNitroPersistence($data);
     }
 
-    public function getPersistence($key = '') {
+    public function getPersistence($key = '')
+    {
         $this->loadCore();
         return getNitroPersistence($key);
     }
 
-    public function getSmushitPersistence() {
+    public function getSmushitPersistence()
+    {
         $this->loadCore();
         return getNitroSmushitPersistence();
     }
 
-    public function setSmushitPersistence($data) {
+    public function setSmushitPersistence($data)
+    {
         $this->loadCore();
         return setNitroSmushitPersistence($data);
     }
 
-    public function refreshGooglePageSpeedReport() {
+    public function refreshGooglePageSpeedReport()
+    {
         $this->loadCore();
         return refreshGooglePageSpeedReport();
     }
 
-    public function getGoogleRawData() {
+    public function getGoogleRawData()
+    {
         $this->loadCore();
         return getGooglePageSpeedReport();
     }
 
-    public function getGooglePageSpeedReport($setting = null, $strategies = array()) {
+    public function getGooglePageSpeedReport($setting = null, $strategies = array())
+    {
         $this->loadCore();
         return getGooglePageSpeedReport($setting, $strategies);
     }
 
-    public function setNitroPackModules($settings) {
+    public function setNitroPackModules($settings)
+    {
         $ds = DIRECTORY_SEPARATOR;
 
         $dir = dirname(DIR_APPLICATION) . $ds . 'vqmod' . $ds . 'xml' . $ds;
 
         if (!empty($settings['NitroTemp']['ActiveModule']['pagecache'])) {
-            if (file_exists($dir.'nitro_pagecache.xml_')) {
-                rename($dir.'nitro_pagecache.xml_', $dir.'nitro_pagecache.xml');
+            if (file_exists($dir . 'nitro_pagecache.xml_')) {
+                rename($dir . 'nitro_pagecache.xml_', $dir . 'nitro_pagecache.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_pagecache.xml')) {
-                rename($dir.'nitro_pagecache.xml', $dir.'nitro_pagecache.xml_');
+            if (file_exists($dir . 'nitro_pagecache.xml')) {
+                rename($dir . 'nitro_pagecache.xml', $dir . 'nitro_pagecache.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['cdn_generic'])) {
-            if (file_exists($dir.'nitro_cdn_generic.xml_')) {
-                rename($dir.'nitro_cdn_generic.xml_', $dir.'nitro_cdn_generic.xml');
+            if (file_exists($dir . 'nitro_cdn_generic.xml_')) {
+                rename($dir . 'nitro_cdn_generic.xml_', $dir . 'nitro_cdn_generic.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_cdn_generic.xml')) {
-                rename($dir.'nitro_cdn_generic.xml', $dir.'nitro_cdn_generic.xml_');
+            if (file_exists($dir . 'nitro_cdn_generic.xml')) {
+                rename($dir . 'nitro_cdn_generic.xml', $dir . 'nitro_cdn_generic.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['db_cache'])) {
-            if (file_exists($dir.'nitro_db_cache.xml_')) {
-                rename($dir.'nitro_db_cache.xml_', $dir.'nitro_db_cache.xml');
+            if (file_exists($dir . 'nitro_db_cache.xml_')) {
+                rename($dir . 'nitro_db_cache.xml_', $dir . 'nitro_db_cache.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_db_cache.xml')) {
-                rename($dir.'nitro_db_cache.xml', $dir.'nitro_db_cache.xml_');
+            if (file_exists($dir . 'nitro_db_cache.xml')) {
+                rename($dir . 'nitro_db_cache.xml', $dir . 'nitro_db_cache.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['image_cache'])) {
-            if (file_exists($dir.'nitro_image_cache.xml_')) {
-                rename($dir.'nitro_image_cache.xml_', $dir.'nitro_image_cache.xml');
+            if (file_exists($dir . 'nitro_image_cache.xml_')) {
+                rename($dir . 'nitro_image_cache.xml_', $dir . 'nitro_image_cache.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_image_cache.xml')) {
-                rename($dir.'nitro_image_cache.xml', $dir.'nitro_image_cache.xml_');
+            if (file_exists($dir . 'nitro_image_cache.xml')) {
+                rename($dir . 'nitro_image_cache.xml', $dir . 'nitro_image_cache.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['jquery'])) {
-            if (file_exists($dir.'nitro_jquery.xml_')) {
-                rename($dir.'nitro_jquery.xml_', $dir.'nitro_jquery.xml');
+            if (file_exists($dir . 'nitro_jquery.xml_')) {
+                rename($dir . 'nitro_jquery.xml_', $dir . 'nitro_jquery.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_jquery.xml')) {
-                rename($dir.'nitro_jquery.xml', $dir.'nitro_jquery.xml_');
+            if (file_exists($dir . 'nitro_jquery.xml')) {
+                rename($dir . 'nitro_jquery.xml', $dir . 'nitro_jquery.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['minifier'])) {
-            if (file_exists($dir.'nitro_minifier.xml_')) {
-                rename($dir.'nitro_minifier.xml_', $dir.'nitro_minifier.xml');
+            if (file_exists($dir . 'nitro_minifier.xml_')) {
+                rename($dir . 'nitro_minifier.xml_', $dir . 'nitro_minifier.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_minifier.xml')) {
-                rename($dir.'nitro_minifier.xml', $dir.'nitro_minifier.xml_');
+            if (file_exists($dir . 'nitro_minifier.xml')) {
+                rename($dir . 'nitro_minifier.xml', $dir . 'nitro_minifier.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['product_count_fix'])) {
-            if (file_exists($dir.'nitro_product_count_fix.xml_')) {
-                rename($dir.'nitro_product_count_fix.xml_', $dir.'nitro_product_count_fix.xml');
+            if (file_exists($dir . 'nitro_product_count_fix.xml_')) {
+                rename($dir . 'nitro_product_count_fix.xml_', $dir . 'nitro_product_count_fix.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_product_count_fix.xml')) {
-                rename($dir.'nitro_product_count_fix.xml', $dir.'nitro_product_count_fix.xml_');
+            if (file_exists($dir . 'nitro_product_count_fix.xml')) {
+                rename($dir . 'nitro_product_count_fix.xml', $dir . 'nitro_product_count_fix.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['system_cache'])) {
-            if (file_exists($dir.'nitro_system_cache.xml_')) {
-                rename($dir.'nitro_system_cache.xml_', $dir.'nitro_system_cache.xml');
+            if (file_exists($dir . 'nitro_system_cache.xml_')) {
+                rename($dir . 'nitro_system_cache.xml_', $dir . 'nitro_system_cache.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_system_cache.xml')) {
-                rename($dir.'nitro_system_cache.xml', $dir.'nitro_system_cache.xml_');
+            if (file_exists($dir . 'nitro_system_cache.xml')) {
+                rename($dir . 'nitro_system_cache.xml', $dir . 'nitro_system_cache.xml_');
             }
         }
         if (!empty($settings['NitroTemp']['ActiveModule']['pagecache_widget'])) {
-            if (file_exists($dir.'nitro_pagecache_widget.xml_')) {
-                rename($dir.'nitro_pagecache_widget.xml_', $dir.'nitro_pagecache_widget.xml');
+            if (file_exists($dir . 'nitro_pagecache_widget.xml_')) {
+                rename($dir . 'nitro_pagecache_widget.xml_', $dir . 'nitro_pagecache_widget.xml');
             }
         } else {
-            if (file_exists($dir.'nitro_pagecache_widget.xml')) {
-                rename($dir.'nitro_pagecache_widget.xml', $dir.'nitro_pagecache_widget.xml_');
+            if (file_exists($dir . 'nitro_pagecache_widget.xml')) {
+                rename($dir . 'nitro_pagecache_widget.xml', $dir . 'nitro_pagecache_widget.xml_');
             }
         }
     }
 
-    public function getActiveNitroModules() {
+    public function getActiveNitroModules()
+    {
         $active_modules = array();
         $ds = DIRECTORY_SEPARATOR;
-        $dir = dirname(DIR_APPLICATION).$ds.'vqmod'.$ds.'xml'.$ds;
-        if (file_exists($dir.'nitro_pagecache.xml')) {
+        $dir = dirname(DIR_APPLICATION) . $ds . 'vqmod' . $ds . 'xml' . $ds;
+        if (file_exists($dir . 'nitro_pagecache.xml')) {
             $active_modules[] = 'pagecache';
         }
-        if (file_exists($dir.'nitro_cdn_generic.xml')) {
+        if (file_exists($dir . 'nitro_cdn_generic.xml')) {
             $active_modules[] = 'cdn_generic';
         }
-        if (file_exists($dir.'nitro_db_cache.xml')) {
+        if (file_exists($dir . 'nitro_db_cache.xml')) {
             $active_modules[] = 'db_cache';
         }
-        if (file_exists($dir.'nitro_image_cache.xml')) {
+        if (file_exists($dir . 'nitro_image_cache.xml')) {
             $active_modules[] = 'image_cache';
         }
-        if (file_exists($dir.'nitro_jquery.xml')) {
+        if (file_exists($dir . 'nitro_jquery.xml')) {
             $active_modules[] = 'jquery';
         }
-        if (file_exists($dir.'nitro_minifier.xml')) {
+        if (file_exists($dir . 'nitro_minifier.xml')) {
             $active_modules[] = 'minifier';
         }
-        if (file_exists($dir.'nitro_product_count_fix.xml')) {
+        if (file_exists($dir . 'nitro_product_count_fix.xml')) {
             $active_modules[] = 'product_count_fix';
         }
-        if (file_exists($dir.'nitro_system_cache.xml')) {
+        if (file_exists($dir . 'nitro_system_cache.xml')) {
             $active_modules[] = 'system_cache';
         }
-        if (file_exists($dir.'nitro_pagecache_widget.xml')) {
+        if (file_exists($dir . 'nitro_pagecache_widget.xml')) {
             $active_modules[] = 'pagecache_widget';
         }
         return $active_modules;
     }
 
-    public function applyNitroCacheHTRules() {
+    public function applyNitroCacheHTRules()
+    {
         $this->load->model('tool/nitro_htaccess');
         $this->model_tool_nitro_htaccess->applyHtaccessRules();
     }
 
-    public function applyNitroCacheHTCompressionRules() {
+    public function applyNitroCacheHTCompressionRules()
+    {
         $this->load->model('tool/nitro_htaccess');
         $this->model_tool_nitro_htaccess->applyHtaccessCompressionRules();
     }
 
-    public function applyNitroCacheHTCookieRules() {
+    public function applyNitroCacheHTCookieRules()
+    {
         $this->load->model('tool/nitro_htaccess');
         $this->model_tool_nitro_htaccess->applyHtaccessCookieRules();
     }
 
-    public function applyNitroCacheHTCdnRules() {
+    public function applyNitroCacheHTCdnRules()
+    {
         $this->load->model('tool/nitro_htaccess');
         $this->model_tool_nitro_htaccess->applyHtaccessCdnRules();
     }
 
-    private function sizeToString($size) {
-        $count = 0;
-        for ($i = $size; $i >= 1024; $i /= 1024) $count++;
-        switch ($count) {
-        case 0 : $suffix = ' B'; break;
-        case 1 : $suffix = ' KB'; break;
-        case 2 : $suffix = ' MB'; break;
-        case 3 : $suffix = ' GB'; break;
-        case ($count >= 4) : $suffix = ' TB'; break;
-        }
-        return round($i, 2) . $suffix;
-    }
-
-    public function get_valid_extensions($data) {
+    public function get_valid_extensions($data)
+    {
         $ext = array();
 
         if ($data['css']) {
@@ -337,25 +413,8 @@ class ModelToolNitro extends Model {
         return $ext;
     }
 
-    public function cdn_init_db($cdn = false) {
-        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "nitro_cdn_files` ( `id` int(10) unsigned NOT NULL AUTO_INCREMENT, `file` text NOT NULL, `realpath` text NOT NULL, `cdn` tinyint(1), `size` int(10) unsigned NOT NULL, `uploaded` tinyint(1) NOT NULL DEFAULT '0', PRIMARY KEY (`id`), KEY `file` (`file`(20),`uploaded`,`cdn`)) ENGINE=MyISAM DEFAULT CHARSET=utf8");
-
-        if ($cdn) {
-            $this->db->query("DELETE FROM " . DB_PREFIX . "nitro_cdn_files WHERE cdn=" . $cdn);
-
-            $ai = 0;
-
-            $ai_query = $this->db->query("SELECT MAX(id) as max FROM " . DB_PREFIX . "nitro_cdn_files");
-
-            if ($ai_query->num_rows) {
-                $ai = $ai_query->row['max'] + 1;
-            }
-
-            $this->db->query("ALTER TABLE " . DB_PREFIX . "nitro_cdn_files AUTO_INCREMENT = " . $ai . ";");
-        }
-    }
-
-    public function cdn_prepare_files($data) {
+    public function cdn_prepare_files($data)
+    {
         $response = &$this->request->post['last'];
 
         $response['done'] = false;
@@ -376,7 +435,7 @@ class ModelToolNitro extends Model {
         //     $files->prepareFolders();
 
         //     $response['step'] = 'list';
-        // } else 
+        // } else
 
         if ($response['step'] == 'list') {
             if (empty($response['continue_from'])) {
@@ -399,14 +458,14 @@ class ModelToolNitro extends Model {
                     ),
                     array(
                         'rule' => '/blog\//i',
-                            'match' => false
-                        ),
-                        array(
-                            'rule' => '/\/te?mp\//i',
-                                'match' => false
-                            )
-                        )
-                    ));
+                        'match' => false
+                    ),
+                    array(
+                        'rule' => '/\/te?mp\//i',
+                        'match' => false
+                    )
+                )
+            ));
 
             $items = $files->find();
 
@@ -450,58 +509,27 @@ class ModelToolNitro extends Model {
         return $items;
     }
 
-    private function is_class_method($type="public", $method, $class) { 
-        $refl = new ReflectionMethod($class, $method); 
+    public function cdn_init_db($cdn = false)
+    {
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "nitro_cdn_files` ( `id` int(10) unsigned NOT NULL AUTO_INCREMENT, `file` text NOT NULL, `realpath` text NOT NULL, `cdn` tinyint(1), `size` int(10) unsigned NOT NULL, `uploaded` tinyint(1) NOT NULL DEFAULT '0', PRIMARY KEY (`id`), KEY `file` (`file`(20),`uploaded`,`cdn`)) ENGINE=MyISAM DEFAULT CHARSET=utf8");
 
-        switch($type) { 
-        case "static": 
-            return $refl->isStatic(); 
-            break; 
-        case "public": 
-            return $refl->isPublic(); 
-            break; 
-        case "private": 
-            return $refl->isPrivate(); 
-            break; 
-        } 
-    } 
+        if ($cdn) {
+            $this->db->query("DELETE FROM " . DB_PREFIX . "nitro_cdn_files WHERE cdn=" . $cdn);
 
-    private function vqmod_resolve($file) {
+            $ai = 0;
 
-        if (class_exists('VQMod')) {
-            if ($this->is_class_method('static', 'modCheck', 'VQMod')) {
-                $file = VQMod::modCheck($file);
-            } else {
-                $vqmod = new VQMod();
-                $file = $vqmod->modCheck($file);
+            $ai_query = $this->db->query("SELECT MAX(id) as max FROM " . DB_PREFIX . "nitro_cdn_files");
+
+            if ($ai_query->num_rows) {
+                $ai = $ai_query->row['max'] + 1;
             }
-        }
 
-        return $file;
-    }
-
-    public function load_catalog_model($model) {
-        $file  = dirname(DIR_APPLICATION) . '/catalog/model/' . $model . '.php';
-        $class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', $model);
-
-        if (file_exists($file)) { 
-            $contents = trim(file_get_contents($this->vqmod_resolve($file)));
-            $contents = str_ireplace('class ' . $class, 'class Catalog' . $class, $contents);
-            $class = 'Catalog' . $class;
-
-            $contents = preg_replace('~^\<\?php~', '', $contents);
-            $contents = preg_replace('~\?\>$~', '', $contents);
-
-            eval($contents);
-
-            $this->registry->set('catalogmodel_' . str_replace('/', '_', $model), new $class($this->registry));
-        } else {
-            trigger_error('Error: Could not load model ' . $model . '!');
-            exit();					
+            $this->db->query("ALTER TABLE " . DB_PREFIX . "nitro_cdn_files AUTO_INCREMENT = " . $ai . ";");
         }
     }
 
-    public function cdn_precache_images(&$found_items) {
+    public function cdn_precache_images(&$found_items)
+    {
         if (empty($found_items)) return;
 
         $new_items = $found_items;
@@ -556,16 +584,17 @@ class ModelToolNitro extends Model {
         );
 
 
-
         if (!function_exists('unique_dimensions')) {
-            function unique_dimensions($val) {
+            function unique_dimensions($val)
+            {
                 if (empty($GLOBALS['unique_dimensions'])) {
                     $GLOBALS['unique_dimensions'] = array();
                 }
 
                 if (!function_exists('val_exist')) {
-                    function val_exist($val, $array) {
-                        foreach($array as $current) {
+                    function val_exist($val, $array)
+                    {
+                        foreach ($array as $current) {
                             if ($current['w'] == $val['w'] && $current['h'] == $val['h']) {
                                 return true;
                             }
@@ -587,7 +616,8 @@ class ModelToolNitro extends Model {
         $this->load->model('setting/setting');
 
         if (!function_exists('apply_module_dimensions')) {
-            function apply_module_dimensions(&$image_settings, $width_key, $height_key, $module, &$setting) {
+            function apply_module_dimensions(&$image_settings, $width_key, $height_key, $module, &$setting)
+            {
                 $all_modules = $setting->getSetting($module);
                 if (!empty($all_modules[$module . "_module"]) && is_array($all_modules[$module . "_module"])) {
                     foreach ($all_modules[$module . "_module"] as $my_module) {
@@ -646,8 +676,8 @@ class ModelToolNitro extends Model {
                                 }
                             }
                         }
-                    } catch(Exception $e) {
-                        // do nothing.    
+                    } catch (Exception $e) {
+                        // do nothing.
                     }
                 }
             }
@@ -655,7 +685,8 @@ class ModelToolNitro extends Model {
 
         $this->config->set('config_store_id', $original_store_id);
 
-        function path_cmp($a, $b) {
+        function path_cmp($a, $b)
+        {
             if ($a['full_path'] == $b['full_path']) {
                 return 0;
             }
@@ -671,7 +702,62 @@ class ModelToolNitro extends Model {
         //$found_items = $new_items;
     }
 
-    public function cdn_construct_image_path($url_path, $base) {
+    public function load_catalog_model($model)
+    {
+        $file = dirname(DIR_APPLICATION) . '/catalog/model/' . $model . '.php';
+        $class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', $model);
+
+        if (file_exists($file)) {
+            $contents = trim(file_get_contents($this->vqmod_resolve($file)));
+            $contents = str_ireplace('class ' . $class, 'class Catalog' . $class, $contents);
+            $class = 'Catalog' . $class;
+
+            $contents = preg_replace('~^\<\?php~', '', $contents);
+            $contents = preg_replace('~\?\>$~', '', $contents);
+
+            eval($contents);
+
+            $this->registry->set('catalogmodel_' . str_replace('/', '_', $model), new $class($this->registry));
+        } else {
+            trigger_error('Error: Could not load model ' . $model . '!');
+            exit();
+        }
+    }
+
+    private function vqmod_resolve($file)
+    {
+
+        if (class_exists('VQMod')) {
+            if ($this->is_class_method('static', 'modCheck', 'VQMod')) {
+                $file = VQMod::modCheck($file);
+            } else {
+                $vqmod = new VQMod();
+                $file = $vqmod->modCheck($file);
+            }
+        }
+
+        return $file;
+    }
+
+    private function is_class_method($type = "public", $method, $class)
+    {
+        $refl = new ReflectionMethod($class, $method);
+
+        switch ($type) {
+            case "static":
+                return $refl->isStatic();
+                break;
+            case "public":
+                return $refl->isPublic();
+                break;
+            case "private":
+                return $refl->isPrivate();
+                break;
+        }
+    }
+
+    public function cdn_construct_image_path($url_path, $base)
+    {
 
         $image_parts = array_filter(explode('/', DIR_IMAGE));
         $image_folder = array_pop($image_parts);
@@ -697,7 +783,8 @@ class ModelToolNitro extends Model {
         return array();
     }
 
-    public function cdn_after_upload($item) {
+    public function cdn_after_upload($item)
+    {
         $response = &$this->request->post['last'];
 
         $this->db->query("UPDATE " . DB_PREFIX . "nitro_cdn_files SET uploaded=1 WHERE id='" . $item['id'] . "'");
@@ -724,23 +811,49 @@ class ModelToolNitro extends Model {
         $response['message'] = 'Uploaded ' . $item['file'] . '<br />Speed: ' . $this->sizeToString($speed) . '/s<br />Time remaining: ' . $time_remaining . '';
     }
 
-    public function generateUpToDateMimeArray($url){ //FUNCTION FROM Josh Sean @ http://www.php.net/manual/en/function.mime-content-type.php
+    private function sizeToString($size)
+    {
+        $count = 0;
+        for ($i = $size; $i >= 1024; $i /= 1024) $count++;
+        switch ($count) {
+            case 0 :
+                $suffix = ' B';
+                break;
+            case 1 :
+                $suffix = ' KB';
+                break;
+            case 2 :
+                $suffix = ' MB';
+                break;
+            case 3 :
+                $suffix = ' GB';
+                break;
+            case ($count >= 4) :
+                $suffix = ' TB';
+                break;
+        }
+        return round($i, 2) . $suffix;
+    }
+
+    public function generateUpToDateMimeArray($url)
+    { //FUNCTION FROM Josh Sean @ http://www.php.net/manual/en/function.mime-content-type.php
         if (!empty($GLOBALS['nitro.mimes'])) return $GLOBALS['nitro.mimes'];
 
-        $s=array('gz' => 'application/x-gzip');
-        foreach(@explode("\n",@file_get_contents($url))as $x)
-            if(isset($x[0])&&$x[0]!=='#'&&preg_match_all('#([^\s]+)#',$x,$out)&&isset($out[1])&&($c=count($out[1]))>1)
-                for($i=1;$i<$c;$i++)
-                    $s[$out[1][$i]]=$out[1][0];
+        $s = array('gz' => 'application/x-gzip');
+        foreach (@explode("\n", @file_get_contents($url)) as $x)
+            if (isset($x[0]) && $x[0] !== '#' && preg_match_all('#([^\s]+)#', $x, $out) && isset($out[1]) && ($c = count($out[1])) > 1)
+                for ($i = 1; $i < $c; $i++)
+                    $s[$out[1][$i]] = $out[1][0];
 
         if (!empty($s)) {
             $GLOBALS['nitro.mimes'] = $s;
         }
 
-        return ($s)?$s:false;
+        return ($s) ? $s : false;
     }
 
-    public function getServerInfo($permission) {
+    public function getServerInfo($permission)
+    {
         $text_no_permission = '<div class="info-error">You do not have permissions to view this.</div>';
         $result = array();
 
@@ -751,16 +864,16 @@ class ModelToolNitro extends Model {
         }
 
         /* PHP User */
-        $nitro_folder = defined('NITRO_FOLDER') ? NITRO_FOLDER : (DIR_SYSTEM.'nitro'.DIRECTORY_SEPARATOR);
+        $nitro_folder = defined('NITRO_FOLDER') ? NITRO_FOLDER : (DIR_SYSTEM . 'nitro' . DIRECTORY_SEPARATOR);
         $php_user = 'Cannot be determined';
         if (is_writable($nitro_folder)) {
-            touch($nitro_folder.'test_user');
-            if (file_exists($nitro_folder.'test_user') && function_exists('posix_getpwuid')) {
-                $user_info = @posix_getpwuid(fileowner($nitro_folder.'test_user'));
+            touch($nitro_folder . 'test_user');
+            if (file_exists($nitro_folder . 'test_user') && function_exists('posix_getpwuid')) {
+                $user_info = @posix_getpwuid(fileowner($nitro_folder . 'test_user'));
                 if (!empty($user_info)) {
                     $php_user = $user_info['name'];
                 }
-                unlink($nitro_folder.'test_user');
+                unlink($nitro_folder . 'test_user');
             }
         }
         $result['php_user'] = $php_user;
@@ -856,7 +969,7 @@ class ModelToolNitro extends Model {
         } else {
             $shell_exec_enabled =
                 function_exists('shell_exec') &&
-                !in_array('shell_exec', array_map('trim',explode(', ', ini_get('disable_functions')))) &&
+                !in_array('shell_exec', array_map('trim', explode(', ', ini_get('disable_functions')))) &&
                 !(strtolower(ini_get('safe_mode')) != 'off' && ini_get('safe_mode') != 0);
 
             if ($shell_exec_enabled) {
@@ -950,10 +1063,17 @@ class ModelToolNitro extends Model {
 
     }
 
-    public function configureCron($config) {
+    private function exec_enabled()
+    {
+        $this->loadCore();
+        return isExecEnabled();
+    }
+
+    public function configureCron($config)
+    {
         $this->loadCore();
 
-        if ( !isExecEnabled()) {
+        if (!isExecEnabled()) {
             return '<strong>exec()</strong> is not available on your PHP server. Please contact your web hosting provider to enable it, or use a third-party CRON service with the URL below.';
         }
 
@@ -968,7 +1088,8 @@ class ModelToolNitro extends Model {
         exec('crontab -l', $output);
 
         if (!function_exists('cron_check')) {
-            function cron_check($var) {
+            function cron_check($var)
+            {
                 return strpos($var, 'system/nitro/core/cron.php') === FALSE;
             }
         }
@@ -989,7 +1110,61 @@ class ModelToolNitro extends Model {
         return null;
     }
 
-    private function which($cmd) {
+    public function cron_command($config, $full_command = true)
+    {
+        if (empty($config)) return '';
+
+        if (!function_exists('convert_days')) {
+            function convert_days(&$item)
+            {
+                $item = $item % 7;
+            }
+        }
+
+        if (empty($config['Local']['Weekday'])) {
+            $config['Local']['Weekday'] = array('*');
+        } else {
+            array_walk($config['Local']['Weekday'], 'convert_days');
+        }
+
+        if (empty($config['Local']['PHPBinary'])) {
+            $cmd = '/usr/local/bin/php';
+        } else {
+            $cmd = $config['Local']['PHPBinary'];
+        }
+
+        $server_name = !empty($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : $_SERVER["HTTP_HOST"];
+
+        $cron_command = array(
+            'minute' => $config['Local']['Minute'],
+            'hour' => $config['Local']['Hour'],
+            'day' => '*',
+            'month' => '*',
+            'weekday' => implode(',', $config['Local']['Weekday']),
+            'command' => $cmd . ' ' . NITRO_CORE_FOLDER . 'cron.php ' . $server_name . ' >/dev/null 2>&1'
+        );
+
+        if ($full_command) {
+            return implode(' ', $cron_command);
+        } else {
+            return $cron_command['command'];
+        }
+    }
+
+    public function clearProductCache($product_id)
+    {
+        $this->loadCore();
+        clearProductCache($product_id);
+    }
+
+    public function clearCategoryCache($category_id)
+    {
+        $this->loadCore();
+        clearCategoryCache($category_id);
+    }
+
+    private function which($cmd)
+    {
         $path = getenv('PATH');
 
         if ($path) {
@@ -1007,56 +1182,8 @@ class ModelToolNitro extends Model {
         return $cmd;
     }
 
-    public function cron_command($config, $full_command = true) {
-        if (empty($config)) return '';
-
-        if (!function_exists('convert_days')) {
-            function convert_days(&$item) {
-                $item = $item%7;
-            }
-        }
-
-        if (empty($config['Local']['Weekday'])) {
-            $config['Local']['Weekday'] = array('*');
-        } else {
-            array_walk($config['Local']['Weekday'], 'convert_days');
-        }
-
-        if (empty($config['Local']['PHPBinary'])) {
-            $cmd = '/usr/local/bin/php';
-        } else {
-            $cmd = $config['Local']['PHPBinary'];
-        }
-
-        $server_name  = !empty($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : $_SERVER["HTTP_HOST"];
-
-        $cron_command = array(
-            'minute' => $config['Local']['Minute'],
-            'hour' => $config['Local']['Hour'],
-            'day' => '*',
-            'month' => '*',
-            'weekday' => implode(',', $config['Local']['Weekday']),
-            'command' => $cmd . ' '. NITRO_CORE_FOLDER . 'cron.php ' . $server_name . ' >/dev/null 2>&1'
-        );
-
-        if ($full_command) {
-            return implode(' ', $cron_command);
-        } else {
-            return $cron_command['command'];
-        }
-    }
-
-    public function clearProductCache($product_id) {
-        $this->loadCore();
-        clearProductCache($product_id);
-    }
-
-    public function clearCategoryCache($category_id) {
-        $this->loadCore();
-        clearCategoryCache($category_id);
-    }
-
-    private function delete_folder($folder) {
+    private function delete_folder($folder)
+    {
         if (in_array($folder, array('.', '..'))) return;
 
         if (file_exists($folder)) {
@@ -1078,73 +1205,22 @@ class ModelToolNitro extends Model {
         }
     }
 
-    private function trunk_ajax_timedout() {
-        return (time() - $this->ajax_trunk_start) > self::AJAX_FILES_TIMEOUT;
-    }
-
-    private function trunc_dir_recursive($dir) {
-        if (!is_dir($dir)) return true;
-
-        $dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        $dh = opendir($dir);
-        $excludes = array('.', '..');
-
-        while(!$this->trunk_ajax_timedout() && false !== ($entry = readdir($dh))) {
-            if (in_array($entry, $excludes)) continue;
-
-            $path = $dir.$entry;
-            if (is_dir($path)) {
-                $this->trunc_dir_recursive($path);
-
-                //We probably cleared the directory, so this is the place to delete it. This should happen here, because if it is outside the while block, this will delete the initial directory which is not the desired behavior. However we had cases where image cache files have been created while deleting the cache, which throws error that dir is not empty when trying to delete it. This is why we are not deleting the dirs. Sad but true (Metallica pun intended)
-            } else if (is_file($path)) {
-                unlink($path);
-            }
-        }
-
-        return !$this->trunk_ajax_timedout();
-    }
-
-    private function trunc_folder($folder, $touch = false, $ajax = false) {
-        if ($ajax) {
-            if (!$this->ajax_trunk_start) {
-                $this->ajax_trunk_start = time();
-            }
-
-            if ($this->trunc_dir_recursive($folder)) {
-                if ($touch) {
-                    if (!is_dir($folder)) {
-                        mkdir($folder, 0755, true);
-                    }
-                    touch(rtrim($folder, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $touch);
-                }
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            $this->loadCore();
-            cleanFolder($folder, $touch);
-        }
-
-        return true;
-    }
-
-    private function exec_enabled() {
-        $this->loadCore();
-        return isExecEnabled();
-    }
-
-    private function isSessionClosed() {
+    private function isSessionClosed()
+    {
         return $this->session_closed;
     }
 
-    private function closeSession() {
-        if (session_id() && !$this->session_closed) session_write_close();
-        $this->session_closed = true;
+    private function smushCanContinue()
+    {
+        return true;
+        $this->openSession();
+        $stop_smushing = $_SESSION['stop_smushing'];
+        $this->closeSession();
+        return !$stop_smushing;
     }
 
-    private function openSession() {
+    private function openSession()
+    {
         if ($this->session_closed) {
             if (!session_id()) session_start();
         }
@@ -1152,12 +1228,11 @@ class ModelToolNitro extends Model {
         return session_id();
     }
 
-    private function smushCanContinue() {
-        return true;
-        $this->openSession();
-        $stop_smushing = $_SESSION['stop_smushing'];
-        $this->closeSession();
-        return !$stop_smushing;
+    private function closeSession()
+    {
+        if (session_id() && !$this->session_closed) session_write_close();
+        $this->session_closed = true;
     }
 }
+
 ?>

@@ -82,29 +82,6 @@ class BackupZip
     }
 
     /**
-     * Добавляет в зип архив файл
-     * @param FileEntryInterface $file Инстанс добавляемого в архив файла
-     * @return BackupZip Инстанс текущего объекта
-     * @throws RuntimeException Генерируется если добавить файл в архив не удалось
-     */
-    private function addFile(FileEntryInterface $file)
-    {
-        $path = $file->getAbsolutePath();
-        if (!file_exists($path)) {
-            throw new RuntimeException('File "' . $path . '" not exists');
-        } elseif (!is_file($path)) {
-            throw new RuntimeException('Invalid file "' . $path . '" (not a file)');
-        } elseif (!is_readable($path)) {
-            throw new RuntimeException('File "' . $path . '" not readable');
-        }
-        $local = (empty($this->rootDirectory) ? '' : $this->rootDirectory . '/') . $file->getProjectPath();
-        if (!$this->zip->addFile($path, $local)) {
-            throw new RuntimeException('Failed to add file "' . $path . '" -> "' . $local . '" to archive');
-        }
-        return $this;
-    }
-
-    /**
      * Добавляет в zip архив директорию
      * @param DirectoryEntryInterface $dir Инстанс добавляемой директории
      * @return BackupZip Инстанс текущего объекта
@@ -138,6 +115,29 @@ class BackupZip
             }
         } catch (RuntimeException $e) {
             throw new RuntimeException('Failed to add directory "' . $dir->getAbsolutePath() . '"', 0, $e);
+        }
+        return $this;
+    }
+
+    /**
+     * Добавляет в зип архив файл
+     * @param FileEntryInterface $file Инстанс добавляемого в архив файла
+     * @return BackupZip Инстанс текущего объекта
+     * @throws RuntimeException Генерируется если добавить файл в архив не удалось
+     */
+    private function addFile(FileEntryInterface $file)
+    {
+        $path = $file->getAbsolutePath();
+        if (!file_exists($path)) {
+            throw new RuntimeException('File "' . $path . '" not exists');
+        } elseif (!is_file($path)) {
+            throw new RuntimeException('Invalid file "' . $path . '" (not a file)');
+        } elseif (!is_readable($path)) {
+            throw new RuntimeException('File "' . $path . '" not readable');
+        }
+        $local = (empty($this->rootDirectory) ? '' : $this->rootDirectory . '/') . $file->getProjectPath();
+        if (!$this->zip->addFile($path, $local)) {
+            throw new RuntimeException('Failed to add file "' . $path . '" -> "' . $local . '" to archive');
         }
         return $this;
     }

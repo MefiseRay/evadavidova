@@ -1,7 +1,7 @@
 <?php
 
 $prefix = version_compare(VERSION, '2.3.0') >= 0 ? 'extension/' : '';
-require_once DIR_CATALOG . 'model/'.$prefix.'payment/yandex_money/autoload.php';
+require_once DIR_CATALOG . 'model/' . $prefix . 'payment/yandex_money/autoload.php';
 
 class YandexMoneyWalletModel extends \YandexMoneyModule\Model\WalletModel
 {

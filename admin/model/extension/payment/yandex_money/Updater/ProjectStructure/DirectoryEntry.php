@@ -40,19 +40,6 @@ class DirectoryEntry extends AbstractEntry implements DirectoryEntryInterface
     }
 
     /**
-     * Возвращает список файлов внутри текущей директории
-     * @return FileEntryInterface[] Список файлов внутри директории
-     */
-    public function getFileEntries()
-    {
-        if ($this->files === null) {
-            $this->files = array();
-            $this->walk($this->getAbsolutePath());
-        }
-        return $this->files;
-    }
-
-    /**
      * Осуществляет рекурсивный обход всех поддиректорий и заполняет списки директорий и файлов
      * @param string $directory Имя директории которую сканим
      * @param string $relativePath Относительный путь до директории
@@ -85,5 +72,18 @@ class DirectoryEntry extends AbstractEntry implements DirectoryEntryInterface
             }
         }
         closedir($dirHandle);
+    }
+
+    /**
+     * Возвращает список файлов внутри текущей директории
+     * @return FileEntryInterface[] Список файлов внутри директории
+     */
+    public function getFileEntries()
+    {
+        if ($this->files === null) {
+            $this->files = array();
+            $this->walk($this->getAbsolutePath());
+        }
+        return $this->files;
     }
 }

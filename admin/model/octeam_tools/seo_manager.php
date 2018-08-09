@@ -1,101 +1,108 @@
 <?php
-class ModelOcteamToolsSeoManager extends Model {
 
-	public function updateUrlAlias($data) {
-		if(!empty($data['url_alias_id'])) {
-			$this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = '" . $this->db->escape($data['query']) . "', `keyword` = '" . $data['keyword'] . "' WHERE `url_alias_id` = '" . (int)$data['url_alias_id'] . "'");
-		} else {
-			$url_alias_id = $this->db->getLastId();
-			$this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` SET url_alias_id = '" . (int)$url_alias_id . "', `query` = '" .  $this->db->escape($data['query']) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
-		}
+class ModelOcteamToolsSeoManager extends Model
+{
 
-		$this->cache->delete('seo_pro');
-		$this->cache->delete('seo_url');
+    public function updateUrlAlias($data)
+    {
+        if (!empty($data['url_alias_id'])) {
+            $this->db->query("UPDATE `" . DB_PREFIX . "url_alias` SET `query` = '" . $this->db->escape($data['query']) . "', `keyword` = '" . $data['keyword'] . "' WHERE `url_alias_id` = '" . (int)$data['url_alias_id'] . "'");
+        } else {
+            $url_alias_id = $this->db->getLastId();
+            $this->db->query("INSERT INTO `" . DB_PREFIX . "url_alias` SET url_alias_id = '" . (int)$url_alias_id . "', `query` = '" . $this->db->escape($data['query']) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
+        }
 
-		return true;
-	}
+        $this->cache->delete('seo_pro');
+        $this->cache->delete('seo_url');
 
-	public function deleteUrlAlias($url_alias_id) {
-		$this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '" . (int)$url_alias_id . "'");
+        return true;
+    }
 
-		$this->cache->delete('seo_pro');
-		$this->cache->delete('seo_url');
-	}	
-	
-	public function getUrlAaliases($data = array()) {
-		if ($data) {
-			$sql = "SELECT * FROM `" . DB_PREFIX . "url_alias`";
+    public function deleteUrlAlias($url_alias_id)
+    {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "url_alias` WHERE `url_alias_id` = '" . (int)$url_alias_id . "'");
 
-      $implode = array();
+        $this->cache->delete('seo_pro');
+        $this->cache->delete('seo_url');
+    }
 
-      if (!empty($data['filter_query'])) {
-        $implode[] = "query LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
-      }
+    public function getUrlAaliases($data = array())
+    {
+        if ($data) {
+            $sql = "SELECT * FROM `" . DB_PREFIX . "url_alias`";
 
-      if (!empty($data['filter_keyword'])) {
-        $implode[] = "keyword = '" . $this->db->escape($data['filter_keyword']) . "'";
-      }
+            $implode = array();
 
-      if ($implode) {
-        $sql .= " WHERE " . implode(" AND ", $implode);
-      }
+            if (!empty($data['filter_query'])) {
+                $implode[] = "query LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
+            }
 
-			$sort_data = array('query', 'keyword');
+            if (!empty($data['filter_keyword'])) {
+                $implode[] = "keyword = '" . $this->db->escape($data['filter_keyword']) . "'";
+            }
 
-			if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-				$sql .= " ORDER BY " . $data['sort'];
-			} else {
-				$sql .= " ORDER BY query";
-			}
+            if ($implode) {
+                $sql .= " WHERE " . implode(" AND ", $implode);
+            }
 
-			if (isset($data['order']) && ($data['order'] == 'ASC')) {
-				$sql .= " ASC";
-			} else {
-				$sql .= " DESC";
-			}
+            $sort_data = array('query', 'keyword');
 
-			if (isset($data['start']) || isset($data['limit'])) {
-				if ($data['start'] < 0) {
-					$data['start'] = 0;
-				}
+            if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+                $sql .= " ORDER BY " . $data['sort'];
+            } else {
+                $sql .= " ORDER BY query";
+            }
 
-				if ($data['limit'] < 1) {
-					$data['limit'] = 20;
-				}
+            if (isset($data['order']) && ($data['order'] == 'ASC')) {
+                $sql .= " ASC";
+            } else {
+                $sql .= " DESC";
+            }
 
-				$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
-			}
+            if (isset($data['start']) || isset($data['limit'])) {
+                if ($data['start'] < 0) {
+                    $data['start'] = 0;
+                }
 
-			$query = $this->db->query($sql);
+                if ($data['limit'] < 1) {
+                    $data['limit'] = 20;
+                }
 
-			return  $query->rows;
-		} else {
-			$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "url_alias` ORDER BY query");
-			return $query->rows;
-		}
-	}
+                $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+            }
 
-	// Total Aliases
-	public function getTotalUrlAalias($data = array()) {
-		$sql = "SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "url_alias`";
+            $query = $this->db->query($sql);
 
-		$implode = array();
+            return $query->rows;
+        } else {
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "url_alias` ORDER BY query");
+            return $query->rows;
+        }
+    }
 
-		if (!empty($data['filter_query'])) {
-			$implode[] = "query LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
-		}
+    // Total Aliases
+    public function getTotalUrlAalias($data = array())
+    {
+        $sql = "SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "url_alias`";
 
-		if (!empty($data['filter_keyword'])) {
-			$implode[] = "keyword = '" . $this->db->escape($data['filter_keyword']) . "'";
-		}
+        $implode = array();
 
-		if ($implode) {
-			$sql .= " WHERE " . implode(" AND ", $implode);
-		}
+        if (!empty($data['filter_query'])) {
+            $implode[] = "query LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
+        }
 
-		$query = $this->db->query($sql);
+        if (!empty($data['filter_keyword'])) {
+            $implode[] = "keyword = '" . $this->db->escape($data['filter_keyword']) . "'";
+        }
 
-		return $query->row['total'];
-	}
+        if ($implode) {
+            $sql .= " WHERE " . implode(" AND ", $implode);
+        }
+
+        $query = $this->db->query($sql);
+
+        return $query->row['total'];
+    }
 }
+
 ?>

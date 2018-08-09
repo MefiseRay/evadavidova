@@ -1,6 +1,9 @@
 <?php
-class ModelExtensionPaymentTinkoff extends Model {
-    public function install() {
+
+class ModelExtensionPaymentTinkoff extends Model
+{
+    public function install()
+    {
         $this->db->query("
 			CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "tinkoff_payments` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -13,8 +16,10 @@ class ModelExtensionPaymentTinkoff extends Model {
 			) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;");
     }
 
-    public function uninstall() {
+    public function uninstall()
+    {
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "tinkoff_payments`;");
     }
 }
+
 ?>

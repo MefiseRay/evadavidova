@@ -80,6 +80,86 @@ class GitHubConnector
     }
 
     /**
+     * Возвращает инициализированный ресурс курла
+     *
+     * @return resource Хэндлер курла
+     *
+     * @throws RuntimeException Выбрасывается если расширение курла не установлено или если хэндлер не удалось создать
+     */
+    private function getCurl()
+    {
+        if ($this->curl === null) {
+            if (!function_exists('curl_init')) {
+                throw new RuntimeException('Curl extension not installed');
+            }
+            $this->curl = curl_init();
+            if (!$this->curl) {
+                throw new RuntimeException('Failed to init curl');
+            }
+        }
+        return $this->curl;
+    }
+
+    /**
+     * Возвращает массив заголовков для отправки в HTTP запросе
+     *
+     * @param string $referrer URL источника запроса для отправки в заголовке Referer
+     * @param bool $deflateOnly
+     *
+     * @return array Массив заголовков для передачи
+     */
+    private function getRequestHeaders($referrer)
+    {
+        $deflateOnly = !defined('CURLOPT_ACCEPT_ENCODING');
+        return array(
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Encoding: ' . ($deflateOnly ? 'deflate' : 'gzip,deflate,br'),
+            'Accept-Language: ru,en;q=0.8',
+            'Cache-Control: max-age=0',
+            'Connection: close',
+            'DNT: 1',
+            'Referer: ' . $this->baseUrl . '/' . $referrer,
+            'Upgrade-Insecure-Requests: 1',
+            'User-Agent: ' . $this->browser,
+        );
+    }
+
+    /**
+     * Парсит заголовки HTTP запроса или ответа
+     *
+     * @param string $response HTTP ответ в виде строки
+     *
+     * @return array Массив заголовков в виде {"<header>" : "<value>", ... }
+     */
+    private function parseHeaders($response)
+    {
+        $pos = strpos($response, "\n\n");
+        if ($pos === false) {
+            $pos = strpos($response, "\r\n\r\n");
+        }
+        if ($pos !== false) {
+            $headers = substr($response, 0, $pos);
+        } else {
+            $headers = trim($response);
+        }
+
+        $result = array();
+        $lines = explode("\n", $headers);
+        foreach ($lines as $line) {
+            if (!empty($line)) {
+                $parts = explode(':', $line, 2);
+                $header = strtolower(trim($parts[0]));
+                if (count($parts) == 2) {
+                    $result[$header] = trim($parts[1]);
+                } else {
+                    $result[$header] = true;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Метод скачивает файл лога изменений из гитхаб репозитория
      *
      * Подразумеваем, что файл лога изменений лежит в корне репозитория. По умолчанию скачивается файл с именем
@@ -220,85 +300,5 @@ class GitHubConnector
         }
         fclose($new);
         return implode('<br />' . PHP_EOL, $result);
-    }
-
-    /**
-     * Парсит заголовки HTTP запроса или ответа
-     *
-     * @param string $response HTTP ответ в виде строки
-     *
-     * @return array Массив заголовков в виде {"<header>" : "<value>", ... }
-     */
-    private function parseHeaders($response)
-    {
-        $pos = strpos($response, "\n\n");
-        if ($pos === false) {
-            $pos = strpos($response, "\r\n\r\n");
-        }
-        if ($pos !== false) {
-            $headers = substr($response, 0, $pos);
-        } else {
-            $headers = trim($response);
-        }
-
-        $result = array();
-        $lines = explode("\n", $headers);
-        foreach ($lines as $line) {
-            if (!empty($line)) {
-                $parts = explode(':', $line, 2);
-                $header = strtolower(trim($parts[0]));
-                if (count($parts) == 2) {
-                    $result[$header] = trim($parts[1]);
-                } else {
-                    $result[$header] = true;
-                }
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Возвращает инициализированный ресурс курла
-     *
-     * @return resource Хэндлер курла
-     *
-     * @throws RuntimeException Выбрасывается если расширение курла не установлено или если хэндлер не удалось создать
-     */
-    private function getCurl()
-    {
-        if ($this->curl === null) {
-            if (!function_exists('curl_init')) {
-                throw new RuntimeException('Curl extension not installed');
-            }
-            $this->curl = curl_init();
-            if (!$this->curl) {
-                throw new RuntimeException('Failed to init curl');
-            }
-        }
-        return $this->curl;
-    }
-
-    /**
-     * Возвращает массив заголовков для отправки в HTTP запросе
-     *
-     * @param string $referrer URL источника запроса для отправки в заголовке Referer
-     * @param bool $deflateOnly
-     *
-     * @return array Массив заголовков для передачи
-     */
-    private function getRequestHeaders($referrer)
-    {
-        $deflateOnly = !defined('CURLOPT_ACCEPT_ENCODING');
-        return array(
-            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding: ' . ($deflateOnly ? 'deflate' : 'gzip,deflate,br'),
-            'Accept-Language: ru,en;q=0.8',
-            'Cache-Control: max-age=0',
-            'Connection: close',
-            'DNT: 1',
-            'Referer: ' . $this->baseUrl . '/' . $referrer,
-            'Upgrade-Insecure-Requests: 1',
-            'User-Agent: ' . $this->browser,
-        );
     }
 }

@@ -1,100 +1,109 @@
 <?php
-class ModelLocalisationReturnAction extends Model {
-	public function addReturnAction($data) {
-		foreach ($data['return_action'] as $language_id => $value) {
-			if (isset($return_action_id)) {
-				$this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET return_action_id = '" . (int)$return_action_id . "', language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
-			} else {
-				$this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
 
-				$return_action_id = $this->db->getLastId();
-			}
-		}
+class ModelLocalisationReturnAction extends Model
+{
+    public function addReturnAction($data)
+    {
+        foreach ($data['return_action'] as $language_id => $value) {
+            if (isset($return_action_id)) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET return_action_id = '" . (int)$return_action_id . "', language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
+            } else {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
 
-		$this->cache->delete('return_action');
-		
-		return $return_action_id;
-	}
+                $return_action_id = $this->db->getLastId();
+            }
+        }
 
-	public function editReturnAction($return_action_id, $data) {
-		$this->db->query("DELETE FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
+        $this->cache->delete('return_action');
 
-		foreach ($data['return_action'] as $language_id => $value) {
-			$this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET return_action_id = '" . (int)$return_action_id . "', language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
-		}
+        return $return_action_id;
+    }
 
-		$this->cache->delete('return_action');
-	}
+    public function editReturnAction($return_action_id, $data)
+    {
+        $this->db->query("DELETE FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
 
-	public function deleteReturnAction($return_action_id) {
-		$this->db->query("DELETE FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
+        foreach ($data['return_action'] as $language_id => $value) {
+            $this->db->query("INSERT INTO " . DB_PREFIX . "return_action SET return_action_id = '" . (int)$return_action_id . "', language_id = '" . (int)$language_id . "', name = '" . $this->db->escape($value['name']) . "'");
+        }
 
-		$this->cache->delete('return_action');
-	}
+        $this->cache->delete('return_action');
+    }
 
-	public function getReturnAction($return_action_id) {
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "' AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+    public function deleteReturnAction($return_action_id)
+    {
+        $this->db->query("DELETE FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
 
-		return $query->row;
-	}
+        $this->cache->delete('return_action');
+    }
 
-	public function getReturnActions($data = array()) {
-		if ($data) {
-			$sql = "SELECT * FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'";
+    public function getReturnAction($return_action_id)
+    {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "' AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
 
-			$sql .= " ORDER BY name";
+        return $query->row;
+    }
 
-			if (isset($data['order']) && ($data['order'] == 'DESC')) {
-				$sql .= " DESC";
-			} else {
-				$sql .= " ASC";
-			}
+    public function getReturnActions($data = array())
+    {
+        if ($data) {
+            $sql = "SELECT * FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
-			if (isset($data['start']) || isset($data['limit'])) {
-				if ($data['start'] < 0) {
-					$data['start'] = 0;
-				}
+            $sql .= " ORDER BY name";
 
-				if ($data['limit'] < 1) {
-					$data['limit'] = 20;
-				}
+            if (isset($data['order']) && ($data['order'] == 'DESC')) {
+                $sql .= " DESC";
+            } else {
+                $sql .= " ASC";
+            }
 
-				$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
-			}
+            if (isset($data['start']) || isset($data['limit'])) {
+                if ($data['start'] < 0) {
+                    $data['start'] = 0;
+                }
 
-			$query = $this->db->query($sql);
+                if ($data['limit'] < 1) {
+                    $data['limit'] = 20;
+                }
 
-			return $query->rows;
-		} else {
-			$return_action_data = $this->cache->get('return_action.' . (int)$this->config->get('config_language_id'));
+                $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+            }
 
-			if (!$return_action_data) {
-				$query = $this->db->query("SELECT return_action_id, name FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY name");
+            $query = $this->db->query($sql);
 
-				$return_action_data = $query->rows;
+            return $query->rows;
+        } else {
+            $return_action_data = $this->cache->get('return_action.' . (int)$this->config->get('config_language_id'));
 
-				$this->cache->set('return_action.' . (int)$this->config->get('config_language_id'), $return_action_data);
-			}
+            if (!$return_action_data) {
+                $query = $this->db->query("SELECT return_action_id, name FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY name");
 
-			return $return_action_data;
-		}
-	}
+                $return_action_data = $query->rows;
 
-	public function getReturnActionDescriptions($return_action_id) {
-		$return_action_data = array();
+                $this->cache->set('return_action.' . (int)$this->config->get('config_language_id'), $return_action_data);
+            }
 
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
+            return $return_action_data;
+        }
+    }
 
-		foreach ($query->rows as $result) {
-			$return_action_data[$result['language_id']] = array('name' => $result['name']);
-		}
+    public function getReturnActionDescriptions($return_action_id)
+    {
+        $return_action_data = array();
 
-		return $return_action_data;
-	}
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "return_action WHERE return_action_id = '" . (int)$return_action_id . "'");
 
-	public function getTotalReturnActions() {
-		$query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'");
+        foreach ($query->rows as $result) {
+            $return_action_data[$result['language_id']] = array('name' => $result['name']);
+        }
 
-		return $query->row['total'];
-	}
+        return $return_action_data;
+    }
+
+    public function getTotalReturnActions()
+    {
+        $query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "return_action WHERE language_id = '" . (int)$this->config->get('config_language_id') . "'");
+
+        return $query->row['total'];
+    }
 }

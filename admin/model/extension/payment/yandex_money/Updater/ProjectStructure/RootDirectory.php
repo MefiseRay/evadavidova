@@ -87,6 +87,17 @@ class RootDirectory implements DirectoryEntryInterface
     }
 
     /**
+     * Устаналвивает текущий относительный путь внутри проекта
+     * @param string $value Путь до файлов и директорий в проекте
+     * @return RootDirectory Инстанс текущего объекта
+     */
+    public function setProjectPath($value)
+    {
+        $this->projectPath = $value;
+        return $this;
+    }
+
+    /**
      * Возвращает список директорий внутри текущией директории
      * @return DirectoryEntryInterface[] Список поддиректорий
      */
@@ -130,16 +141,5 @@ class RootDirectory implements DirectoryEntryInterface
         $file = new FileEntry($this, $relativePath, $path . $projectPath);
         $this->files[] = $file;
         return $file;
-    }
-
-    /**
-     * Устаналвивает текущий относительный путь внутри проекта
-     * @param string $value Путь до файлов и директорий в проекте
-     * @return RootDirectory Инстанс текущего объекта
-     */
-    public function setProjectPath($value)
-    {
-        $this->projectPath = $value;
-        return $this;
     }
 }

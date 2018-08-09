@@ -1,121 +1,132 @@
 <?php
-class ModelExtensionModification extends Model {
-	public function addModification($data) {
-		$this->db->query("INSERT INTO " . DB_PREFIX . "modification SET date_modified = NOW(), code = '" . $this->db->escape($data['code']) . "', name = '" . $this->db->escape($data['name']) . "', author = '" . $this->db->escape($data['author']) . "', version = '" . $this->db->escape($data['version']) . "', link = '" . $this->db->escape($data['link']) . "', xml = '" . $this->db->escape($data['xml']) . "', status = '" . (int)$data['status'] . "', date_added = NOW()");
-	}
 
-	public function deleteModification($modification_id) {
-		$this->db->query("DELETE FROM " . DB_PREFIX . "modification WHERE modification_id = '" . (int)$modification_id . "'");
-	}
+class ModelExtensionModification extends Model
+{
+    public function addModification($data)
+    {
+        $this->db->query("INSERT INTO " . DB_PREFIX . "modification SET date_modified = NOW(), code = '" . $this->db->escape($data['code']) . "', name = '" . $this->db->escape($data['name']) . "', author = '" . $this->db->escape($data['author']) . "', version = '" . $this->db->escape($data['version']) . "', link = '" . $this->db->escape($data['link']) . "', xml = '" . $this->db->escape($data['xml']) . "', status = '" . (int)$data['status'] . "', date_added = NOW()");
+    }
 
-	public function enableModification($modification_id) {
-		$this->db->query("UPDATE " . DB_PREFIX . "modification SET status = '1', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
-	}
+    public function deleteModification($modification_id)
+    {
+        $this->db->query("DELETE FROM " . DB_PREFIX . "modification WHERE modification_id = '" . (int)$modification_id . "'");
+    }
 
-	public function disableModification($modification_id) {
-		$this->db->query("UPDATE " . DB_PREFIX . "modification SET status = '0', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
-	}
+    public function enableModification($modification_id)
+    {
+        $this->db->query("UPDATE " . DB_PREFIX . "modification SET status = '1', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
+    }
+
+    public function disableModification($modification_id)
+    {
+        $this->db->query("UPDATE " . DB_PREFIX . "modification SET status = '0', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
+    }
 
 
-	public function editModification($modification_id, $data) {
-		$this->db->query("UPDATE " . DB_PREFIX . "modification SET code = '" . $this->db->escape($data['code']) . "', name = '" . $this->db->escape($data['name']) . "', author = '" . $this->db->escape($data['author']) . "', version = '" . $this->db->escape($data['version']) . "', link = '" . $this->db->escape($data['link']) . "', xml = '" . $this->db->escape($data['xml']) . "', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
-	}
-      
-	public function getModification($modification_id) {
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "modification WHERE modification_id = '" . (int)$modification_id . "'");
+    public function editModification($modification_id, $data)
+    {
+        $this->db->query("UPDATE " . DB_PREFIX . "modification SET code = '" . $this->db->escape($data['code']) . "', name = '" . $this->db->escape($data['name']) . "', author = '" . $this->db->escape($data['author']) . "', version = '" . $this->db->escape($data['version']) . "', link = '" . $this->db->escape($data['link']) . "', xml = '" . $this->db->escape($data['xml']) . "', date_modified = NOW() WHERE modification_id = '" . (int)$modification_id . "'");
+    }
 
-		return $query->row;
-	}
+    public function getModification($modification_id)
+    {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "modification WHERE modification_id = '" . (int)$modification_id . "'");
 
-	public function getModifications($data = array()) {
-		$sql = "SELECT * FROM " . DB_PREFIX . "modification";
+        return $query->row;
+    }
 
-		$cond = array();
+    public function getModifications($data = array())
+    {
+        $sql = "SELECT * FROM " . DB_PREFIX . "modification";
 
-		if (!empty($data['filter_name'])) {
-			$cond[] = " `name` LIKE '%" . $this->db->escape($data['filter_name']) . "%'";
-		}
+        $cond = array();
 
-		if (!empty($data['filter_xml'])) {
-			$cond[] = " MATCH (`xml`) AGAINST ('" . $this->db->escape($data['filter_xml']) . "' IN BOOLEAN MODE)";
-		}
+        if (!empty($data['filter_name'])) {
+            $cond[] = " `name` LIKE '%" . $this->db->escape($data['filter_name']) . "%'";
+        }
 
-		if (!empty($data['filter_author'])) {
-			$cond[] = " `author` LIKE '" . $this->db->escape($data['filter_author']) . "%'";
-		}
+        if (!empty($data['filter_xml'])) {
+            $cond[] = " MATCH (`xml`) AGAINST ('" . $this->db->escape($data['filter_xml']) . "' IN BOOLEAN MODE)";
+        }
 
-		if ($cond) {
-			$sql .= " WHERE " . implode(' AND ', $cond);
-		}
+        if (!empty($data['filter_author'])) {
+            $cond[] = " `author` LIKE '" . $this->db->escape($data['filter_author']) . "%'";
+        }
 
-		$sort_data = array(
-			'date_modified',
-			'name',
-			'author',
-			'version',
-			'status',
-			'date_added'
-		);
+        if ($cond) {
+            $sql .= " WHERE " . implode(' AND ', $cond);
+        }
 
-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-			$sql .= " ORDER BY " . $data['sort'];
-		} else {
-			$sql .= " ORDER BY name";
-		}
+        $sort_data = array(
+            'date_modified',
+            'name',
+            'author',
+            'version',
+            'status',
+            'date_added'
+        );
 
-		if (isset($data['order']) && ($data['order'] == 'DESC')) {
-			$sql .= " DESC";
-		} else {
-			$sql .= " ASC";
-		}
+        if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+            $sql .= " ORDER BY " . $data['sort'];
+        } else {
+            $sql .= " ORDER BY name";
+        }
 
-		if (isset($data['start']) || isset($data['limit'])) {
-			if ($data['start'] < 0) {
-				$data['start'] = 0;
-			}
+        if (isset($data['order']) && ($data['order'] == 'DESC')) {
+            $sql .= " DESC";
+        } else {
+            $sql .= " ASC";
+        }
 
-			if ($data['limit'] < 1) {
-				$data['limit'] = 20;
-			}
+        if (isset($data['start']) || isset($data['limit'])) {
+            if ($data['start'] < 0) {
+                $data['start'] = 0;
+            }
 
-			$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
-		}
+            if ($data['limit'] < 1) {
+                $data['limit'] = 20;
+            }
 
-		$query = $this->db->query($sql);
+            $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+        }
 
-		return $query->rows;
-	}
+        $query = $this->db->query($sql);
 
-	public function getTotalModifications($data = array()) {
-		
-		$cond = array();
+        return $query->rows;
+    }
 
-		if (!empty($data['filter_name'])) {
-			$cond[] = " `name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
-		}
+    public function getTotalModifications($data = array())
+    {
 
-		if (!empty($data['filter_xml'])) {
-			$cond[] = " `xml` LIKE '%" . $this->db->escape($data['filter_xml']) . "%'";
-		}
+        $cond = array();
 
-		if (!empty($data['filter_author'])) {
-			$cond[] = " `author` LIKE '%" . $this->db->escape($data['filter_author']) . "%'";
-		}
+        if (!empty($data['filter_name'])) {
+            $cond[] = " `name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+        }
 
-		$sql = "SELECT COUNT(*) AS total FROM " . DB_PREFIX . "modification";
+        if (!empty($data['filter_xml'])) {
+            $cond[] = " `xml` LIKE '%" . $this->db->escape($data['filter_xml']) . "%'";
+        }
 
-		if ($cond) {
-			$sql .= " WHERE " . implode(' AND ', $cond);
-		}
+        if (!empty($data['filter_author'])) {
+            $cond[] = " `author` LIKE '%" . $this->db->escape($data['filter_author']) . "%'";
+        }
 
-		$query = $this->db->query($sql);
+        $sql = "SELECT COUNT(*) AS total FROM " . DB_PREFIX . "modification";
 
-		return $query->row['total'];
-	}
+        if ($cond) {
+            $sql .= " WHERE " . implode(' AND ', $cond);
+        }
 
-	public function getModificationByCode($code) {
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "modification WHERE code = '" . $this->db->escape($code) . "'");
+        $query = $this->db->query($sql);
 
-		return $query->row;
-	}
+        return $query->row['total'];
+    }
+
+    public function getModificationByCode($code)
+    {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "modification WHERE code = '" . $this->db->escape($code) . "'");
+
+        return $query->row;
+    }
 }

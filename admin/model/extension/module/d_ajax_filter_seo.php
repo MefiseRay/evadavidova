@@ -59,7 +59,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
                 PRIMARY KEY (route, store_id, language_id), 
                 KEY keyword (keyword)
                 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
-                
+
             $this->db->query("DELETE FROM " . DB_PREFIX . "d_url_keyword WHERE route LIKE 'af_query_id=%'");
             $this->db->query("DELETE FROM " . DB_PREFIX . "url_alias WHERE query LIKE 'af_query_id=%'");
         }
@@ -67,10 +67,10 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
 
     public function DropDatabase()
     {
-        $this->db->query("DROP TABLE IF EXISTS ". DB_PREFIX . "af_query");
-        $this->db->query("DROP TABLE IF EXISTS ". DB_PREFIX . "af_query_decription");
+        $this->db->query("DROP TABLE IF EXISTS " . DB_PREFIX . "af_query");
+        $this->db->query("DROP TABLE IF EXISTS " . DB_PREFIX . "af_query_decription");
         $this->db->query("DELETE FROM " . DB_PREFIX . "d_meta_data WHERE route LIKE 'af_query_id=%'");
-        
+
         $this->db->query("DELETE FROM " . DB_PREFIX . "d_target_keyword WHERE route LIKE 'af_query_id=%'");
 
         if (VERSION >= '3.0.0.0') {
@@ -84,12 +84,12 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
     public function saveSEOExtensions($seo_extensions)
     {
         $this->load->model('setting/setting');
-        
+
         $setting['d_seo_extension_install'] = $seo_extensions;
-        
+
         $this->model_setting_setting->editSetting('d_seo_extension', $setting);
     }
-    
+
     /*
     *   Return list of SEO extensions.
     */
@@ -98,9 +98,9 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
         $this->load->model('setting/setting');
 
         $installed_extensions = array();
-        
+
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension ORDER BY code");
-        
+
         foreach ($query->rows as $result) {
             $installed_extensions[] = $result['code'];
         }
@@ -116,7 +116,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
         if ($files) {
             foreach ($files as $file) {
                 $seo_extension = basename($file, '.php');
-                
+
                 if ($seo_extension == 'd_seo_module' && in_array($seo_extension, $installed_seo_extensions)) {
                     $seo_extensions[] = $seo_extension;
                 } else {
@@ -126,7 +126,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
                 }
             }
         }
-        
+
         return $seo_extensions;
     }
 
@@ -151,7 +151,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
     public function getSEOFilterExtensions()
     {
         $this->load->model('setting/setting');
-        
+
         $installed_extensions = array();
 
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "extension ORDER BY code");
@@ -170,7 +170,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
         if ($files) {
             foreach ($files as $file) {
                 $seo_extension = basename($file, '.php');
-        
+
                 if (in_array($seo_extension, $installed_extensions) && in_array($seo_extension, $installed_seo_extensions)) {
                     $seo_extensions[] = $seo_extension;
                 }
@@ -183,31 +183,32 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
     public function getLanguages()
     {
         $this->load->model('localisation/language');
-        
+
         $languages = $this->model_localisation_language->getLanguages();
-        
+
         foreach ($languages as $key => $language) {
             $languages[$key]['flag'] = 'language/' . $language['code'] . '/' . $language['code'] . '.png';
         }
-        
+
         return $languages;
     }
+
     /*
     *	Return list of stores.
     */
     public function getStores()
     {
         $this->load->model('setting/store');
-        
+
         $result = array();
-        
+
         $result[] = array(
             'store_id' => 0,
             'name' => $this->config->get('config_name')
         );
-        
+
         $stores = $this->model_setting_store->getStores();
-        
+
         if ($stores) {
             foreach ($stores as $store) {
                 $result[] = array(
@@ -216,18 +217,19 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
                 );
             }
         }
-        
+
         return $result;
     }
-        /*
-    *	Return store.
-    */
+
+    /*
+*	Return store.
+*/
     public function getStore($store_id)
     {
         $this->load->model('setting/store');
-        
+
         $result = array();
-        
+
         if ($store_id == 0) {
             $result = array(
                 'store_id' => 0,
@@ -237,7 +239,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
             );
         } else {
             $store = $this->model_setting_store->getStore($store_id);
-            
+
             $result = array(
                 'store_id' => $store['store_id'],
                 'name' => $store['name'],
@@ -245,7 +247,7 @@ class ModelExtensionModuleDAjaxFilterSeo extends Model
                 'ssl' => $store['ssl']
             );
         }
-                
+
         return $result;
     }
 }

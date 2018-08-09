@@ -55,25 +55,6 @@ class ProjectStructureReader
     }
 
     /**
-     * Добавляет в настройки проекта директории и файлы из массива настроек
-     * @param RootDirectory $root Объект с информацией о директориях и файлах проекта
-     * @param array $entries Массив с директориями и файлами проекта
-     */
-    private function addEntries(RootDirectory $root, $entries)
-    {
-        foreach ($entries as $entry) {
-            if (substr($entry[2], -1) == '/') {
-                $entry[2] .= pathinfo($entry[1], PATHINFO_BASENAME);
-            }
-            if ($entry[0] == 'f') {
-                $root->factoryFile($entry[1], $entry[2]);
-            } elseif ($entry[0] == 'd') {
-                $root->factoryDirectory($entry[1], $entry[2]);
-            }
-        }
-    }
-
-    /**
      * На вход получает массив вида [<type>, <project_path>, <cms_path>], преобразует шаблоны вида {<path1>,<path2>} и
      * возвращает массив настроек файлов и директорий с готовыми именами файлов
      * @param array $entry Массив с настройками файла или директории
@@ -114,5 +95,24 @@ class ProjectStructureReader
             $entries = array($entry);
         }
         return $entries;
+    }
+
+    /**
+     * Добавляет в настройки проекта директории и файлы из массива настроек
+     * @param RootDirectory $root Объект с информацией о директориях и файлах проекта
+     * @param array $entries Массив с директориями и файлами проекта
+     */
+    private function addEntries(RootDirectory $root, $entries)
+    {
+        foreach ($entries as $entry) {
+            if (substr($entry[2], -1) == '/') {
+                $entry[2] .= pathinfo($entry[1], PATHINFO_BASENAME);
+            }
+            if ($entry[0] == 'f') {
+                $root->factoryFile($entry[1], $entry[2]);
+            } elseif ($entry[0] == 'd') {
+                $root->factoryDirectory($entry[1], $entry[2]);
+            }
+        }
     }
 }
