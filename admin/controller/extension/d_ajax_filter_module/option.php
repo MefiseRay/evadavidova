@@ -4,24 +4,28 @@ class ControllerExtensionDAjaxFilterModuleOption extends Controller
 {
     private $codename = 'd_ajax_filter';
     private $route = 'extension/d_ajax_filter_module/option';
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->model($this->route);
-        $this->load->language('extension/'.$this->codename.'/option');
+        $this->load->language('extension/' . $this->codename . '/option');
     }
-    public function updateProduct($product_id){
-        $new_values = $this->{'model_extension_'.$this->codename.'_module_option'}->updateProduct($product_id);
+
+    public function updateProduct($product_id)
+    {
+        $new_values = $this->{'model_extension_' . $this->codename . '_module_option'}->updateProduct($product_id);
         return $new_values;
     }
 
-    public function step($data){
-        $count = $this->{'model_extension_'.$this->codename.'_module_option'}->step($data);
+    public function step($data)
+    {
+        $count = $this->{'model_extension_' . $this->codename . '_module_option'}->step($data);
         return $count;
     }
 
-    public function prepare_template($setting){
+    public function prepare_template($setting)
+    {
 
         $this->load->model('extension/d_opencart_patch/url');
         $this->load->model('extension/d_opencart_patch/user');
@@ -65,7 +69,7 @@ class ControllerExtensionDAjaxFilterModuleOption extends Controller
             'checkbox_and_image' => $this->language->get('text_base_type_checkbox_and_image'),
             'image_radio' => $this->language->get('text_base_type_image_radio'),
             'image_checkbox' => $this->language->get('text_base_type_image_checkbox')
-            );
+        );
 
         $data['sort_order_types'] = array(
             'default' => $this->language->get('text_sort_order_type_default'),
@@ -73,32 +77,32 @@ class ControllerExtensionDAjaxFilterModuleOption extends Controller
             'string_desc' => $this->language->get('text_sort_order_type_string_desc'),
             'numeric_asc' => $this->language->get('text_sort_order_type_numeric_asc'),
             'numeric_desc' => $this->language->get('text_sort_order_type_numeric_desc'),
-            );
+        );
 
-        $data['options'] = !empty($setting['options'])?$setting['options']:array();
+        $data['options'] = !empty($setting['options']) ? $setting['options'] : array();
 
         $url = '';
 
-        if(isset($this->request->get['module_id'])){
-            $url = '&module_id='.$this->request->get['module_id'];
+        if (isset($this->request->get['module_id'])) {
+            $url = '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['option_href'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/option', $url);
+        $data['option_href'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/option', $url);
 
         $this->load->model('catalog/option');
-        
-        array_walk($data['options'], function(&$value, $index){
+
+        array_walk($data['options'], function (&$value, $index) {
             $option_info = $this->model_catalog_option->getOption($index);
             $value['name'] = strip_tags(html_entity_decode($option_info['name'], ENT_QUOTES, 'UTF-8'));
 
         });
 
-        $option_default = $this->{'model_extension_'.$this->codename.'_layout'}->getModuleSetting('attribute');
+        $option_default = $this->{'model_extension_' . $this->codename . '_layout'}->getModuleSetting('attribute');
 
-        $data['option_default'] = isset($setting['option_default'])?$setting['option_default']:$option_default['default'];
+        $data['option_default'] = isset($setting['option_default']) ? $setting['option_default'] : $option_default['default'];
 
         $data['default'] = $option_default['default'];
 
-        return $this->model_extension_d_opencart_patch_load->view('extension/'.$this->codename.'/layout_partial/option', $data);
+        return $this->model_extension_d_opencart_patch_load->view('extension/' . $this->codename . '/layout_partial/option', $data);
     }
 }

@@ -5,19 +5,21 @@
 @link    http://opencartmodules.ru
 */
 
-class ControllerTotalDiscountsTotal extends Controller {
+class ControllerTotalDiscountsTotal extends Controller
+{
     private $error = array();
 
     private static function cmpd($a, $b)
     {
-        if ($a["summ"]==$b["summ"]) {
+        if ($a["summ"] == $b["summ"]) {
             return 0;
         }
-        return ($a["summ"]<$b["summ"]) ? -1 : 1;
+        return ($a["summ"] < $b["summ"]) ? -1 : 1;
     }
 
 
-    public function index() {
+    public function index()
+    {
         $this->load->language('total/discounts_total');
 
         $this->document->setTitle($this->language->get('heading_title'));
@@ -49,7 +51,7 @@ class ControllerTotalDiscountsTotal extends Controller {
         $data['entry_last_days'] = $this->language->get('entry_last_days');
 
         $data['entry_calc_type'] = $this->language->get('entry_calc_type');
-        $data['calc_types'] = explode('|',$this->language->get('calc_types'));
+        $data['calc_types'] = explode('|', $this->language->get('calc_types'));
         $data['note'] = $this->language->get('note');
 
         $data['button_save'] = $this->language->get('button_save');
@@ -64,20 +66,20 @@ class ControllerTotalDiscountsTotal extends Controller {
         $data['breadcrumbs'] = array();
 
         $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('text_home'),
-            'href'      => $this->url->link('common/home', 'token=' . $this->session->data['token'], 'SSL'),
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/home', 'token=' . $this->session->data['token'], 'SSL'),
             'separator' => false
         );
 
         $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('text_total'),
-            'href'      => $this->url->link('extension/total', 'token=' . $this->session->data['token'], 'SSL'),
+            'text' => $this->language->get('text_total'),
+            'href' => $this->url->link('extension/total', 'token=' . $this->session->data['token'], 'SSL'),
             'separator' => ' :: '
         );
 
         $data['breadcrumbs'][] = array(
-            'text'      => $this->language->get('heading_title'),
-            'href'      => $this->url->link('total/discounts_total', 'token=' . $this->session->data['token'], 'SSL'),
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('total/discounts_total', 'token=' . $this->session->data['token'], 'SSL'),
             'separator' => ' :: '
         );
 
@@ -109,7 +111,6 @@ class ControllerTotalDiscountsTotal extends Controller {
         }
 
 
-
         if (isset($this->request->post['discounts_total_sort_order'])) {
             $data['discounts_total_sort_order'] = $this->request->post['discounts_total_sort_order'];
         } else {
@@ -126,7 +127,7 @@ class ControllerTotalDiscountsTotal extends Controller {
         if (isset($this->request->post['discounts_table'])) {
             $data['discounts_table'] = $this->request->post['discounts_total_discounts_table'];
         } else {
-            $d=$this->config->get('discounts_total_discounts_table');
+            $d = $this->config->get('discounts_total_discounts_table');
             if (is_array($d)) {
                 usort($d, array('ControllerTotalDiscountsTotal', 'cmpd'));
                 $data['discounts_table'] = $d;
@@ -135,8 +136,8 @@ class ControllerTotalDiscountsTotal extends Controller {
             }
         }
 
-        if (count($data['discounts_table'])==0)
-            $data['discounts_table'][]=array('summ'=>'0', 'value'=>'0');
+        if (count($data['discounts_table']) == 0)
+            $data['discounts_table'][] = array('summ' => '0', 'value' => '0');
 
 
         $data['header'] = $this->load->controller('common/header');
@@ -147,11 +148,13 @@ class ControllerTotalDiscountsTotal extends Controller {
 
     }
 
-    private function validate() {
+    private function validate()
+    {
         if (!$this->user->hasPermission('modify', 'total/discounts_total')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }
         return !$this->error;
     }
 }
+
 ?>

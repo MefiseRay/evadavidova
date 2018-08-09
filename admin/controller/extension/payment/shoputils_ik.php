@@ -1,29 +1,33 @@
 <?php
-class ControllerExtensionPaymentShoputilsIk extends Controller {
-    private $error = array();
-    private $version = '3.3.ik';
+
+class ControllerExtensionPaymentShoputilsIk extends Controller
+{
     const MAX_LAST_LOG_LINES = 500;
     const FILE_NAME_LOG = 'shoputils_ik.log';
+    private $error = array();
+    private $version = '3.3.ik';
 
-    public function __construct($registry) {
+    public function __construct($registry)
+    {
         parent::__construct($registry);
         $this->load->language('extension/payment/shoputils_ik');
         $this->document->setTitle($this->language->get('heading_title'));
     }
 
-    public function index() {
+    public function index()
+    {
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && ($this->validate())) {
             $this->_trimData(array(
-                 'shoputils_ik_shop_id',
-                 'shoputils_ik_sign_hash',
-                 'shoputils_ik_sign_test_key',
-                 'shoputils_ik_minimal_order',
-                 'shoputils_ik_maximal_order'
+                'shoputils_ik_shop_id',
+                'shoputils_ik_sign_hash',
+                'shoputils_ik_sign_test_key',
+                'shoputils_ik_minimal_order',
+                'shoputils_ik_maximal_order'
             ));
 
             $this->_replaceData(',', '.', array(
-                 'shoputils_ik_minimal_order',
-                 'shoputils_ik_maximal_order'
+                'shoputils_ik_minimal_order',
+                'shoputils_ik_maximal_order'
             ));
 
             $this->load->model('setting/setting');
@@ -39,7 +43,7 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
         $this->load->model('localisation/order_status');
 
         $ik_currencies = array(
-            ''    => $this->language->get('text_currency_auto'),
+            '' => $this->language->get('text_currency_auto'),
             'RUB' => $this->language->get('text_currency_rub'),
             'UAH' => $this->language->get('text_currency_uah'),
             'USD' => $this->language->get('text_currency_usd'),
@@ -47,16 +51,16 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
         );
 
         $ik_lifetimes = array(
-            5     => $this->language->get('text_lifetime_5minuts'),
-            30    => $this->language->get('text_lifetime_30minuts'),
-            60    => $this->language->get('text_lifetime_1hour'),
-            1440  => $this->language->get('text_lifetime_1day'),
+            5 => $this->language->get('text_lifetime_5minuts'),
+            30 => $this->language->get('text_lifetime_30minuts'),
+            60 => $this->language->get('text_lifetime_1hour'),
+            1440 => $this->language->get('text_lifetime_1day'),
             10080 => $this->language->get('text_lifetime_1weekly'),
             43200 => $this->language->get('text_lifetime_30days')
         );
 
         $permission = $this->validatePermission();
-        if (!$permission ) {
+        if (!$permission) {
             $this->error['warning'] = sprintf($this->language->get('error_permission'), $this->language->get('heading_title'));
         }
 
@@ -107,7 +111,7 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
             'entry_notify_admin_fail',
             'entry_mail_admin_fail_subject',
             'entry_mail_admin_fail_content',
-            
+
             'entry_shop_id',
             'entry_sign_hash',
             'entry_sign_test_key',
@@ -153,46 +157,46 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
             'help_test_mode',
             'help_currency',
             'help_lifetime',
-            'help_log_file'             => sprintf($this->language->get('help_log_file'), self::MAX_LAST_LOG_LINES),
-            'help_log'                  => sprintf($this->language->get('help_log'), self::FILE_NAME_LOG),
-            'title_default'             => explode(',', $this->language->get('heading_title')),
-            'action'                    => $this->makeUrl('extension/payment/shoputils_ik'),
-            'cancel'                    => $this->makeUrl('extension/extension', 'type=payment'),
-            'clear_log'                 => $this->makeUrl('extension/payment/shoputils_ik/clearLog'),
-            'text_copyright'            => sprintf($this->language->get('text_copyright'), $this->language->get('heading_title')),
-            'shoputils_ik_success_url'  => $server . 'index.php?route=extension/payment/shoputils_ik/success',
-            'shoputils_ik_fail_url'     => $server . 'index.php?route=extension/payment/shoputils_ik/fail',
-            'shoputils_ik_pending_url'  => $server . 'index.php?route=extension/payment/shoputils_ik/success',
-            'shoputils_ik_status_url'   => $server . 'index.php?route=extension/payment/shoputils_ik/status',
-            'permission'                => $permission,
-            'error_warning'             => isset($this->error['warning']) ? $this->error['warning'] : '',
-            'error_shop_id'             => isset($this->error['error_shop_id']) ? $this->error['error_shop_id'] : '',
-            'error_sign_hash'           => isset($this->error['error_sign_hash']) ? $this->error['error_sign_hash'] : '',
-            'error_sign_test_key'       => isset($this->error['error_sign_test_key']) ? $this->error['error_sign_test_key'] : '',
-            'version'                   => $this->version,
-            'log_lines'                 => $this->readLastLines(DIR_LOGS . 'shoputils_ik.log', self::MAX_LAST_LOG_LINES),
-            'log_filename'              => self::FILE_NAME_LOG,
-            'currencies'                => array_intersect_key($ik_currencies, $this->model_localisation_currency->getCurrencies()),
-            'lifetimes'                 => $ik_lifetimes,
-            'geo_zones'                 => $this->model_localisation_geo_zone->getGeoZones(),
-            'order_statuses'            => array_merge(array(0 => array('order_status_id' => '0', 'name' => $this->language->get('text_order_status_cart'))),
-                                                      $this->model_localisation_order_status->getOrderStatuses()),
-            'oc_languages'              => $this->model_localisation_language->getLanguages()
+            'help_log_file' => sprintf($this->language->get('help_log_file'), self::MAX_LAST_LOG_LINES),
+            'help_log' => sprintf($this->language->get('help_log'), self::FILE_NAME_LOG),
+            'title_default' => explode(',', $this->language->get('heading_title')),
+            'action' => $this->makeUrl('extension/payment/shoputils_ik'),
+            'cancel' => $this->makeUrl('extension/extension', 'type=payment'),
+            'clear_log' => $this->makeUrl('extension/payment/shoputils_ik/clearLog'),
+            'text_copyright' => sprintf($this->language->get('text_copyright'), $this->language->get('heading_title')),
+            'shoputils_ik_success_url' => $server . 'index.php?route=extension/payment/shoputils_ik/success',
+            'shoputils_ik_fail_url' => $server . 'index.php?route=extension/payment/shoputils_ik/fail',
+            'shoputils_ik_pending_url' => $server . 'index.php?route=extension/payment/shoputils_ik/success',
+            'shoputils_ik_status_url' => $server . 'index.php?route=extension/payment/shoputils_ik/status',
+            'permission' => $permission,
+            'error_warning' => isset($this->error['warning']) ? $this->error['warning'] : '',
+            'error_shop_id' => isset($this->error['error_shop_id']) ? $this->error['error_shop_id'] : '',
+            'error_sign_hash' => isset($this->error['error_sign_hash']) ? $this->error['error_sign_hash'] : '',
+            'error_sign_test_key' => isset($this->error['error_sign_test_key']) ? $this->error['error_sign_test_key'] : '',
+            'version' => $this->version,
+            'log_lines' => $this->readLastLines(DIR_LOGS . 'shoputils_ik.log', self::MAX_LAST_LOG_LINES),
+            'log_filename' => self::FILE_NAME_LOG,
+            'currencies' => array_intersect_key($ik_currencies, $this->model_localisation_currency->getCurrencies()),
+            'lifetimes' => $ik_lifetimes,
+            'geo_zones' => $this->model_localisation_geo_zone->getGeoZones(),
+            'order_statuses' => array_merge(array(0 => array('order_status_id' => '0', 'name' => $this->language->get('text_order_status_cart'))),
+                $this->model_localisation_order_status->getOrderStatuses()),
+            'oc_languages' => $this->model_localisation_language->getLanguages()
         ));
 
         $data['breadcrumbs'][] = array(
-           'href'      => $this->makeUrl('common/dashboard'),
-           'text'      => $this->language->get('text_home')
+            'href' => $this->makeUrl('common/dashboard'),
+            'text' => $this->language->get('text_home')
         );
-        
+
         $data['breadcrumbs'][] = array(
-           'href'      => $this->makeUrl('extension/extension', 'type=payment'),
-           'text'      => $this->language->get('text_extension')
+            'href' => $this->makeUrl('extension/extension', 'type=payment'),
+            'text' => $this->language->get('text_extension')
         );
-        
+
         $data['breadcrumbs'][] = array(
-           'href'      => $this->makeUrl('extension/payment/shoputils_ik'),
-           'text'      => $this->language->get('heading_title')
+            'href' => $this->makeUrl('extension/payment/shoputils_ik'),
+            'text' => $this->language->get('heading_title')
         );
 
         $data['logs'] = array(
@@ -231,58 +235,72 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
 
         $data = array_merge($data, $this->_setData(
             array(
-                 'header'       => $this->load->controller('common/header'),
-                 'column_left'  => $this->load->controller('common/column_left'),
-                 'footer'       => $this->load->controller('common/footer')
+                'header' => $this->load->controller('common/header'),
+                'column_left' => $this->load->controller('common/column_left'),
+                'footer' => $this->load->controller('common/footer')
             )
         ));
 
         $this->response->setOutput($this->load->view('extension/payment/shoputils_ik', $data));
     }
 
-    public function clearLog() {
-      $json = array();
-
-      if ($this->validatePermission()) {
-          if (is_file(DIR_LOGS . self::FILE_NAME_LOG)) {
-              @unlink(DIR_LOGS . self::FILE_NAME_LOG);
-          }
-          $json['success'] = $this->language->get('text_clear_log_success');
-      } else {
-          $json['error'] = $this->language->get('error_clear_log');
-      }
-
-      $this->response->addHeader('Content-Type: application/json');
-      $this->response->setOutput(json_encode($json));
-    }
-
-    protected function validate() {
+    protected function validate()
+    {
         if (!$this->validatePermission()) {
             $this->error['warning'] = sprintf($this->language->get('error_permission'), $this->language->get('heading_title'));
         } else {
             if (!isset($this->request->post['shoputils_ik_shop_id']) || !trim($this->request->post['shoputils_ik_shop_id'])) {
                 $this->error['warning'] = $this->error['error_shop_id'] = sprintf($this->language->get('error_form'),
-                                                                                        $this->language->get('entry_shop_id'),
-                                                                                        $this->language->get('tab_settings'));
+                    $this->language->get('entry_shop_id'),
+                    $this->language->get('tab_settings'));
             }
 
             if (!isset($this->request->post['shoputils_ik_sign_hash']) || !trim($this->request->post['shoputils_ik_sign_hash'])) {
                 $this->error['warning'] = $this->error['error_sign_hash'] = sprintf($this->language->get('error_form'),
-                                                                                        $this->language->get('entry_sign_hash'),
-                                                                                        $this->language->get('tab_settings'));
+                    $this->language->get('entry_sign_hash'),
+                    $this->language->get('tab_settings'));
             }
 
             if (!isset($this->request->post['shoputils_ik_sign_test_key']) || !trim($this->request->post['shoputils_ik_sign_test_key'])) {
                 $this->error['warning'] = $this->error['error_sign_test_key'] = sprintf($this->language->get('error_form'),
-                                                                                        $this->language->get('entry_sign_test_key'),
-                                                                                        $this->language->get('tab_settings'));
+                    $this->language->get('entry_sign_test_key'),
+                    $this->language->get('tab_settings'));
             }
         }
 
         return !$this->error;
     }
 
-    protected function _setData($values) {
+    protected function validatePermission()
+    {
+        return $this->user->hasPermission('modify', 'extension/payment/shoputils_ik');
+    }
+
+    protected function _trimData($values)
+    {
+        foreach ($values as $value) {
+            if (isset($this->request->post[$value])) {
+                $this->request->post[$value] = trim($this->request->post[$value]);
+            }
+        }
+    }
+
+    protected function _replaceData($search, $replace, $values)
+    {
+        foreach ($values as $value) {
+            if (isset($this->request->post[$value])) {
+                $this->request->post[$value] = str_replace($search, $replace, $this->request->post[$value]);
+            }
+        }
+    }
+
+    protected function makeUrl($route, $url = '')
+    {
+        return str_replace('&amp;', '&', $this->url->link($route, $url . '&token=' . $this->session->data['token'], 'SSL'));
+    }
+
+    protected function _setData($values)
+    {
         $data = array();
         foreach ($values as $key => $value) {
             if (is_int($key)) {
@@ -294,45 +312,8 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
         return $data;
     }
 
-    protected function _updateData($keys, $info = array()) {
-        $data = array();
-        foreach ($keys as $key) {
-            if (isset($this->request->post[$key])) {
-                $data[$key] = $this->request->post[$key];
-            } elseif (isset($info[$key])) {
-                $data[$key] = $info[$key];
-            } else {
-                $data[$key] = $this->config->get($key);
-            }
-        }
-        return $data;
-    }
-
-    protected function validatePermission() {
-        return $this->user->hasPermission('modify', 'extension/payment/shoputils_ik');
-    }
-
-    protected function _trimData($values) {
-        foreach ($values as $value) {
-                if (isset($this->request->post[$value])) {
-                    $this->request->post[$value] = trim($this->request->post[$value]);
-                }
-        }
-    }
-
-    protected function _replaceData($search, $replace, $values) {
-        foreach ($values as $value) {
-                if (isset($this->request->post[$value])) {
-                    $this->request->post[$value] = str_replace($search, $replace, $this->request->post[$value]);
-                }
-        }
-    }
-
-    protected function makeUrl($route, $url = '') {
-        return str_replace('&amp;', '&', $this->url->link($route, $url . '&token=' . $this->session->data['token'], 'SSL'));
-    }
-
-    protected function readLastLines($filename, $lines) {
+    protected function readLastLines($filename, $lines)
+    {
         if (!is_file($filename)) {
             return array();
         }
@@ -374,5 +355,38 @@ class ControllerExtensionPaymentShoputilsIk extends Controller {
 
         return array_reverse($text);
     }
+
+    protected function _updateData($keys, $info = array())
+    {
+        $data = array();
+        foreach ($keys as $key) {
+            if (isset($this->request->post[$key])) {
+                $data[$key] = $this->request->post[$key];
+            } elseif (isset($info[$key])) {
+                $data[$key] = $info[$key];
+            } else {
+                $data[$key] = $this->config->get($key);
+            }
+        }
+        return $data;
+    }
+
+    public function clearLog()
+    {
+        $json = array();
+
+        if ($this->validatePermission()) {
+            if (is_file(DIR_LOGS . self::FILE_NAME_LOG)) {
+                @unlink(DIR_LOGS . self::FILE_NAME_LOG);
+            }
+            $json['success'] = $this->language->get('text_clear_log_success');
+        } else {
+            $json['error'] = $this->language->get('error_clear_log');
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
 }
+
 ?>

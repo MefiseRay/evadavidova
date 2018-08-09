@@ -12,24 +12,25 @@ class ControllerExtensionDAjaxFilterOption extends Controller
     private $config_file = '';
     private $store_id = 0;
     private $error = array();
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->model($this->route);
-        $this->load->model('extension/module/'.$this->codename);
+        $this->load->model('extension/module/' . $this->codename);
         $this->load->language($this->route);
-        
+
         //extension.json
-        $this->extension = json_decode(file_get_contents(DIR_SYSTEM.'library/d_shopunity/extension/'.$this->codename.'.json'), true);
-        $this->d_shopunity = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_shopunity.json'));
-        
+        $this->extension = json_decode(file_get_contents(DIR_SYSTEM . 'library/d_shopunity/extension/' . $this->codename . '.json'), true);
+        $this->d_shopunity = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_shopunity.json'));
+
         //Store_id (for multistore)
-        if (isset($this->request->get['store_id'])) { 
+        if (isset($this->request->get['store_id'])) {
             $this->store_id = $this->request->get['store_id'];
         }
 
     }
+
     public function index()
     {
 
@@ -72,19 +73,19 @@ class ControllerExtensionDAjaxFilterOption extends Controller
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_home'),
             'href' => $this->model_extension_d_opencart_patch_url->link('common/home')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_module'),
             'href' => $this->model_extension_d_opencart_patch_url->link('extension/extension', 'type=module')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('heading_title_main'),
             'href' => $this->model_extension_d_opencart_patch_url->link($this->route, $url)
-            );
+        );
 
-        if(isset($this->session->data['success'])){
+        if (isset($this->session->data['success'])) {
             $data['success'] = $this->session->data['success'];
             unset($this->session->data['success']);
         }
@@ -118,7 +119,7 @@ class ControllerExtensionDAjaxFilterOption extends Controller
         $data['text_yes'] = $this->language->get('text_yes');
         $data['text_no'] = $this->language->get('text_no');
         $data['text_enabled'] = $this->language->get('text_enabled');
-        
+
         $data['column_type'] = $this->language->get('column_type');
         $data['column_collapse'] = $this->language->get('column_collapse');
         $data['column_status'] = $this->language->get('column_status');
@@ -131,18 +132,18 @@ class ControllerExtensionDAjaxFilterOption extends Controller
         $data['entry_sort_order_values'] = $this->language->get('entry_sort_order_values');
         $data['entry_collapse'] = $this->language->get('entry_collapse');
 
-        $data['tabs'] = $this->{'model_extension_module_'.$this->codename}->getTabs('option');
+        $data['tabs'] = $this->{'model_extension_module_' . $this->codename}->getTabs('option');
 
         $url = '';
 
-        if(isset($this->request->get['module_id'])){
-            $url .= '&module_id='.$this->request->get['module_id'];
+        if (isset($this->request->get['module_id'])) {
+            $url .= '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['action'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/option/save', $url);
+        $data['action'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/option/save', $url);
 
         $data['cancel'] = $this->model_extension_d_opencart_patch_url->link('extension/extension', 'type=module');
-        
+
         // Variable
         $data['codename'] = $this->codename;
         $data['route'] = $this->route;
@@ -155,19 +156,18 @@ class ControllerExtensionDAjaxFilterOption extends Controller
 
         $this->load->model('setting/setting');
 
-        $setting = $this->model_setting_setting->getSetting($this->codename.'_options');
+        $setting = $this->model_setting_setting->getSetting($this->codename . '_options');
 
-        if(!empty($setting[$this->codename.'_options'])){
-            $data['setting'] = $setting[$this->codename.'_options'];
-        }
-        else{
+        if (!empty($setting[$this->codename . '_options'])) {
+            $data['setting'] = $setting[$this->codename . '_options'];
+        } else {
             $this->config->load('d_ajax_filter');
             $setting = $this->config->get('d_ajax_filter_setting');
 
             $data['setting'] = $setting['options'];
         }
 
-        if(!empty($data['setting']['options'])){
+        if (!empty($data['setting']['options'])) {
             $this->load->model('catalog/option');
             foreach ($data['setting']['options'] as $option_id => $value) {
                 $option_info = $this->model_catalog_option->getOption($option_id);
@@ -183,7 +183,7 @@ class ControllerExtensionDAjaxFilterOption extends Controller
             'checkbox_and_image' => $this->language->get('text_base_type_checkbox_and_image'),
             'image_radio' => $this->language->get('text_base_type_image_radio'),
             'image_checkbox' => $this->language->get('text_base_type_image_checkbox')
-            );
+        );
 
         $data['sort_order_types'] = array(
             'default' => $this->language->get('text_sort_order_type_default'),
@@ -191,42 +191,42 @@ class ControllerExtensionDAjaxFilterOption extends Controller
             'string_desc' => $this->language->get('text_sort_order_type_string_desc'),
             'numeric_asc' => $this->language->get('text_sort_order_type_numeric_asc'),
             'numeric_desc' => $this->language->get('text_sort_order_type_numeric_desc'),
-            );
+        );
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
         $this->response->setOutput($this->model_extension_d_opencart_patch_load->view($this->route, $data));
     }
 
-    public function save(){
+    public function save()
+    {
         $json = array();
 
         $this->load->model('setting/setting');
         $this->load->model('extension/d_opencart_patch/url');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-            $this->model_setting_setting->editSetting($this->codename.'_options', $this->request->post);
+            $this->model_setting_setting->editSetting($this->codename . '_options', $this->request->post);
 
             $this->session->data['success'] = $this->language->get('text_success');
 
             $url = '';
 
-            if(isset($this->request->get['module_id'])){
-                $url .= '&module_id='.$this->request->get['module_id'];
+            if (isset($this->request->get['module_id'])) {
+                $url .= '&module_id=' . $this->request->get['module_id'];
             }
 
-            $json['redirect'] = str_replace('&amp;','&',$this->model_extension_d_opencart_patch_url->link($this->route, $url));
+            $json['redirect'] = str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link($this->route, $url));
             $json['success'] = 'success';
-        }
-        else{
+        } else {
             $json['errors'] = $this->error;
             $json['error'] = $this->error['warning'];
 
         }
-        
+
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
-        
+
     }
 
     private function validate($permission = 'modify')
@@ -240,7 +240,8 @@ class ControllerExtensionDAjaxFilterOption extends Controller
         return true;
     }
 
-    public function autocomplete() {
+    public function autocomplete()
+    {
         $json = array();
 
         if (isset($this->request->get['filter_name'])) {
@@ -252,17 +253,17 @@ class ControllerExtensionDAjaxFilterOption extends Controller
 
             $filter_data = array(
                 'filter_name' => $this->request->get['filter_name'],
-                'start'       => 0,
-                'limit'       => 10
-                );
+                'start' => 0,
+                'limit' => 10
+            );
 
-            $options = $this->{'model_extension_'.$this->codename.'_option'}->getOptions($filter_data);
+            $options = $this->{'model_extension_' . $this->codename . '_option'}->getOptions($filter_data);
 
             foreach ($options as $option) {
                 $option_value_data = array();
 
                 if ($option['type'] == 'select' || $option['type'] == 'radio' || $option['type'] == 'checkbox' || $option['type'] == 'image') {
-                    $option_values = $this->{'model_extension_'.$this->codename.'_option'}->getOptionValues($option['option_id']);
+                    $option_values = $this->{'model_extension_' . $this->codename . '_option'}->getOptionValues($option['option_id']);
 
                     foreach ($option_values as $option_value) {
                         if (is_file(DIR_IMAGE . $option_value['image'])) {
@@ -273,9 +274,9 @@ class ControllerExtensionDAjaxFilterOption extends Controller
 
                         $option_value_data[] = array(
                             'option_value_id' => $option_value['option_value_id'],
-                            'name'            => strip_tags(html_entity_decode($option_value['name'], ENT_QUOTES, 'UTF-8')),
-                            'image'           => $image
-                            );
+                            'name' => strip_tags(html_entity_decode($option_value['name'], ENT_QUOTES, 'UTF-8')),
+                            'image' => $image
+                        );
                     }
 
                     $sort_order = array();
@@ -306,12 +307,12 @@ class ControllerExtensionDAjaxFilterOption extends Controller
                 }
 
                 $json[] = array(
-                    'option_id'    => $option['option_id'],
-                    'name'         => strip_tags(html_entity_decode($option['name'], ENT_QUOTES, 'UTF-8')),
-                    'category'     => $type,
-                    'type'         => $option['type'],
+                    'option_id' => $option['option_id'],
+                    'name' => strip_tags(html_entity_decode($option['name'], ENT_QUOTES, 'UTF-8')),
+                    'category' => $type,
+                    'type' => $option['type'],
                     'option_value' => $option_value_data
-                    );
+                );
             }
         }
 

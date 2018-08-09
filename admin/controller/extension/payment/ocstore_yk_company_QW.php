@@ -1,6 +1,9 @@
 <?php
-class ControllerExtensionPaymentOcstoreYkCompanyQW extends Controller {
-    public function index() {
+
+class ControllerExtensionPaymentOcstoreYkCompanyQW extends Controller
+{
+    public function index()
+    {
         $this->response->redirect($this->url->link('extension/payment/ocstore_yk', 'token=' . $this->session->data['token'], 'SSL'));
     }
 }

@@ -1,5 +1,7 @@
 <?php
-class ControllerExtensionDElfinderDElfinder extends Controller {
+
+class ControllerExtensionDElfinderDElfinder extends Controller
+{
     private $error = array();
 
     public function connector()

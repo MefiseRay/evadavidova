@@ -1,121 +1,128 @@
 <?php
-class ControllerExtensionExtensionFeed extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/extension/feed');
+class ControllerExtensionExtensionFeed extends Controller
+{
+    private $error = array();
 
-		$this->load->model('extension/extension');
+    public function index()
+    {
+        $this->load->language('extension/extension/feed');
 
-		$this->getList();
-	}
+        $this->load->model('extension/extension');
 
-	public function install() {
-		$this->load->language('extension/extension/feed');
+        $this->getList();
+    }
 
-		$this->load->model('extension/extension');
+    protected function getList()
+    {
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		if ($this->validate()) {
-			$this->model_extension_extension->install('feed', $this->request->get['extension']);
+        $data['text_no_results'] = $this->language->get('text_no_results');
 
-			$this->load->model('user/user_group');
+        $data['column_name'] = $this->language->get('column_name');
+        $data['column_status'] = $this->language->get('column_status');
+        $data['column_action'] = $this->language->get('column_action');
 
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/feed/' . $this->request->get['extension']);
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/feed/' . $this->request->get['extension']);
+        $data['button_edit'] = $this->language->get('button_edit');
+        $data['button_install'] = $this->language->get('button_install');
+        $data['button_uninstall'] = $this->language->get('button_uninstall');
 
-			// Call install method if it exsits
-			$this->load->controller('extension/feed/' . $this->request->get['extension'] . '/install');
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+        if (isset($this->session->data['success'])) {
+            $data['success'] = $this->session->data['success'];
 
-		$this->getList();
-	}
+            unset($this->session->data['success']);
+        } else {
+            $data['success'] = '';
+        }
 
-	public function uninstall() {
-		$this->load->language('extension/extension/feed');
+        $extensions = $this->model_extension_extension->getInstalled('feed');
 
-		$this->load->model('extension/extension');
+        foreach ($extensions as $key => $value) {
+            if (!is_file(DIR_APPLICATION . 'controller/extension/feed/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/feed/' . $value . '.php')) {
+                $this->model_extension_extension->uninstall('feed', $value);
 
-		if ($this->validate()) {
-			$this->model_extension_extension->uninstall('feed', $this->request->get['extension']);
+                unset($extensions[$key]);
+            }
+        }
 
-			// Call uninstall method if it exsits
-			$this->load->controller('extension/feed/' . $this->request->get['extension'] . '/uninstall');
+        $data['extensions'] = array();
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
-		
-		$this->getList();
-	}
+        // Compatibility code for old extension folders
+        $files = glob(DIR_APPLICATION . 'controller/{extension/feed,feed}/*.php', GLOB_BRACE);
 
-	protected function getList() {
-		$data['heading_title'] = $this->language->get('heading_title');
+        if ($files) {
+            foreach ($files as $file) {
+                $extension = basename($file, '.php');
 
-		$data['text_no_results'] = $this->language->get('text_no_results');
+                $this->load->language('extension/feed/' . $extension);
 
-		$data['column_name'] = $this->language->get('column_name');
-		$data['column_status'] = $this->language->get('column_status');
-		$data['column_action'] = $this->language->get('column_action');
+                $data['extensions'][] = array(
+                    'name' => $this->language->get('heading_title'),
+                    'status' => $this->config->get($extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+                    'install' => $this->url->link('extension/extension/feed/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'uninstall' => $this->url->link('extension/extension/feed/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'installed' => in_array($extension, $extensions),
+                    'edit' => $this->url->link('extension/feed/' . $extension, 'token=' . $this->session->data['token'], true)
+                );
+            }
+        }
 
-		$data['button_edit'] = $this->language->get('button_edit');
-		$data['button_install'] = $this->language->get('button_install');
-		$data['button_uninstall'] = $this->language->get('button_uninstall');
+        $this->response->setOutput($this->load->view('extension/extension/feed', $data));
+    }
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
+    public function install()
+    {
+        $this->load->language('extension/extension/feed');
 
-		if (isset($this->session->data['success'])) {
-			$data['success'] = $this->session->data['success'];
+        $this->load->model('extension/extension');
 
-			unset($this->session->data['success']);
-		} else {
-			$data['success'] = '';
-		}
+        if ($this->validate()) {
+            $this->model_extension_extension->install('feed', $this->request->get['extension']);
 
-		$extensions = $this->model_extension_extension->getInstalled('feed');
+            $this->load->model('user/user_group');
 
-		foreach ($extensions as $key => $value) {
-			if (!is_file(DIR_APPLICATION . 'controller/extension/feed/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/feed/' . $value . '.php')) {
-				$this->model_extension_extension->uninstall('feed', $value);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/feed/' . $this->request->get['extension']);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/feed/' . $this->request->get['extension']);
 
-				unset($extensions[$key]);
-			}
-		}
+            // Call install method if it exsits
+            $this->load->controller('extension/feed/' . $this->request->get['extension'] . '/install');
 
-		$data['extensions'] = array();
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
 
-		// Compatibility code for old extension folders
-		$files = glob(DIR_APPLICATION . 'controller/{extension/feed,feed}/*.php', GLOB_BRACE);
+        $this->getList();
+    }
 
-		if ($files) {
-			foreach ($files as $file) {
-				$extension = basename($file, '.php');
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/extension/feed')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
 
-				$this->load->language('extension/feed/' . $extension);
+        return !$this->error;
+    }
 
-				$data['extensions'][] = array(
-					'name'      => $this->language->get('heading_title'),
-					'status'    => $this->config->get($extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
-					'install'   => $this->url->link('extension/extension/feed/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'uninstall' => $this->url->link('extension/extension/feed/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
-					'edit'      => $this->url->link('extension/feed/' . $extension, 'token=' . $this->session->data['token'], true)
-				);
-			}
-		}
+    public function uninstall()
+    {
+        $this->load->language('extension/extension/feed');
 
-		$this->response->setOutput($this->load->view('extension/extension/feed', $data));
-	}
+        $this->load->model('extension/extension');
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/extension/feed')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+        if ($this->validate()) {
+            $this->model_extension_extension->uninstall('feed', $this->request->get['extension']);
 
-		return !$this->error;
-	}
+            // Call uninstall method if it exsits
+            $this->load->controller('extension/feed/' . $this->request->get['extension'] . '/uninstall');
+
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->getList();
+    }
 }

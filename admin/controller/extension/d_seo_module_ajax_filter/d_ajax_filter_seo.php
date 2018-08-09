@@ -1,4 +1,5 @@
 <?php
+
 class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
 {
     private $codename = 'd_ajax_filter_seo';
@@ -13,19 +14,19 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
     {
         $this->load->model($this->route);
         $this->load->model('extension/module/' . $this->codename);
-        
+
         $languages = $this->{'model_extension_module_' . $this->codename}->getLanguages();
-        
+
         $field_info = $this->load->controller('extension/module/d_seo_module/getFieldInfo');
-        
+
         if (isset($field_info['sheet']['ajax_filter_seo']['field'])) {
             $data['fields'] = $field_info['sheet']['ajax_filter_seo']['field'];
         } else {
             $data['fields'] = array();
         }
-        
+
         $data['error'] = ($this->config->get($this->codename . '_error')) ? $this->config->get($this->codename . '_error') : array();
-                                        
+
         if (isset($this->request->post['meta_data'])) {
             $data['meta_data'] = $this->request->post['meta_data'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -33,7 +34,7 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['meta_data'] = array();
         }
-        
+
         if (isset($this->request->post['target_keyword'])) {
             $data['target_keyword'] = $this->request->post['target_keyword'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -41,7 +42,7 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['target_keyword'] = array();
         }
-        
+
         if (isset($this->request->post['url_keyword'])) {
             $data['url_keyword'] = $this->request->post['url_keyword'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -49,28 +50,28 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['url_keyword'] = array();
         }
-        
+
         $data['adviser_elements'] = array();
         $data['rating'] = array();
-        
+
         if (isset($this->request->get['query_id'])) {
             $route = 'af_query_id=' . $this->request->get['query_id'];
-            
+
             $adviser_info = $this->load->controller('extension/module/d_seo_module_adviser/getAdviserInfo', $route);
-        
+
             if (isset($adviser_info['adviser_elements']) && isset($adviser_info['rating'])) {
                 $data['adviser_elements'] = $adviser_info['adviser_elements'];
                 $data['rating'] = $adviser_info['rating'];
             }
         }
-        
+
         $data['store_id'] = 0;
-            
+
         $html_tab_general_language = array();
-                
+
         foreach ($languages as $language) {
             $data['language_id'] = $language['language_id'];
-            
+
             if (isset($data['target_keyword'][$data['store_id']][$data['language_id']])) {
                 foreach ($data['target_keyword'][$data['store_id']][$data['language_id']] as $sort_order => $keyword) {
                     $field_data = array(
@@ -80,25 +81,25 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
                             'keyword' => $keyword
                         )
                     );
-            
+
                     $target_keywords = $this->load->controller('extension/module/d_seo_module/getFieldElements', $field_data);
-                    
+
                     if ($target_keywords) {
                         $store_target_keywords = reset($target_keywords);
-                            
+
                         if ((count($target_keywords) > 1) || (count(reset($store_target_keywords)) > 1)) {
                             $data['target_keyword_duplicate'][$data['store_id']][$data['language_id']][$sort_order] = 1;
                         }
                     }
                 }
             }
-            
+
             $html_tab_general_language[$data['language_id']] = $this->load->view($this->route . '/query_form_tab_general_language', $data);
         }
-                
+
         return $html_tab_general_language;
     }
-    
+
     public function query_form_tab_general_store_language()
     {
         $this->load->model($this->route);
@@ -106,17 +107,17 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
 
         $stores = $this->{'model_extension_module_' . $this->codename}->getStores();
         $languages = $this->{'model_extension_module_' . $this->codename}->getLanguages();
-        
+
         $field_info = $this->load->controller('extension/module/d_seo_module/getFieldInfo');
-        
+
         if (isset($field_info['sheet']['ajax_filter_seo']['field'])) {
             $data['fields'] = $field_info['sheet']['ajax_filter_seo']['field'];
         } else {
             $data['fields'] = array();
         }
-        
+
         $data['error'] = ($this->config->get($this->codename . '_error')) ? $this->config->get($this->codename . '_error') : array();
-                                        
+
         if (isset($this->request->post['meta_data'])) {
             $data['meta_data'] = $this->request->post['meta_data'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -124,7 +125,7 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['meta_data'] = array();
         }
-        
+
         if (isset($this->request->post['target_keyword'])) {
             $data['target_keyword'] = $this->request->post['target_keyword'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -132,7 +133,7 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['target_keyword'] = array();
         }
-        
+
         if (isset($this->request->post['url_keyword'])) {
             $data['url_keyword'] = $this->request->post['url_keyword'];
         } elseif (isset($this->request->get['query_id'])) {
@@ -140,29 +141,29 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
         } else {
             $data['url_keyword'] = array();
         }
-        
+
         $data['adviser_elements'] = array();
         $data['rating'] = array();
-        
+
         if (isset($this->request->get['query_id'])) {
             $route = 'af_query_id=' . $this->request->get['query_id'];
-            
+
             $adviser_info = $this->load->controller('extension/module/d_seo_module_adviser/getAdviserInfo', $route);
-        
+
             if (isset($adviser_info['adviser_elements']) && isset($adviser_info['rating'])) {
                 $data['adviser_elements'] = $adviser_info['adviser_elements'];
                 $data['rating'] = $adviser_info['rating'];
             }
         }
-                
+
         $html_tab_general_store_language = array();
-        
+
         foreach ($stores as $store) {
             $data['store_id'] = $store['store_id'];
-        
+
             foreach ($languages as $language) {
                 $data['language_id'] = $language['language_id'];
-                
+
                 if (isset($data['target_keyword'][$data['store_id']][$data['language_id']])) {
                     foreach ($data['target_keyword'][$data['store_id']][$data['language_id']] as $sort_order => $keyword) {
                         $field_data = array(
@@ -172,49 +173,49 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
                                 'keyword' => $keyword
                             )
                         );
-            
+
                         $target_keywords = $this->load->controller('extension/module/d_seo_module/getFieldElements', $field_data);
-                        
+
                         if ($target_keywords) {
                             $store_target_keywords = reset($target_keywords);
-                            
+
                             if ((count($target_keywords) > 1) || (count(reset($store_target_keywords)) > 1)) {
                                 $data['target_keyword_duplicate'][$data['store_id']][$data['language_id']][$sort_order] = 1;
                             }
                         }
                     }
                 }
-                
+
                 $html_tab_general_store_language[$data['store_id']][$data['language_id']] = $this->load->view($this->route . '/query_form_tab_general_store_language', $data);
             }
         }
-        
+
         return $html_tab_general_store_language;
     }
-    
+
     public function query_form_style()
     {
         return $this->load->view($this->route . '/query_form_style');
     }
-    
+
     public function query_form_script()
     {
         $url_token = '';
-        
+
         if (isset($this->session->data['token'])) {
             $url_token .= 'token=' . $this->session->data['token'];
         }
-        
+
         if (isset($this->session->data['user_token'])) {
             $url_token .= 'user_token=' . $this->session->data['user_token'];
         }
-        
+
         $data['route'] = $this->route;
         $data['url_token'] = $url_token;
-        
+
         return $this->load->view($this->route . '/query_form_script', $data);
     }
-    
+
     public function query_validate_form($error)
     {
         $_language = new Language();
@@ -235,7 +236,7 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
                 }
             }
         }
-        
+
         if (isset($this->request->post['url_keyword'])) {
             foreach ($this->request->post['url_keyword'] as $store_id => $language_url_keyword) {
                 foreach ($language_url_keyword as $language_id => $url_keyword) {
@@ -243,13 +244,13 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
                         $field_data = array(
                             'field_code' => 'url_keyword',
                             'filter' => array(
-                            'store_id' => $store_id,
-                            'keyword' => $url_keyword
+                                'store_id' => $store_id,
+                                'keyword' => $url_keyword
                             )
                         );
-            
+
                         $url_keywords = $this->load->controller('extension/module/d_seo_module/getFieldElements', $field_data);
-                                    
+
                         if ($url_keywords) {
                             if (isset($this->request->get['query_id'])) {
                                 foreach ($url_keywords as $route => $store_url_keywords) {
@@ -265,34 +266,34 @@ class ControllerExtensionDSEOModuleAjaxFilterDAjaxFilterSEO extends Controller
                 }
             }
         }
-        
+
         $this->config->set($this->codename . '_error', $error);
-        
+
         return $error;
     }
-    
+
     public function query_add($data)
     {
         $this->load->model($this->route);
-        
+
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryMetaData($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryTargetKeyword($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryURLKeyword($data);
     }
-    
+
     public function query_edit($data)
     {
         $this->load->model($this->route);
-        
+
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryMetaData($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryTargetKeyword($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->saveQueryURLKeyword($data);
     }
-    
+
     public function query_delete($data)
     {
         $this->load->model($this->route);
-        
+
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->deleteQueryMetaData($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->deleteQueryTargetKeyword($data);
         $this->{'model_extension_d_seo_module_ajax_filter_' . $this->codename}->deleteQueryURLKeyword($data);

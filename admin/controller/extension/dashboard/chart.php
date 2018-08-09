@@ -1,219 +1,225 @@
 <?php
-class ControllerExtensionDashboardChart extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/dashboard/chart');
+class ControllerExtensionDashboardChart extends Controller
+{
+    private $error = array();
 
-		$this->document->setTitle($this->language->get('heading_title'));
+    public function index()
+    {
+        $this->load->language('extension/dashboard/chart');
 
-		$this->load->model('setting/setting');
+        $this->document->setTitle($this->language->get('heading_title'));
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-			$this->model_setting_setting->editSetting('dashboard_chart', $this->request->post);
+        $this->load->model('setting/setting');
 
-			$this->session->data['success'] = $this->language->get('text_success');
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+            $this->model_setting_setting->editSetting('dashboard_chart', $this->request->post);
 
-			$this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true));
-		}
+            $this->session->data['success'] = $this->language->get('text_success');
 
-		$data['heading_title'] = $this->language->get('heading_title');
-		
-		$data['text_edit'] = $this->language->get('text_edit');
-		$data['text_enabled'] = $this->language->get('text_enabled');
-		$data['text_disabled'] = $this->language->get('text_disabled');
+            $this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true));
+        }
 
-		$data['entry_width'] = $this->language->get('entry_width');
-		$data['entry_status'] = $this->language->get('entry_status');
-		$data['entry_sort_order'] = $this->language->get('entry_sort_order');
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		$data['button_save'] = $this->language->get('button_save');
-		$data['button_cancel'] = $this->language->get('button_cancel');
+        $data['text_edit'] = $this->language->get('text_edit');
+        $data['text_enabled'] = $this->language->get('text_enabled');
+        $data['text_disabled'] = $this->language->get('text_disabled');
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
+        $data['entry_width'] = $this->language->get('entry_width');
+        $data['entry_status'] = $this->language->get('entry_status');
+        $data['entry_sort_order'] = $this->language->get('entry_sort_order');
 
-		$data['breadcrumbs'] = array();
+        $data['button_save'] = $this->language->get('button_save');
+        $data['button_cancel'] = $this->language->get('button_cancel');
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_home'),
-			'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
-		);
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_extension'),
-			'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true)
-		);
+        $data['breadcrumbs'] = array();
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('extension/dashboard/chart', 'token=' . $this->session->data['token'], true)
-		);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
+        );
 
-		$data['action'] = $this->url->link('extension/dashboard/chart', 'token=' . $this->session->data['token'], true);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_extension'),
+            'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true)
+        );
 
-		$data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('extension/dashboard/chart', 'token=' . $this->session->data['token'], true)
+        );
 
-		if (isset($this->request->post['dashboard_chart_width'])) {
-			$data['dashboard_chart_width'] = $this->request->post['dashboard_chart_width'];
-		} else {
-			$data['dashboard_chart_width'] = $this->config->get('dashboardchart_width');
-		}
-	
-		$data['columns'] = array();
-		
-		for ($i = 3; $i <= 12; $i++) {
-			$data['columns'][] = $i;
-		}
-				
-		if (isset($this->request->post['dashboard_chart_status'])) {
-			$data['dashboard_chart_status'] = $this->request->post['dashboard_chart_status'];
-		} else {
-			$data['dashboard_chart_status'] = $this->config->get('dashboard_chart_status');
-		}
+        $data['action'] = $this->url->link('extension/dashboard/chart', 'token=' . $this->session->data['token'], true);
 
-		if (isset($this->request->post['dashboard_chart_sort_order'])) {
-			$data['dashboard_chart_sort_order'] = $this->request->post['dashboard_chart_sort_order'];
-		} else {
-			$data['dashboard_chart_sort_order'] = $this->config->get('dashboard_chart_sort_order');
-		}
+        $data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=dashboard', true);
 
-		$data['header'] = $this->load->controller('common/header');
-		$data['column_left'] = $this->load->controller('common/column_left');
-		$data['footer'] = $this->load->controller('common/footer');
+        if (isset($this->request->post['dashboard_chart_width'])) {
+            $data['dashboard_chart_width'] = $this->request->post['dashboard_chart_width'];
+        } else {
+            $data['dashboard_chart_width'] = $this->config->get('dashboardchart_width');
+        }
 
-		$this->response->setOutput($this->load->view('extension/dashboard/chart_form', $data));
-	}
+        $data['columns'] = array();
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/dashboard/chart')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+        for ($i = 3; $i <= 12; $i++) {
+            $data['columns'][] = $i;
+        }
 
-		return !$this->error;
-	}	
-	
-	public function dashboard() {
-		$this->load->language('extension/dashboard/chart');
+        if (isset($this->request->post['dashboard_chart_status'])) {
+            $data['dashboard_chart_status'] = $this->request->post['dashboard_chart_status'];
+        } else {
+            $data['dashboard_chart_status'] = $this->config->get('dashboard_chart_status');
+        }
 
-		$data['heading_title'] = $this->language->get('heading_title');
+        if (isset($this->request->post['dashboard_chart_sort_order'])) {
+            $data['dashboard_chart_sort_order'] = $this->request->post['dashboard_chart_sort_order'];
+        } else {
+            $data['dashboard_chart_sort_order'] = $this->config->get('dashboard_chart_sort_order');
+        }
 
-		$data['text_day'] = $this->language->get('text_day');
-		$data['text_week'] = $this->language->get('text_week');
-		$data['text_month'] = $this->language->get('text_month');
-		$data['text_year'] = $this->language->get('text_year');
-		$data['text_view'] = $this->language->get('text_view');
+        $data['header'] = $this->load->controller('common/header');
+        $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
 
-		$data['token'] = $this->session->data['token'];
+        $this->response->setOutput($this->load->view('extension/dashboard/chart_form', $data));
+    }
 
-		return $this->load->view('extension/dashboard/chart_info', $data);
-	}
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/dashboard/chart')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
 
-	public function chart() {
-		$this->load->language('extension/dashboard/chart');
+        return !$this->error;
+    }
 
-		$json = array();
+    public function dashboard()
+    {
+        $this->load->language('extension/dashboard/chart');
 
-		$this->load->model('report/sale');
-		$this->load->model('report/customer');
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		$json['order'] = array();
-		$json['customer'] = array();
-		$json['xaxis'] = array();
+        $data['text_day'] = $this->language->get('text_day');
+        $data['text_week'] = $this->language->get('text_week');
+        $data['text_month'] = $this->language->get('text_month');
+        $data['text_year'] = $this->language->get('text_year');
+        $data['text_view'] = $this->language->get('text_view');
 
-		$json['order']['label'] = $this->language->get('text_order');
-		$json['customer']['label'] = $this->language->get('text_customer');
-		$json['order']['data'] = array();
-		$json['customer']['data'] = array();
+        $data['token'] = $this->session->data['token'];
 
-		if (isset($this->request->get['range'])) {
-			$range = $this->request->get['range'];
-		} else {
-			$range = 'day';
-		}
+        return $this->load->view('extension/dashboard/chart_info', $data);
+    }
 
-		switch ($range) {
-			default:
-			case 'day':
-				$results = $this->model_report_sale->getTotalOrdersByDay();
+    public function chart()
+    {
+        $this->load->language('extension/dashboard/chart');
 
-				foreach ($results as $key => $value) {
-					$json['order']['data'][] = array($key, $value['total']);
-				}
+        $json = array();
 
-				$results = $this->model_report_customer->getTotalCustomersByDay();
+        $this->load->model('report/sale');
+        $this->load->model('report/customer');
 
-				foreach ($results as $key => $value) {
-					$json['customer']['data'][] = array($key, $value['total']);
-				}
+        $json['order'] = array();
+        $json['customer'] = array();
+        $json['xaxis'] = array();
 
-				for ($i = 0; $i < 24; $i++) {
-					$json['xaxis'][] = array($i, $i);
-				}
-				break;
-			case 'week':
-				$results = $this->model_report_sale->getTotalOrdersByWeek();
+        $json['order']['label'] = $this->language->get('text_order');
+        $json['customer']['label'] = $this->language->get('text_customer');
+        $json['order']['data'] = array();
+        $json['customer']['data'] = array();
 
-				foreach ($results as $key => $value) {
-					$json['order']['data'][] = array($key, $value['total']);
-				}
+        if (isset($this->request->get['range'])) {
+            $range = $this->request->get['range'];
+        } else {
+            $range = 'day';
+        }
 
-				$results = $this->model_report_customer->getTotalCustomersByWeek();
+        switch ($range) {
+            default:
+            case 'day':
+                $results = $this->model_report_sale->getTotalOrdersByDay();
 
-				foreach ($results as $key => $value) {
-					$json['customer']['data'][] = array($key, $value['total']);
-				}
+                foreach ($results as $key => $value) {
+                    $json['order']['data'][] = array($key, $value['total']);
+                }
 
-				$date_start = strtotime('-' . date('w') . ' days');
+                $results = $this->model_report_customer->getTotalCustomersByDay();
 
-				for ($i = 0; $i < 7; $i++) {
-					$date = date('Y-m-d', $date_start + ($i * 86400));
+                foreach ($results as $key => $value) {
+                    $json['customer']['data'][] = array($key, $value['total']);
+                }
 
-					$json['xaxis'][] = array(date('w', strtotime($date)), date('D', strtotime($date)));
-				}
-				break;
-			case 'month':
-				$results = $this->model_report_sale->getTotalOrdersByMonth();
+                for ($i = 0; $i < 24; $i++) {
+                    $json['xaxis'][] = array($i, $i);
+                }
+                break;
+            case 'week':
+                $results = $this->model_report_sale->getTotalOrdersByWeek();
 
-				foreach ($results as $key => $value) {
-					$json['order']['data'][] = array($key, $value['total']);
-				}
+                foreach ($results as $key => $value) {
+                    $json['order']['data'][] = array($key, $value['total']);
+                }
 
-				$results = $this->model_report_customer->getTotalCustomersByMonth();
+                $results = $this->model_report_customer->getTotalCustomersByWeek();
 
-				foreach ($results as $key => $value) {
-					$json['customer']['data'][] = array($key, $value['total']);
-				}
+                foreach ($results as $key => $value) {
+                    $json['customer']['data'][] = array($key, $value['total']);
+                }
 
-				for ($i = 1; $i <= date('t'); $i++) {
-					$date = date('Y') . '-' . date('m') . '-' . $i;
+                $date_start = strtotime('-' . date('w') . ' days');
 
-					$json['xaxis'][] = array(date('j', strtotime($date)), date('d', strtotime($date)));
-				}
-				break;
-			case 'year':
-				$results = $this->model_report_sale->getTotalOrdersByYear();
+                for ($i = 0; $i < 7; $i++) {
+                    $date = date('Y-m-d', $date_start + ($i * 86400));
 
-				foreach ($results as $key => $value) {
-					$json['order']['data'][] = array($key, $value['total']);
-				}
+                    $json['xaxis'][] = array(date('w', strtotime($date)), date('D', strtotime($date)));
+                }
+                break;
+            case 'month':
+                $results = $this->model_report_sale->getTotalOrdersByMonth();
 
-				$results = $this->model_report_customer->getTotalCustomersByYear();
+                foreach ($results as $key => $value) {
+                    $json['order']['data'][] = array($key, $value['total']);
+                }
 
-				foreach ($results as $key => $value) {
-					$json['customer']['data'][] = array($key, $value['total']);
-				}
+                $results = $this->model_report_customer->getTotalCustomersByMonth();
 
-				for ($i = 1; $i <= 12; $i++) {
-					$json['xaxis'][] = array($i, date('M', mktime(0, 0, 0, $i)));
-				}
-				break;
-		}
+                foreach ($results as $key => $value) {
+                    $json['customer']['data'][] = array($key, $value['total']);
+                }
 
-		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
-	}
+                for ($i = 1; $i <= date('t'); $i++) {
+                    $date = date('Y') . '-' . date('m') . '-' . $i;
+
+                    $json['xaxis'][] = array(date('j', strtotime($date)), date('d', strtotime($date)));
+                }
+                break;
+            case 'year':
+                $results = $this->model_report_sale->getTotalOrdersByYear();
+
+                foreach ($results as $key => $value) {
+                    $json['order']['data'][] = array($key, $value['total']);
+                }
+
+                $results = $this->model_report_customer->getTotalCustomersByYear();
+
+                foreach ($results as $key => $value) {
+                    $json['customer']['data'][] = array($key, $value['total']);
+                }
+
+                for ($i = 1; $i <= 12; $i++) {
+                    $json['xaxis'][] = array($i, date('M', mktime(0, 0, 0, $i)));
+                }
+                break;
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
 }

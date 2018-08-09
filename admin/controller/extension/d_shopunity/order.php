@@ -3,97 +3,101 @@
  *	location: admin/controller
  */
 
-class ControllerExtensionDShopunityOrder extends Controller {
-	
-	private $codename = 'd_shopunity';
-	private $route = 'extension/d_shopunity/order';
-	private $extension = array();
+class ControllerExtensionDShopunityOrder extends Controller
+{
 
-	public function __construct($registry) {
-		parent::__construct($registry);
-		$this->load->model('extension/d_shopunity/mbooth');
-		$this->load->model('extension/d_shopunity/account');
+    private $codename = 'd_shopunity';
+    private $route = 'extension/d_shopunity/order';
+    private $extension = array();
 
-		$this->extension = $this->model_extension_d_shopunity_mbooth->getExtension($this->codename);
-	}
+    public function __construct($registry)
+    {
+        parent::__construct($registry);
+        $this->load->model('extension/d_shopunity/mbooth');
+        $this->load->model('extension/d_shopunity/account');
 
-	public function index(){
-		if(!$this->model_extension_d_shopunity_account->isLogged()){
-			$this->response->redirect($this->url->link('extension/d_shopunity/account/login', 'token=' . $this->session->data['token'], 'SSL'));
-		}
+        $this->extension = $this->model_extension_d_shopunity_mbooth->getExtension($this->codename);
+    }
 
-		$this->load->language('extension/d_shopunity/billing');
-   		$this->load->model('extension/d_shopunity/billing');
-		
-		$data['tab_order'] =  $this->language->get('tab_order');
-		$data['tab_invoice'] =  $this->language->get('tab_invoice');
-		$data['tab_transaction'] =  $this->language->get('tab_transaction');
-		
-		$data['href_order'] =  $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'], 'SSL');
-		$data['href_invoice'] = $this->url->link('extension/d_shopunity/invoice', 'token=' . $this->session->data['token'], 'SSL');
-		$data['href_transaction'] = $this->url->link('extension/d_shopunity/transaction', 'token=' . $this->session->data['token'], 'SSL');
+    public function index()
+    {
+        if (!$this->model_extension_d_shopunity_account->isLogged()) {
+            $this->response->redirect($this->url->link('extension/d_shopunity/account/login', 'token=' . $this->session->data['token'], 'SSL'));
+        }
 
-		$filter_data = array();
-		$data['page'] = 1;
-		if(isset($this->request->get['page'])){
-			$filter_data['page'] = $this->request->get['page'];
-			$data['page'] = $this->request->get['page'];
-		}
+        $this->load->language('extension/d_shopunity/billing');
+        $this->load->model('extension/d_shopunity/billing');
 
-		$data['orders'] = $this->model_extension_d_shopunity_billing->getOrders($filter_data);
-		$data['profile'] = $this->load->controller('extension/d_shopunity/account/profile');
-		$data['orders_overdue'] = $this->model_extension_d_shopunity_billing->getOrdersOverdue();
-		$data['create_invoice'] = $this->url->link('extension/d_shopunity/invoice/create', 'token=' . $this->session->data['token'], 'SSL');
+        $data['tab_order'] = $this->language->get('tab_order');
+        $data['tab_invoice'] = $this->language->get('tab_invoice');
+        $data['tab_transaction'] = $this->language->get('tab_transaction');
 
-		$data['prev'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'].'&page='.($data['page']-1), 'SSL');
-		$data['next'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'].'&page='.($data['page']+1), 'SSL');
+        $data['href_order'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'], 'SSL');
+        $data['href_invoice'] = $this->url->link('extension/d_shopunity/invoice', 'token=' . $this->session->data['token'], 'SSL');
+        $data['href_transaction'] = $this->url->link('extension/d_shopunity/transaction', 'token=' . $this->session->data['token'], 'SSL');
 
-   		$data['content_top'] = $this->load->controller('extension/d_shopunity/content_top');
-   		$data['content_bottom'] = $this->load->controller('extension/d_shopunity/content_bottom');
+        $filter_data = array();
+        $data['page'] = 1;
+        if (isset($this->request->get['page'])) {
+            $filter_data['page'] = $this->request->get['page'];
+            $data['page'] = $this->request->get['page'];
+        }
 
-   		$this->response->setOutput($this->load->view($this->route.'.tpl', $data));
-	}
+        $data['orders'] = $this->model_extension_d_shopunity_billing->getOrders($filter_data);
+        $data['profile'] = $this->load->controller('extension/d_shopunity/account/profile');
+        $data['orders_overdue'] = $this->model_extension_d_shopunity_billing->getOrdersOverdue();
+        $data['create_invoice'] = $this->url->link('extension/d_shopunity/invoice/create', 'token=' . $this->session->data['token'], 'SSL');
 
-	public function item(){
+        $data['prev'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'] . '&page=' . ($data['page'] - 1), 'SSL');
+        $data['next'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'] . '&page=' . ($data['page'] + 1), 'SSL');
 
-		if(!$this->model_extension_d_shopunity_account->isLogged()){
-			$this->response->redirect($this->url->link('extension/d_shopunity/account/login', 'token=' . $this->session->data['token'], 'SSL'));
-		}
+        $data['content_top'] = $this->load->controller('extension/d_shopunity/content_top');
+        $data['content_bottom'] = $this->load->controller('extension/d_shopunity/content_bottom');
 
-		if(!isset($this->request->get['order_id'])){
-			$this->session->data['error'] = 'Order_id missing!';
-			$this->response->redirect($this->url->link('extension/d_shopunity/account', 'token=' . $this->session->data['token'], 'SSL'));
-		}
+        $this->response->setOutput($this->load->view($this->route . '.tpl', $data));
+    }
 
-		$order_id = $this->request->get['order_id'];
-		
-   		$this->load->language('extension/d_shopunity/billing');
-   		$this->load->model('extension/d_shopunity/billing');
+    public function item()
+    {
 
-   		
-		$data['tab_order'] =  $this->language->get('tab_order');
-		$data['tab_invoice'] =  $this->language->get('tab_invoice');
-		$data['tab_transaction'] =  $this->language->get('tab_transaction');
-		
-		$data['href_order'] =  $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'], 'SSL');
-		$data['href_invoice'] = $this->url->link('extension/d_shopunity/invoice', 'token=' . $this->session->data['token'], 'SSL');
-		$data['href_transaction'] = $this->url->link('extension/d_shopunity/transaction', 'token=' . $this->session->data['token'], 'SSL');
+        if (!$this->model_extension_d_shopunity_account->isLogged()) {
+            $this->response->redirect($this->url->link('extension/d_shopunity/account/login', 'token=' . $this->session->data['token'], 'SSL'));
+        }
 
-		$data['tab_history'] =  $this->language->get('tab_history');
-		$data['tab_invoice'] =  $this->language->get('tab_invoice');
+        if (!isset($this->request->get['order_id'])) {
+            $this->session->data['error'] = 'Order_id missing!';
+            $this->response->redirect($this->url->link('extension/d_shopunity/account', 'token=' . $this->session->data['token'], 'SSL'));
+        }
 
-		$data['order'] = $this->model_extension_d_shopunity_billing->getOrder($order_id);
-		$data['extension'] = $data['order']['store_extension'];
+        $order_id = $this->request->get['order_id'];
 
-		if(isset($data['extension']['developer'])){
-			$data['developer'] = $this->load->controller('extension/d_shopunity/developer/profile', $data['extension']['developer']);
-		}else{
-			$data['developer'] = '';
-		}
+        $this->load->language('extension/d_shopunity/billing');
+        $this->load->model('extension/d_shopunity/billing');
 
-   		$data['content_top'] = $this->load->controller('extension/d_shopunity/content_top');
-   		$data['content_bottom'] = $this->load->controller('extension/d_shopunity/content_bottom');
 
-   		$this->response->setOutput($this->load->view($this->route.'_item.tpl', $data));
-	}
+        $data['tab_order'] = $this->language->get('tab_order');
+        $data['tab_invoice'] = $this->language->get('tab_invoice');
+        $data['tab_transaction'] = $this->language->get('tab_transaction');
+
+        $data['href_order'] = $this->url->link('extension/d_shopunity/order', 'token=' . $this->session->data['token'], 'SSL');
+        $data['href_invoice'] = $this->url->link('extension/d_shopunity/invoice', 'token=' . $this->session->data['token'], 'SSL');
+        $data['href_transaction'] = $this->url->link('extension/d_shopunity/transaction', 'token=' . $this->session->data['token'], 'SSL');
+
+        $data['tab_history'] = $this->language->get('tab_history');
+        $data['tab_invoice'] = $this->language->get('tab_invoice');
+
+        $data['order'] = $this->model_extension_d_shopunity_billing->getOrder($order_id);
+        $data['extension'] = $data['order']['store_extension'];
+
+        if (isset($data['extension']['developer'])) {
+            $data['developer'] = $this->load->controller('extension/d_shopunity/developer/profile', $data['extension']['developer']);
+        } else {
+            $data['developer'] = '';
+        }
+
+        $data['content_top'] = $this->load->controller('extension/d_shopunity/content_top');
+        $data['content_bottom'] = $this->load->controller('extension/d_shopunity/content_bottom');
+
+        $this->response->setOutput($this->load->view($this->route . '_item.tpl', $data));
+    }
 }

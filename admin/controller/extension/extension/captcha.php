@@ -1,125 +1,132 @@
 <?php
-class ControllerExtensionExtensionCaptcha extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/extension/captcha');
+class ControllerExtensionExtensionCaptcha extends Controller
+{
+    private $error = array();
 
-		$this->load->model('extension/extension');
+    public function index()
+    {
+        $this->load->language('extension/extension/captcha');
 
-		$this->getList();
-	}
+        $this->load->model('extension/extension');
 
-	public function install() {
-		$this->load->language('extension/extension/captcha');
+        $this->getList();
+    }
 
-		$this->load->model('extension/extension');
+    protected function getList()
+    {
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		if ($this->validate()) {
-			$this->model_extension_extension->install('captcha', $this->request->get['extension']);
+        $data['text_no_results'] = $this->language->get('text_no_results');
 
-			$this->load->model('user/user_group');
+        $data['column_name'] = $this->language->get('column_name');
+        $data['column_status'] = $this->language->get('column_status');
+        $data['column_action'] = $this->language->get('column_action');
 
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/captcha/' . $this->request->get['extension']);
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/captcha/' . $this->request->get['extension']);
+        $data['button_edit'] = $this->language->get('button_edit');
+        $data['button_install'] = $this->language->get('button_install');
+        $data['button_uninstall'] = $this->language->get('button_uninstall');
 
-			// Compatibility
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'captcha/' . $this->request->get['extension']);
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'captcha/' . $this->request->get['extension']);
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-			// Call install method if it exsits
-			$this->load->controller('extension/captcha/' . $this->request->get['extension'] . '/install');
+        if (isset($this->session->data['success'])) {
+            $data['success'] = $this->session->data['success'];
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+            unset($this->session->data['success']);
+        } else {
+            $data['success'] = '';
+        }
 
-		$this->getList();
-	}
+        $extensions = $this->model_extension_extension->getInstalled('captcha');
 
-	public function uninstall() {
-		$this->load->language('extension/extension/captcha');
+        foreach ($extensions as $key => $value) {
+            if (!is_file(DIR_APPLICATION . 'controller/extension/captcha/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/captcha/' . $value . '.php')) {
+                $this->model_extension_extension->uninstall('captcha', $value);
 
-		$this->load->model('extension/extension');
+                unset($extensions[$key]);
+            }
+        }
 
-		if ($this->validate()) {
-			$this->model_extension_extension->uninstall('captcha', $this->request->get['extension']);
+        $data['extensions'] = array();
 
-			// Call uninstall method if it exsits
-			$this->load->controller('extension/captcha/' . $this->request->get['extension'] . '/uninstall');
+        // Compatibility code for old extension folders
+        $files = glob(DIR_APPLICATION . 'controller/{extension/captcha,captcha}/*.php', GLOB_BRACE);
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
-		
-		$this->getList();
-	}
+        if ($files) {
+            foreach ($files as $file) {
+                $extension = basename($file, '.php');
 
-	protected function getList() {
-		$data['heading_title'] = $this->language->get('heading_title');
+                $this->load->language('extension/captcha/' . $extension);
 
-		$data['text_no_results'] = $this->language->get('text_no_results');
+                $data['extensions'][] = array(
+                    'name' => $this->language->get('heading_title') . (($extension == $this->config->get('config_captcha')) ? $this->language->get('text_default') : null),
+                    'status' => $this->config->get($extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+                    'install' => $this->url->link('extension/extension/captcha/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'uninstall' => $this->url->link('extension/extension/captcha/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'installed' => in_array($extension, $extensions),
+                    'edit' => $this->url->link('extension/captcha/' . $extension, 'token=' . $this->session->data['token'], true)
+                );
+            }
+        }
 
-		$data['column_name'] = $this->language->get('column_name');
-		$data['column_status'] = $this->language->get('column_status');
-		$data['column_action'] = $this->language->get('column_action');
+        $this->response->setOutput($this->load->view('extension/extension/captcha', $data));
+    }
 
-		$data['button_edit'] = $this->language->get('button_edit');
-		$data['button_install'] = $this->language->get('button_install');
-		$data['button_uninstall'] = $this->language->get('button_uninstall');
+    public function install()
+    {
+        $this->load->language('extension/extension/captcha');
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
+        $this->load->model('extension/extension');
 
-		if (isset($this->session->data['success'])) {
-			$data['success'] = $this->session->data['success'];
+        if ($this->validate()) {
+            $this->model_extension_extension->install('captcha', $this->request->get['extension']);
 
-			unset($this->session->data['success']);
-		} else {
-			$data['success'] = '';
-		}
+            $this->load->model('user/user_group');
 
-		$extensions = $this->model_extension_extension->getInstalled('captcha');
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/captcha/' . $this->request->get['extension']);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/captcha/' . $this->request->get['extension']);
 
-		foreach ($extensions as $key => $value) {
-			if (!is_file(DIR_APPLICATION . 'controller/extension/captcha/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/captcha/' . $value . '.php')) {
-				$this->model_extension_extension->uninstall('captcha', $value);
+            // Compatibility
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'captcha/' . $this->request->get['extension']);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'captcha/' . $this->request->get['extension']);
 
-				unset($extensions[$key]);
-			}
-		}
+            // Call install method if it exsits
+            $this->load->controller('extension/captcha/' . $this->request->get['extension'] . '/install');
 
-		$data['extensions'] = array();
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
 
-		// Compatibility code for old extension folders
-		$files = glob(DIR_APPLICATION . 'controller/{extension/captcha,captcha}/*.php', GLOB_BRACE);
+        $this->getList();
+    }
 
-		if ($files) {
-			foreach ($files as $file) {
-				$extension = basename($file, '.php');
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/extension/captcha')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
 
-				$this->load->language('extension/captcha/' . $extension);
+        return !$this->error;
+    }
 
-				$data['extensions'][] = array(
-					'name'      => $this->language->get('heading_title') . (($extension == $this->config->get('config_captcha')) ? $this->language->get('text_default') : null),
-					'status'    => $this->config->get($extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
-					'install'   => $this->url->link('extension/extension/captcha/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'uninstall' => $this->url->link('extension/extension/captcha/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
-					'edit'      => $this->url->link('extension/captcha/' . $extension, 'token=' . $this->session->data['token'], true)
-				);
-			}
-		}
+    public function uninstall()
+    {
+        $this->load->language('extension/extension/captcha');
 
-		$this->response->setOutput($this->load->view('extension/extension/captcha', $data));
-	}
+        $this->load->model('extension/extension');
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/extension/captcha')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+        if ($this->validate()) {
+            $this->model_extension_extension->uninstall('captcha', $this->request->get['extension']);
 
-		return !$this->error;
-	}
+            // Call uninstall method if it exsits
+            $this->load->controller('extension/captcha/' . $this->request->get['extension'] . '/uninstall');
+
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->getList();
+    }
 }

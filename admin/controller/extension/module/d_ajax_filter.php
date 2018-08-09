@@ -12,54 +12,54 @@ class ControllerExtensionModuleDAjaxFilter extends Controller
     private $config_file = '';
     private $store_id = 0;
     private $error = array();
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->model($this->route);
         $this->load->Language($this->route);
-        
-        $this->d_shopunity = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_shopunity.json'));
-        $this->d_opencart_patch = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_opencart_patch.json'));
-        $this->d_twig_manager = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_twig_manager.json'));
-        $this->d_event_manager = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_event_manager.json'));
+
+        $this->d_shopunity = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_shopunity.json'));
+        $this->d_opencart_patch = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_opencart_patch.json'));
+        $this->d_twig_manager = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_twig_manager.json'));
+        $this->d_event_manager = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_event_manager.json'));
     }
-    
+
     public function index()
     {
 
         $this->load->model('extension/d_opencart_patch/url');
 
-        if($this->d_twig_manager){
+        if ($this->d_twig_manager) {
             $this->load->model('extension/module/d_twig_manager');
             $this->model_extension_module_d_twig_manager->installCompatibility();
         }
-        
+
         if ($this->d_event_manager) {
             $this->load->model('extension/module/d_event_manager');
             $this->model_extension_module_d_event_manager->installCompatibility();
         }
 
-        if($this->d_shopunity){
+        if ($this->d_shopunity) {
             $this->load->model('extension/d_shopunity/mbooth');
             $this->model_extension_d_shopunity_mbooth->validateDependencies($this->codename);
         }
 
-        $this->load->model('extension/'.$this->codename.'/cache');
+        $this->load->model('extension/' . $this->codename . '/cache');
 
-        $this->{'model_extension_'.$this->codename.'_cache'}->checkCache();
+        $this->{'model_extension_' . $this->codename . '_cache'}->checkCache();
 
-        $cache_status = $this->{'model_extension_module_'.$this->codename}->checkCache();
+        $cache_status = $this->{'model_extension_module_' . $this->codename}->checkCache();
 
-        if($cache_status){
-            $this->load->controller('extension/'.$this->codename.'/layout');
-        }
-        else{
-            $this->response->redirect($this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/cache'));
+        if ($cache_status) {
+            $this->load->controller('extension/' . $this->codename . '/layout');
+        } else {
+            $this->response->redirect($this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/cache'));
         }
     }
 
-    public function getFileManager() {
+    public function getFileManager()
+    {
         $this->load->model('user/user_group');
         $this->load->model('extension/d_opencart_patch/user');
         $this->load->model('extension/d_opencart_patch/load');
@@ -78,7 +78,8 @@ class ControllerExtensionModuleDAjaxFilter extends Controller
         $this->response->setOutput($this->model_extension_d_opencart_patch_load->view('extension/d_elfinder/d_elfinder', $data));
     }
 
-    public function getImage() {
+    public function getImage()
+    {
         $this->load->model('tool/image');
 
         if (isset($this->request->get['image'])) {
@@ -88,33 +89,33 @@ class ControllerExtensionModuleDAjaxFilter extends Controller
 
     public function install()
     {
-        if($this->d_shopunity){
+        if ($this->d_shopunity) {
             $this->load->model('extension/d_shopunity/mbooth');
             $this->model_extension_d_shopunity_mbooth->installDependencies($this->codename);
         }
-        
+
         $this->load->model('user/user_group');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename);
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/attribute');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/cache');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/filter');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/layout');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/option');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'access', 'extension/'.$this->codename.'/setting');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename);
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/attribute');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/cache');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/filter');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/layout');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/option');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'access', 'extension/' . $this->codename . '/setting');
 
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename);
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/attribute');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/cache');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/filter');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/layout');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/option');
-        $this->model_user_user_group->addPermission($this->{'model_extension_module_'.$this->codename}->getGroupId(), 'modify', 'extension/'.$this->codename.'/setting');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename);
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/attribute');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/cache');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/filter');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/layout');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/option');
+        $this->model_user_user_group->addPermission($this->{'model_extension_module_' . $this->codename}->getGroupId(), 'modify', 'extension/' . $this->codename . '/setting');
 
-        $this->{'model_extension_module_'.$this->codename}->CreateDatabase();
+        $this->{'model_extension_module_' . $this->codename}->CreateDatabase();
     }
-    
+
     public function uninstall()
     {
-        $this->{'model_extension_module_'.$this->codename}->DropDatabase();
+        $this->{'model_extension_module_' . $this->codename}->DropDatabase();
     }
 }

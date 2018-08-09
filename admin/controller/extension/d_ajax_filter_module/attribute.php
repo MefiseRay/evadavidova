@@ -4,51 +4,60 @@ class ControllerExtensionDAjaxFilterModuleAttribute extends Controller
 {
     private $codename = 'd_ajax_filter';
     private $route = 'extension/d_ajax_filter_module/attribute';
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->model($this->route);
-        $this->load->language('extension/'.$this->codename.'/attribute');
+        $this->load->language('extension/' . $this->codename . '/attribute');
     }
-    public function updateProduct($product_id){
-        $new_values = $this->{'model_extension_'.$this->codename.'_module_attribute'}->updateProduct($product_id);
+
+    public function updateProduct($product_id)
+    {
+        $new_values = $this->{'model_extension_' . $this->codename . '_module_attribute'}->updateProduct($product_id);
         return $new_values;
     }
 
-    public function step($data){
-        $count = $this->{'model_extension_'.$this->codename.'_module_attribute'}->step($data);
+    public function step($data)
+    {
+        $count = $this->{'model_extension_' . $this->codename . '_module_attribute'}->step($data);
         return $count;
     }
 
-    public function save($data){
-        $count = $this->{'model_extension_'.$this->codename.'_module_attribute'}->save($data);
+    public function save($data)
+    {
+        $count = $this->{'model_extension_' . $this->codename . '_module_attribute'}->save($data);
         return $count;
     }
 
-    public function restore($data){
-        $count = $this->{'model_extension_'.$this->codename.'_module_attribute'}->restore($data);
+    public function restore($data)
+    {
+        $count = $this->{'model_extension_' . $this->codename . '_module_attribute'}->restore($data);
         return $count;
     }
 
-    public function prepare(){
-        $this->{'model_extension_'.$this->codename.'_module_attribute'}->prepare();
+    public function prepare()
+    {
+        $this->{'model_extension_' . $this->codename . '_module_attribute'}->prepare();
     }
 
-    public function cleaning(){
-        $this->{'model_extension_'.$this->codename.'_module_attribute'}->cleaning();
+    public function cleaning()
+    {
+        $this->{'model_extension_' . $this->codename . '_module_attribute'}->cleaning();
     }
 
-    public function cleaning_before(){
-        $this->{'model_extension_'.$this->codename.'_module_filter'}->cleaning_before();
+    public function cleaning_before()
+    {
+        $this->{'model_extension_' . $this->codename . '_module_filter'}->cleaning_before();
     }
 
-    public function prepare_template($setting){
+    public function prepare_template($setting)
+    {
 
         $this->load->model('extension/d_opencart_patch/url');
         $this->load->model('extension/d_opencart_patch/user');
         $this->load->model('extension/d_opencart_patch/load');
-        
+
         $data['entry_type'] = $this->language->get('entry_type');
         $data['entry_collapse'] = $this->language->get('entry_collapse');
         $data['entry_sort_order_values'] = $this->language->get('entry_sort_order_values');
@@ -87,7 +96,7 @@ class ControllerExtensionDAjaxFilterModuleAttribute extends Controller
             'checkbox_and_image' => $this->language->get('text_base_type_checkbox_and_image'),
             'image_radio' => $this->language->get('text_base_type_image_radio'),
             'image_checkbox' => $this->language->get('text_base_type_image_checkbox')
-            );
+        );
 
         $data['sort_order_types'] = array(
             'default' => $this->language->get('text_sort_order_type_default'),
@@ -95,40 +104,42 @@ class ControllerExtensionDAjaxFilterModuleAttribute extends Controller
             'string_desc' => $this->language->get('text_sort_order_type_string_desc'),
             'numeric_asc' => $this->language->get('text_sort_order_type_numeric_asc'),
             'numeric_desc' => $this->language->get('text_sort_order_type_numeric_desc'),
-            );
+        );
 
-        $data['attributes'] = !empty($setting['attributes'])?$setting['attributes']:array();
+        $data['attributes'] = !empty($setting['attributes']) ? $setting['attributes'] : array();
 
         $url = '';
 
-        if(isset($this->request->get['module_id'])){
-            $url = '&module_id='.$this->request->get['module_id'];
+        if (isset($this->request->get['module_id'])) {
+            $url = '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['attribute_href'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/attribute', $url);
+        $data['attribute_href'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/attribute', $url);
 
         $this->load->model('catalog/attribute');
-        
-        array_walk($data['attributes'], function(&$value, $index){
-             $attribute_info = $this->model_catalog_attribute->getAttribute($index);
+
+        array_walk($data['attributes'], function (&$value, $index) {
+            $attribute_info = $this->model_catalog_attribute->getAttribute($index);
             $value['name'] = strip_tags(html_entity_decode($attribute_info['name'], ENT_QUOTES, 'UTF-8'));
 
         });
 
-        $attribute_default = $this->{'model_extension_'.$this->codename.'_layout'}->getModuleSetting('attribute');
+        $attribute_default = $this->{'model_extension_' . $this->codename . '_layout'}->getModuleSetting('attribute');
 
-        $data['attribute_default'] = isset($setting['attribute_default'])?$setting['attribute_default']:$attribute_default['default'];
+        $data['attribute_default'] = isset($setting['attribute_default']) ? $setting['attribute_default'] : $attribute_default['default'];
 
         $data['default'] = $attribute_default['default'];
 
-        return $this->model_extension_d_opencart_patch_load->view('extension/'.$this->codename.'/layout_partial/attribute', $data);
+        return $this->model_extension_d_opencart_patch_load->view('extension/' . $this->codename . '/layout_partial/attribute', $data);
     }
 
-    public function install(){
-        $this->{'model_extension_'.$this->codename.'_module_attribute'}->installModule();
+    public function install()
+    {
+        $this->{'model_extension_' . $this->codename . '_module_attribute'}->installModule();
     }
 
-    public function uninstall(){
-        $this->{'model_extension_'.$this->codename.'_module_attribute'}->uninstallModule();
+    public function uninstall()
+    {
+        $this->{'model_extension_' . $this->codename . '_module_attribute'}->uninstallModule();
     }
 }

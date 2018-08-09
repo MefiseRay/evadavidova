@@ -1,114 +1,79 @@
 <?php
-class ControllerExtensionExtensionShipping extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/extension/shipping');
+class ControllerExtensionExtensionShipping extends Controller
+{
+    private $error = array();
 
-		$this->load->model('extension/extension');
+    public function index()
+    {
+        $this->load->language('extension/extension/shipping');
 
-		$this->getList();
-	}
+        $this->load->model('extension/extension');
 
-	public function install() {
-		$this->load->language('extension/extension/shipping');
+        $this->getList();
+    }
 
-		$this->load->model('extension/extension');
+    protected function getList()
+    {
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		if ($this->validate()) {
-			$this->model_extension_extension->install('shipping', $this->request->get['extension']);
+        $data['text_no_results'] = $this->language->get('text_no_results');
+        $data['text_confirm'] = $this->language->get('text_confirm');
+        $data['text_hide_shipping'] = sprintf($this->language->get('text_hide_shipping'), $this->url->link('user/user_permission', 'token=' . $this->session->data['token'], 'SSL'));
 
-			$this->load->model('user/user_group');
+        $data['column_name'] = $this->language->get('column_name');
+        $data['column_status'] = $this->language->get('column_status');
+        $data['column_sort_order'] = $this->language->get('column_sort_order');
+        $data['column_action'] = $this->language->get('column_action');
 
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/shipping/' . $this->request->get['extension']);
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/shipping/' . $this->request->get['extension']);
+        $data['button_edit'] = $this->language->get('button_edit');
+        $data['button_install'] = $this->language->get('button_install');
+        $data['button_uninstall'] = $this->language->get('button_uninstall');
 
-			// Call install method if it exsits
-			$this->load->controller('extension/shipping/' . $this->request->get['extension'] . '/install');
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+        if (isset($this->session->data['success'])) {
+            $data['success'] = $this->session->data['success'];
 
-		$this->getList();
-	}
+            unset($this->session->data['success']);
+        } else {
+            $data['success'] = '';
+        }
 
-	public function uninstall() {
-		$this->load->language('extension/extension/shipping');
+        $this->load->model('extension/extension');
 
-		$this->load->model('extension/extension');
+        $extensions = $this->model_extension_extension->getInstalled('shipping');
 
-		if ($this->validate()) {
-			$this->model_extension_extension->uninstall('shipping', $this->request->get['extension']);
+        foreach ($extensions as $key => $value) {
+            if (!is_file(DIR_APPLICATION . 'controller/extension/shipping/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/shipping/' . $value . '.php')) {
+                $this->model_extension_extension->uninstall('shipping', $value);
 
-			// Call uninstall method if it exsits
-			$this->load->controller('extension/shipping/' . $this->request->get['extension'] . '/uninstall');
+                unset($extensions[$key]);
+            }
+        }
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+        $data['extensions'] = array();
 
-		$this->getList();
-	}
+        // Compatibility code for old extension folders
+        $files = glob(DIR_APPLICATION . 'controller/{extension/shipping,shipping}/*.php', GLOB_BRACE);
 
-	protected function getList() {
-		$data['heading_title'] = $this->language->get('heading_title');
+        $this->load->model('user/user_group');
 
-		$data['text_no_results'] = $this->language->get('text_no_results');
-		$data['text_confirm'] = $this->language->get('text_confirm');
-		$data['text_hide_shipping'] = sprintf($this->language->get('text_hide_shipping'), $this->url->link('user/user_permission', 'token=' . $this->session->data['token'], 'SSL'));
+        $user_group_info = $this->model_user_user_group->getUserGroup($this->user->user_group_id);
 
-		$data['column_name'] = $this->language->get('column_name');
-		$data['column_status'] = $this->language->get('column_status');
-		$data['column_sort_order'] = $this->language->get('column_sort_order');
-		$data['column_action'] = $this->language->get('column_action');
+        if (isset($user_group_info['permission']['hiden'])) {
+            $hiden = $user_group_info['permission']['hiden'];
+        } else {
+            $hiden = array();
+        }
 
-		$data['button_edit'] = $this->language->get('button_edit');
-		$data['button_install'] = $this->language->get('button_install');
-		$data['button_uninstall'] = $this->language->get('button_uninstall');
+        $data['hiden'] = false;
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
-
-		if (isset($this->session->data['success'])) {
-			$data['success'] = $this->session->data['success'];
-
-			unset($this->session->data['success']);
-		} else {
-			$data['success'] = '';
-		}
-
-		$this->load->model('extension/extension');
-
-		$extensions = $this->model_extension_extension->getInstalled('shipping');
-
-		foreach ($extensions as $key => $value) {
-			if (!is_file(DIR_APPLICATION . 'controller/extension/shipping/' . $value . '.php') && !is_file(DIR_APPLICATION . 'controller/shipping/' . $value . '.php')) {
-				$this->model_extension_extension->uninstall('shipping', $value);
-
-				unset($extensions[$key]);
-			}
-		}
-
-		$data['extensions'] = array();
-
-		// Compatibility code for old extension folders
-		$files = glob(DIR_APPLICATION . 'controller/{extension/shipping,shipping}/*.php', GLOB_BRACE);
-
-		$this->load->model('user/user_group');
-
-		$user_group_info = $this->model_user_user_group->getUserGroup($this->user->user_group_id);
-
-		if(isset($user_group_info['permission']['hiden'])) {
-			$hiden = $user_group_info['permission']['hiden'];
-		} else {
-			$hiden = array();
-		}
-
-		$data['hiden'] = false;
-
-		if ($files) {
+        if ($files) {
             foreach ($files as $file) {
                 $extension = basename($file, '.php');
 
@@ -128,14 +93,56 @@ class ControllerExtensionExtensionShipping extends Controller {
             }
         }
 
-		$this->response->setOutput($this->load->view('extension/extension/shipping', $data));
-	}
+        $this->response->setOutput($this->load->view('extension/extension/shipping', $data));
+    }
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/extension/shipping')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+    public function install()
+    {
+        $this->load->language('extension/extension/shipping');
 
-		return !$this->error;
-	}
+        $this->load->model('extension/extension');
+
+        if ($this->validate()) {
+            $this->model_extension_extension->install('shipping', $this->request->get['extension']);
+
+            $this->load->model('user/user_group');
+
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/shipping/' . $this->request->get['extension']);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/shipping/' . $this->request->get['extension']);
+
+            // Call install method if it exsits
+            $this->load->controller('extension/shipping/' . $this->request->get['extension'] . '/install');
+
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->getList();
+    }
+
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/extension/shipping')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
+
+        return !$this->error;
+    }
+
+    public function uninstall()
+    {
+        $this->load->language('extension/extension/shipping');
+
+        $this->load->model('extension/extension');
+
+        if ($this->validate()) {
+            $this->model_extension_extension->uninstall('shipping', $this->request->get['extension']);
+
+            // Call uninstall method if it exsits
+            $this->load->controller('extension/shipping/' . $this->request->get['extension'] . '/uninstall');
+
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->getList();
+    }
 }

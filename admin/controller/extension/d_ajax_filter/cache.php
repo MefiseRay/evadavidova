@@ -12,22 +12,23 @@ class ControllerExtensionDAjaxFilterCache extends Controller
     private $config_file = '';
     private $store_id = 0;
     private $error = array();
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->model($this->route);
         $this->load->language($this->route);
-        
+
         //extension.json
-        $this->extension = json_decode(file_get_contents(DIR_SYSTEM.'library/d_shopunity/extension/'.$this->codename.'.json'), true);
-        $this->d_shopunity = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_shopunity.json'));
-        
+        $this->extension = json_decode(file_get_contents(DIR_SYSTEM . 'library/d_shopunity/extension/' . $this->codename . '.json'), true);
+        $this->d_shopunity = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_shopunity.json'));
+
         //Store_id (for multistore)
-        if (isset($this->request->get['store_id'])) { 
+        if (isset($this->request->get['store_id'])) {
             $this->store_id = $this->request->get['store_id'];
         }
     }
+
     public function index()
     {
 
@@ -49,24 +50,24 @@ class ControllerExtensionDAjaxFilterCache extends Controller
 
         $url = ((!empty($url_params)) ? '&' : '') . http_build_query($url_params);
 
-        if(isset($this->request->get['filter_option_mode']))
+        if (isset($this->request->get['filter_option_mode']))
 
-        // Breadcrumbs
-        $data['breadcrumbs'] = array();
+            // Breadcrumbs
+            $data['breadcrumbs'] = array();
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_home'),
             'href' => $this->model_extension_d_opencart_patch_url->link('common/home')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_module'),
             'href' => $this->model_extension_d_opencart_patch_url->link('marketplace/extension', 'type=module')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('heading_title_main'),
             'href' => $this->model_extension_d_opencart_patch_url->link($this->route)
-            );
+        );
 
         $this->document->setTitle($this->language->get('heading_title_main'));
         $data['heading_title'] = $this->language->get('heading_title_main');
@@ -91,17 +92,17 @@ class ControllerExtensionDAjaxFilterCache extends Controller
 
         $url = '';
 
-        if(isset($this->request->get['module_id'])){
-            $url .= '&module_id='.$this->request->get['module_id'];
+        if (isset($this->request->get['module_id'])) {
+            $url .= '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['create_cache'] = str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/cache/createCache'));
+        $data['create_cache'] = str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/cache/createCache'));
 
-        $data['create_complete'] =  str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link('extension/module/'.$this->codename, $url));
+        $data['create_complete'] = str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link('extension/module/' . $this->codename, $url));
 
         $data['cancel'] = $this->model_extension_d_opencart_patch_url->link('marketplace/extension', 'type=module');
 
-        $this->{'model_extension_'.$this->codename.'_cache'}->checkCache();
+        $this->{'model_extension_' . $this->codename . '_cache'}->checkCache();
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -109,20 +110,21 @@ class ControllerExtensionDAjaxFilterCache extends Controller
         $this->response->setOutput($this->model_extension_d_opencart_patch_load->view($this->route, $data));
     }
 
-    public function createCache(){
+    public function createCache()
+    {
 
-        $json = $this->{'model_extension_'.$this->codename.'_cache'}->createCache();
+        $json = $this->{'model_extension_' . $this->codename . '_cache'}->createCache();
 
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
     }
 
-    public function model_updateProduct(&$route, &$data, &$output){
-        if(!empty($output)){
-            $json = $this->{'model_extension_'.$this->codename.'_cache'}->updateProduct($output);
-        }
-        else{
-            $json = $this->{'model_extension_'.$this->codename.'_cache'}->updateProduct($data[0]);
+    public function model_updateProduct(&$route, &$data, &$output)
+    {
+        if (!empty($output)) {
+            $json = $this->{'model_extension_' . $this->codename . '_cache'}->updateProduct($output);
+        } else {
+            $json = $this->{'model_extension_' . $this->codename . '_cache'}->updateProduct($data[0]);
         }
     }
 }

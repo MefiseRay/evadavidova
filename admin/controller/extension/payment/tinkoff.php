@@ -1,4 +1,5 @@
 <?php
+
 class ControllerExtensionPaymentTinkoff extends Controller
 {
     private $error = array();
@@ -165,7 +166,6 @@ class ControllerExtensionPaymentTinkoff extends Controller
             return false;
         }
     }
-
 
 
 }

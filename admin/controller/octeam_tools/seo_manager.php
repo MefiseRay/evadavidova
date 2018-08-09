@@ -1,15 +1,19 @@
 <?php
-class ControllerOcteamToolsSeoManager extends Controller {
+
+class ControllerOcteamToolsSeoManager extends Controller
+{
     private $error = array();
 
-    public function index() {
+    public function index()
+    {
         $this->load->language('octeam_tools/seo_manager');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('octeam_tools/seo_manager');
         $this->getForm();
     }
 
-    protected function getForm() {
+    protected function getForm()
+    {
         $filter_query = isset($this->request->get['filter_query']) ? $this->request->get['filter_query'] : null;
         $filter_keyword = isset($this->request->get['filter_keyword']) ? $this->request->get['filter_keyword'] : null;
 
@@ -34,11 +38,11 @@ class ControllerOcteamToolsSeoManager extends Controller {
         $url = '';
 
         if (isset($this->request->get['filter_query'])) {
-          $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
         }
 
         if (isset($this->request->get['filter_keyword'])) {
-          $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
         }
 
         if (isset($this->request->get['sort'])) {
@@ -69,24 +73,24 @@ class ControllerOcteamToolsSeoManager extends Controller {
             'text' => $this->language->get('heading_title'),
             'href' => $this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL')
         );
-       
+
         $data['delete'] = $this->url->link('octeam_tools/seo_manager/delete', 'token=' . $this->session->data['token'] . $url, 'SSL');
-        
+
         $data['save'] = $this->url->link('octeam_tools/seo_manager/update', 'token=' . $this->session->data['token'] . $url, 'SSL');
-        
+
         $data['clear'] = $this->url->link('octeam_tools/seo_manager/clear', 'token=' . $this->session->data['token'] . $url, 'SSL');
-        
+
         $data['cancel'] = $this->url->link('octeam/toolset', 'token=' . $this->session->data['token'], 'SSL');
 
         $data['url_aliases'] = array();
 
         $filter_data = array(
-            'filter_query'    => $filter_query,
-            'filter_keyword'  => $filter_keyword,
-            'sort'            => $sort,
-            'order'           => $order,
-            'start'           => ($page - 1) * $this->config->get('config_limit_admin'),
-            'limit'           => $this->config->get('config_limit_admin')
+            'filter_query' => $filter_query,
+            'filter_keyword' => $filter_keyword,
+            'sort' => $sort,
+            'order' => $order,
+            'start' => ($page - 1) * $this->config->get('config_limit_admin'),
+            'limit' => $this->config->get('config_limit_admin')
         );
 
         $url_alias_total = $this->model_octeam_tools_seo_manager->getTotalUrlAalias($filter_data);
@@ -95,13 +99,13 @@ class ControllerOcteamToolsSeoManager extends Controller {
 
         foreach ($results as $result) {
             $data['url_aliases'][] = array(
-                'url_alias_id' => $result['url_alias_id'], 
+                'url_alias_id' => $result['url_alias_id'],
                 'query' => $result['query'],
                 'keyword' => $result['keyword'],
-                'selected' => isset($this->request->post['selected']) && in_array($result['url_alias_id'], $this->request->post['selected']), 
+                'selected' => isset($this->request->post['selected']) && in_array($result['url_alias_id'], $this->request->post['selected']),
                 'action_text' => $this->language->get('text_edit')
             );
-         }
+        }
 
         $data['heading_title'] = $this->language->get('heading_title');
 
@@ -148,11 +152,11 @@ class ControllerOcteamToolsSeoManager extends Controller {
         $url = '';
 
         if (isset($this->request->get['filter_query'])) {
-          $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
         }
 
         if (isset($this->request->get['filter_keyword'])) {
-          $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
         }
 
         if ($order == 'ASC') {
@@ -171,11 +175,11 @@ class ControllerOcteamToolsSeoManager extends Controller {
         $url = '';
 
         if (isset($this->request->get['filter_query'])) {
-          $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
         }
 
         if (isset($this->request->get['filter_keyword'])) {
-          $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
         }
 
         if (isset($this->request->get['sort'])) {
@@ -208,117 +212,46 @@ class ControllerOcteamToolsSeoManager extends Controller {
         $this->response->setOutput($this->load->view('octeam_tools/seo_manager.tpl', $data));
     }
 
-        public function update() {
-                $this->load->language('octeam_tools/seo_manager');
-                $this->document->setTitle($this->language->get('heading_title'));
-                $this->load->model('octeam_tools/seo_manager');
+    public function update()
+    {
+        $this->load->language('octeam_tools/seo_manager');
+        $this->document->setTitle($this->language->get('heading_title'));
+        $this->load->model('octeam_tools/seo_manager');
 
-                $url = '';
+        $url = '';
 
-                if (isset($this->request->get['filter_query'])) {
-                  $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
-                }
-
-                if (isset($this->request->get['filter_keyword'])) {
-                  $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
-                }
-
-                if (isset($this->request->get['sort'])) {
-                        $url .= '&sort=' . $this->request->get['sort'];
-                }
-
-                if (isset($this->request->get['order'])) {
-                        $url .= '&order=' . $this->request->get['order'];
-                }
-
-                if (isset($this->request->get['page'])) {
-                        $url .= '&page=' . $this->request->get['page'];
-                }
-
-                if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-                        $this->model_octeam_tools_seo_manager->updateUrlAlias($this->request->post);
-                        $this->session->data['success'] = $this->language->get('text_success');
-                    
-                    $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
-                }
-                
-                $this->getForm();
-        }
-        
-        public function clear() {
-            $this->load->language('octeam_tools/seo_manager');
-                $url = '';
-
-                if (isset($this->request->get['filter_query'])) {
-                  $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
-                }
-
-                if (isset($this->request->get['filter_keyword'])) {
-                  $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
-                }
-
-                if (isset($this->request->get['sort'])) {
-                        $url .= '&sort=' . $this->request->get['sort'];
-                }
-
-                if (isset($this->request->get['order'])) {
-                        $url .= '&order=' . $this->request->get['order'];
-                }
-
-                if (isset($this->request->get['page'])) {
-                        $url .= '&page=' . $this->request->get['page'];
-                }
-                $this->cache->delete('seo_pro');
-                $this->cache->delete('seo_url');
-
-                $this->session->data['success'] = $this->language->get('text_success_clear');
-                $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
+        if (isset($this->request->get['filter_query'])) {
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
         }
 
-    public function delete() {
-                $this->load->language('octeam_tools/seo_manager');
-                $this->load->model('octeam_tools/seo_manager');
-                $url = '';
+        if (isset($this->request->get['filter_keyword'])) {
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+        }
 
-                if (isset($this->request->get['filter_query'])) {
-                  $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
-                }
+        if (isset($this->request->get['sort'])) {
+            $url .= '&sort=' . $this->request->get['sort'];
+        }
 
-                if (isset($this->request->get['filter_keyword'])) {
-                  $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
-                }
+        if (isset($this->request->get['order'])) {
+            $url .= '&order=' . $this->request->get['order'];
+        }
 
-                if (isset($this->request->get['sort'])) {
-                        $url .= '&sort=' . $this->request->get['sort'];
-                }
+        if (isset($this->request->get['page'])) {
+            $url .= '&page=' . $this->request->get['page'];
+        }
 
-                if (isset($this->request->get['order'])) {
-                        $url .= '&order=' . $this->request->get['order'];
-                }
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
+            $this->model_octeam_tools_seo_manager->updateUrlAlias($this->request->post);
+            $this->session->data['success'] = $this->language->get('text_success');
 
-                if (isset($this->request->get['page'])) {
-                        $url .= '&page=' . $this->request->get['page'];
-                }
+            $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
+        }
 
-                if (isset($this->request->post['selected']) && $this->validate()) {
-                        foreach ($this->request->post['selected'] as $url_alias_id) {
-                                $this->model_octeam_tools_seo_manager->deleteUrlAlias($url_alias_id);
-                        }
-                        $this->session->data['success'] = $this->language->get('text_success');
-                }
-
-        $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
+        $this->getForm();
     }
 
-    public function validate() {
-        if (!$this->validatePermission()) {
-            $this->error['warning'] = $this->language->get('error_permission');
-        }
-
-        return !$this->error;
-    }
-
-    protected function validateForm() {
+    protected function validateForm()
+    {
         if (!$this->validatePermission()) {
             $this->error['warning'] = $this->language->get('error_permission');
             return !$this->error;
@@ -339,7 +272,84 @@ class ControllerOcteamToolsSeoManager extends Controller {
         return !$this->error;
     }
 
-    protected function validatePermission() {
+    protected function validatePermission()
+    {
         return $this->user->hasPermission('modify', 'octeam_tools/seo_manager');
+    }
+
+    public function clear()
+    {
+        $this->load->language('octeam_tools/seo_manager');
+        $url = '';
+
+        if (isset($this->request->get['filter_query'])) {
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
+        }
+
+        if (isset($this->request->get['filter_keyword'])) {
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+        }
+
+        if (isset($this->request->get['sort'])) {
+            $url .= '&sort=' . $this->request->get['sort'];
+        }
+
+        if (isset($this->request->get['order'])) {
+            $url .= '&order=' . $this->request->get['order'];
+        }
+
+        if (isset($this->request->get['page'])) {
+            $url .= '&page=' . $this->request->get['page'];
+        }
+        $this->cache->delete('seo_pro');
+        $this->cache->delete('seo_url');
+
+        $this->session->data['success'] = $this->language->get('text_success_clear');
+        $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
+    }
+
+    public function delete()
+    {
+        $this->load->language('octeam_tools/seo_manager');
+        $this->load->model('octeam_tools/seo_manager');
+        $url = '';
+
+        if (isset($this->request->get['filter_query'])) {
+            $url .= '&filter_query=' . urlencode(html_entity_decode($this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
+        }
+
+        if (isset($this->request->get['filter_keyword'])) {
+            $url .= '&filter_keyword=' . $this->request->get['filter_keyword'];
+        }
+
+        if (isset($this->request->get['sort'])) {
+            $url .= '&sort=' . $this->request->get['sort'];
+        }
+
+        if (isset($this->request->get['order'])) {
+            $url .= '&order=' . $this->request->get['order'];
+        }
+
+        if (isset($this->request->get['page'])) {
+            $url .= '&page=' . $this->request->get['page'];
+        }
+
+        if (isset($this->request->post['selected']) && $this->validate()) {
+            foreach ($this->request->post['selected'] as $url_alias_id) {
+                $this->model_octeam_tools_seo_manager->deleteUrlAlias($url_alias_id);
+            }
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->response->redirect($this->url->link('octeam_tools/seo_manager', 'token=' . $this->session->data['token'] . $url, 'SSL'));
+    }
+
+    public function validate()
+    {
+        if (!$this->validatePermission()) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
+
+        return !$this->error;
     }
 }

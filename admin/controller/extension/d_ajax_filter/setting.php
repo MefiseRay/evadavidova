@@ -12,22 +12,23 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
     private $config_file = '';
     private $store_id = 0;
     private $error = array();
-    
+
     public function __construct($registry)
     {
         parent::__construct($registry);
         $this->load->language($this->route);
-        $this->load->model('extension/module/'.$this->codename);
-        
+        $this->load->model('extension/module/' . $this->codename);
+
         //extension.json
-        $this->extension = json_decode(file_get_contents(DIR_SYSTEM.'library/d_shopunity/extension/'.$this->codename.'.json'), true);
-        $this->d_shopunity = (file_exists(DIR_SYSTEM.'library/d_shopunity/extension/d_shopunity.json'));
-        
+        $this->extension = json_decode(file_get_contents(DIR_SYSTEM . 'library/d_shopunity/extension/' . $this->codename . '.json'), true);
+        $this->d_shopunity = (file_exists(DIR_SYSTEM . 'library/d_shopunity/extension/d_shopunity.json'));
+
         //Store_id (for multistore)
         if (isset($this->request->get['store_id'])) {
             $this->store_id = $this->request->get['store_id'];
         }
     }
+
     public function index()
     {
         $this->load->model('extension/d_opencart_patch/url');
@@ -45,7 +46,7 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
         $this->document->addStyle('view/stylesheet/d_ajax_filter/setting.css');
         $this->document->addScript('view/javascript/d_ajax_filter/library/jquery.serializejson.js');
 
-        
+
         // Add more styles, links or scripts to the project is necessary
         $url_params = array();
         $url = '';
@@ -64,30 +65,30 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
             $data['success'] = $this->session->data['success'];
             unset($this->session->data['success']);
         }
-        
+
         // Breadcrumbs
         $data['breadcrumbs'] = array();
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_home'),
             'href' => $this->model_extension_d_opencart_patch_url->link('common/home')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_module'),
             'href' => $this->model_extension_d_opencart_patch_url->link('marketplace/extension', 'type=module')
-            );
+        );
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('heading_title_main'),
             'href' => $this->model_extension_d_opencart_patch_url->link($this->route, $url)
-            );
+        );
 
 
         $this->document->setTitle($this->language->get('heading_title_main'));
         $data['heading_title'] = $this->language->get('heading_title_main');
         $data['text_form'] = $this->language->get('text_form');
 
-        
+
         $data['text_tab_general'] = $this->language->get('text_tab_general');
         $data['text_tab_custom_script'] = $this->language->get('text_tab_custom_script');
         $data['text_important'] = $this->language->get('text_important');
@@ -114,15 +115,15 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
         $data['button_cancel'] = $this->language->get('button_cancel');
         $data['button_recreate_cache'] = $this->language->get('button_recreate_cache');
 
-        $data['tabs'] = $this->{'model_extension_module_'.$this->codename}->getTabs('setting');
+        $data['tabs'] = $this->{'model_extension_module_' . $this->codename}->getTabs('setting');
 
         $url = '';
 
         if (isset($this->request->get['module_id'])) {
-            $url .= '&module_id='.$this->request->get['module_id'];
+            $url .= '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['action'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/setting/save', $url);
+        $data['action'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/setting/save', $url);
 
         $data['cancel'] = $this->model_extension_d_opencart_patch_url->link('marketplace/extension', 'type=module');
 
@@ -139,8 +140,8 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
 
         $setting = $this->model_setting_setting->getSetting($this->codename);
 
-        if (!empty($setting[$this->codename.'_setting'])) {
-            $data['setting'] = $setting[$this->codename.'_setting'];
+        if (!empty($setting[$this->codename . '_setting'])) {
+            $data['setting'] = $setting[$this->codename . '_setting'];
         } else {
             $this->config->load('d_ajax_filter');
             $setting = $this->config->get('d_ajax_filter_setting');
@@ -163,10 +164,10 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
         $url = '';
 
         if (isset($this->request->get['module_id'])) {
-            $url .= '&module_id='.$this->request->get['module_id'];
+            $url .= '&module_id=' . $this->request->get['module_id'];
         }
 
-        $data['recreate_cache'] = $this->model_extension_d_opencart_patch_url->link('extension/'.$this->codename.'/cache', $url);
+        $data['recreate_cache'] = $this->model_extension_d_opencart_patch_url->link('extension/' . $this->codename . '/cache', $url);
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -205,7 +206,7 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
             $url = '';
 
             if (isset($this->request->get['module_id'])) {
-                $url .= '&module_id='.$this->request->get['module_id'];
+                $url .= '&module_id=' . $this->request->get['module_id'];
             }
             $json['redirect'] = str_replace('&amp;', '&', $this->model_extension_d_opencart_patch_url->link($this->route, $url));
             $json['success'] = 'success';
@@ -213,7 +214,7 @@ class ControllerExtensionDAjaxFilterSetting extends Controller
             $json['errors'] = $this->error;
             $json['error'] = $this->error['warning'];
         }
-        
+
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
     }

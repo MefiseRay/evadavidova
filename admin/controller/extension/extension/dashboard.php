@@ -1,126 +1,133 @@
 <?php
-class ControllerExtensionExtensionDashboard extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/extension/dashboard');
+class ControllerExtensionExtensionDashboard extends Controller
+{
+    private $error = array();
 
-		$this->load->model('extension/extension');
+    public function index()
+    {
+        $this->load->language('extension/extension/dashboard');
 
-		$this->getList();
-	}
+        $this->load->model('extension/extension');
 
-	public function install() {
-		$this->load->language('extension/extension/dashboard');
+        $this->getList();
+    }
 
-		$this->load->model('extension/extension');
+    protected function getList()
+    {
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		if ($this->validate()) {
-			$this->model_extension_extension->install('dashboard', $this->request->get['extension']);
+        $data['text_no_results'] = $this->language->get('text_no_results');
 
-			$this->load->model('user/user_group');
+        $data['column_name'] = $this->language->get('column_name');
+        $data['column_width'] = $this->language->get('column_width');
+        $data['column_status'] = $this->language->get('column_status');
+        $data['column_sort_order'] = $this->language->get('column_sort_order');
+        $data['column_action'] = $this->language->get('column_action');
 
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/dashboard/' . $this->request->get['extension']);
-			$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/dashboard/' . $this->request->get['extension']);
+        $data['button_edit'] = $this->language->get('button_edit');
+        $data['button_install'] = $this->language->get('button_install');
+        $data['button_uninstall'] = $this->language->get('button_uninstall');
 
-			// Call install method if it exsits
-			$this->load->controller('extension/dashboard/' . $this->request->get['extension'] . '/install');
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+        if (isset($this->session->data['success'])) {
+            $data['success'] = $this->session->data['success'];
 
-		$this->getList();
-	}
+            unset($this->session->data['success']);
+        } else {
+            $data['success'] = '';
+        }
 
-	public function uninstall() {
-		$this->load->language('extension/extension/dashboard');
+        $extensions = $this->model_extension_extension->getInstalled('dashboard');
 
-		$this->load->model('extension/extension');
+        foreach ($extensions as $key => $value) {
+            if (!is_file(DIR_APPLICATION . 'controller/extension/dashboard/' . $value . '.php')) {
+                $this->model_extension_extension->uninstall('dashboard', $value);
 
-		if ($this->validate()) {
-			$this->model_extension_extension->uninstall('dashboard', $this->request->get['extension']);
+                unset($extensions[$key]);
+            }
+        }
 
-			// Call uninstall method if it exsits
-			$this->load->controller('extension/dashboard/' . $this->request->get['extension'] . '/uninstall');
+        $data['extensions'] = array();
 
-			$this->session->data['success'] = $this->language->get('text_success');
-		}
+        // Compatibility code for old extension folders
+        $files = glob(DIR_APPLICATION . 'controller/extension/dashboard/*.php', GLOB_BRACE);
 
-		$this->getList();
-	}
+        if ($files) {
+            foreach ($files as $file) {
+                $extension = basename($file, '.php');
 
-	protected function getList() {
-		$data['heading_title'] = $this->language->get('heading_title');
+                // Compatibility code for old extension folders
+                $this->load->language('extension/dashboard/' . $extension);
 
-		$data['text_no_results'] = $this->language->get('text_no_results');
+                $data['extensions'][] = array(
+                    'name' => $this->language->get('heading_title'),
+                    'width' => $this->config->get('dashboard_' . $extension . '_width'),
+                    'status' => $this->config->get('dashboard_' . $extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+                    'sort_order' => $this->config->get('dashboard_' . $extension . '_sort_order'),
+                    'install' => $this->url->link('extension/extension/dashboard/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'uninstall' => $this->url->link('extension/extension/dashboard/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
+                    'installed' => in_array($extension, $extensions),
+                    'edit' => $this->url->link('extension/dashboard/' . $extension, 'token=' . $this->session->data['token'], true)
+                );
+            }
+        }
 
-		$data['column_name'] = $this->language->get('column_name');
-		$data['column_width'] = $this->language->get('column_width');
-		$data['column_status'] = $this->language->get('column_status');
-		$data['column_sort_order'] = $this->language->get('column_sort_order');
-		$data['column_action'] = $this->language->get('column_action');
+        $this->response->setOutput($this->load->view('extension/extension/dashboard', $data));
+    }
 
-		$data['button_edit'] = $this->language->get('button_edit');
-		$data['button_install'] = $this->language->get('button_install');
-		$data['button_uninstall'] = $this->language->get('button_uninstall');
+    public function install()
+    {
+        $this->load->language('extension/extension/dashboard');
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
+        $this->load->model('extension/extension');
 
-		if (isset($this->session->data['success'])) {
-			$data['success'] = $this->session->data['success'];
+        if ($this->validate()) {
+            $this->model_extension_extension->install('dashboard', $this->request->get['extension']);
 
-			unset($this->session->data['success']);
-		} else {
-			$data['success'] = '';
-		}
+            $this->load->model('user/user_group');
 
-		$extensions = $this->model_extension_extension->getInstalled('dashboard');
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'extension/dashboard/' . $this->request->get['extension']);
+            $this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'extension/dashboard/' . $this->request->get['extension']);
 
-		foreach ($extensions as $key => $value) {
-			if (!is_file(DIR_APPLICATION . 'controller/extension/dashboard/' . $value . '.php')) {
-				$this->model_extension_extension->uninstall('dashboard', $value);
+            // Call install method if it exsits
+            $this->load->controller('extension/dashboard/' . $this->request->get['extension'] . '/install');
 
-				unset($extensions[$key]);
-			}
-		}
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
 
-		$data['extensions'] = array();
+        $this->getList();
+    }
 
-		// Compatibility code for old extension folders
-		$files = glob(DIR_APPLICATION . 'controller/extension/dashboard/*.php', GLOB_BRACE);
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/extension/dashboard')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
 
-		if ($files) {
-			foreach ($files as $file) {
-				$extension = basename($file, '.php');
-				
-				// Compatibility code for old extension folders
-				$this->load->language('extension/dashboard/' . $extension);
+        return !$this->error;
+    }
 
-				$data['extensions'][] = array(
-					'name'       => $this->language->get('heading_title'),
-					'width'      => $this->config->get('dashboard_' . $extension . '_width'),	
-					'status'     => $this->config->get('dashboard_' . $extension . '_status') ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),					
-					'sort_order' => $this->config->get('dashboard_' . $extension . '_sort_order'),
-					'install'    => $this->url->link('extension/extension/dashboard/install', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'uninstall'  => $this->url->link('extension/extension/dashboard/uninstall', 'token=' . $this->session->data['token'] . '&extension=' . $extension, true),
-					'installed'  => in_array($extension, $extensions),
-					'edit'       => $this->url->link('extension/dashboard/' . $extension, 'token=' . $this->session->data['token'], true)
-				);
-			}
-		}
+    public function uninstall()
+    {
+        $this->load->language('extension/extension/dashboard');
 
-		$this->response->setOutput($this->load->view('extension/extension/dashboard', $data));
-	}
+        $this->load->model('extension/extension');
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/extension/dashboard')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+        if ($this->validate()) {
+            $this->model_extension_extension->uninstall('dashboard', $this->request->get['extension']);
 
-		return !$this->error;
-	}
+            // Call uninstall method if it exsits
+            $this->load->controller('extension/dashboard/' . $this->request->get['extension'] . '/uninstall');
+
+            $this->session->data['success'] = $this->language->get('text_success');
+        }
+
+        $this->getList();
+    }
 }

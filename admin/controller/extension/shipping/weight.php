@@ -1,122 +1,126 @@
 <?php
-class ControllerExtensionShippingWeight extends Controller {
-	private $error = array();
 
-	public function index() {
-		$this->load->language('extension/shipping/weight');
+class ControllerExtensionShippingWeight extends Controller
+{
+    private $error = array();
 
-		$this->document->setTitle($this->language->get('heading_title'));
+    public function index()
+    {
+        $this->load->language('extension/shipping/weight');
 
-		$this->load->model('setting/setting');
+        $this->document->setTitle($this->language->get('heading_title'));
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-			$this->model_setting_setting->editSetting('weight', $this->request->post);
+        $this->load->model('setting/setting');
 
-			$this->session->data['success'] = $this->language->get('text_success');
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+            $this->model_setting_setting->editSetting('weight', $this->request->post);
 
-			$this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true));
-		}
+            $this->session->data['success'] = $this->language->get('text_success');
 
-		$data['heading_title'] = $this->language->get('heading_title');
-		
-		$data['text_edit'] = $this->language->get('text_edit');
-		$data['text_none'] = $this->language->get('text_none');
-		$data['text_enabled'] = $this->language->get('text_enabled');
-		$data['text_disabled'] = $this->language->get('text_disabled');
+            $this->response->redirect($this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true));
+        }
 
-		$data['entry_rate'] = $this->language->get('entry_rate');
-		$data['entry_tax_class'] = $this->language->get('entry_tax_class');
-		$data['entry_status'] = $this->language->get('entry_status');
-		$data['entry_sort_order'] = $this->language->get('entry_sort_order');
+        $data['heading_title'] = $this->language->get('heading_title');
 
-		$data['help_rate'] = $this->language->get('help_rate');
+        $data['text_edit'] = $this->language->get('text_edit');
+        $data['text_none'] = $this->language->get('text_none');
+        $data['text_enabled'] = $this->language->get('text_enabled');
+        $data['text_disabled'] = $this->language->get('text_disabled');
 
-		$data['button_save'] = $this->language->get('button_save');
-		$data['button_cancel'] = $this->language->get('button_cancel');
+        $data['entry_rate'] = $this->language->get('entry_rate');
+        $data['entry_tax_class'] = $this->language->get('entry_tax_class');
+        $data['entry_status'] = $this->language->get('entry_status');
+        $data['entry_sort_order'] = $this->language->get('entry_sort_order');
 
-		$data['tab_general'] = $this->language->get('tab_general');
+        $data['help_rate'] = $this->language->get('help_rate');
 
-		if (isset($this->error['warning'])) {
-			$data['error_warning'] = $this->error['warning'];
-		} else {
-			$data['error_warning'] = '';
-		}
+        $data['button_save'] = $this->language->get('button_save');
+        $data['button_cancel'] = $this->language->get('button_cancel');
 
-		$data['breadcrumbs'] = array();
+        $data['tab_general'] = $this->language->get('tab_general');
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_home'),
-			'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
-		);
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('text_extension'),
-			'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true)
-		);
+        $data['breadcrumbs'] = array();
 
-		$data['breadcrumbs'][] = array(
-			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('extension/shipping/weight', 'token=' . $this->session->data['token'], true)
-		);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/dashboard', 'token=' . $this->session->data['token'], true)
+        );
 
-		$data['action'] = $this->url->link('extension/shipping/weight', 'token=' . $this->session->data['token'], true);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_extension'),
+            'href' => $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true)
+        );
 
-		$data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true);
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('extension/shipping/weight', 'token=' . $this->session->data['token'], true)
+        );
 
-		$this->load->model('localisation/geo_zone');
+        $data['action'] = $this->url->link('extension/shipping/weight', 'token=' . $this->session->data['token'], true);
 
-		$geo_zones = $this->model_localisation_geo_zone->getGeoZones();
+        $data['cancel'] = $this->url->link('extension/extension', 'token=' . $this->session->data['token'] . '&type=shipping', true);
 
-		foreach ($geo_zones as $geo_zone) {
-			if (isset($this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_rate'])) {
-				$data['weight_' . $geo_zone['geo_zone_id'] . '_rate'] = $this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_rate'];
-			} else {
-				$data['weight_' . $geo_zone['geo_zone_id'] . '_rate'] = $this->config->get('weight_' . $geo_zone['geo_zone_id'] . '_rate');
-			}
+        $this->load->model('localisation/geo_zone');
 
-			if (isset($this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_status'])) {
-				$data['weight_' . $geo_zone['geo_zone_id'] . '_status'] = $this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_status'];
-			} else {
-				$data['weight_' . $geo_zone['geo_zone_id'] . '_status'] = $this->config->get('weight_' . $geo_zone['geo_zone_id'] . '_status');
-			}
-		}
+        $geo_zones = $this->model_localisation_geo_zone->getGeoZones();
 
-		$data['geo_zones'] = $geo_zones;
+        foreach ($geo_zones as $geo_zone) {
+            if (isset($this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_rate'])) {
+                $data['weight_' . $geo_zone['geo_zone_id'] . '_rate'] = $this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_rate'];
+            } else {
+                $data['weight_' . $geo_zone['geo_zone_id'] . '_rate'] = $this->config->get('weight_' . $geo_zone['geo_zone_id'] . '_rate');
+            }
 
-		if (isset($this->request->post['weight_tax_class_id'])) {
-			$data['weight_tax_class_id'] = $this->request->post['weight_tax_class_id'];
-		} else {
-			$data['weight_tax_class_id'] = $this->config->get('weight_tax_class_id');
-		}
+            if (isset($this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_status'])) {
+                $data['weight_' . $geo_zone['geo_zone_id'] . '_status'] = $this->request->post['weight_' . $geo_zone['geo_zone_id'] . '_status'];
+            } else {
+                $data['weight_' . $geo_zone['geo_zone_id'] . '_status'] = $this->config->get('weight_' . $geo_zone['geo_zone_id'] . '_status');
+            }
+        }
 
-		$this->load->model('localisation/tax_class');
+        $data['geo_zones'] = $geo_zones;
 
-		$data['tax_classes'] = $this->model_localisation_tax_class->getTaxClasses();
+        if (isset($this->request->post['weight_tax_class_id'])) {
+            $data['weight_tax_class_id'] = $this->request->post['weight_tax_class_id'];
+        } else {
+            $data['weight_tax_class_id'] = $this->config->get('weight_tax_class_id');
+        }
 
-		if (isset($this->request->post['weight_status'])) {
-			$data['weight_status'] = $this->request->post['weight_status'];
-		} else {
-			$data['weight_status'] = $this->config->get('weight_status');
-		}
+        $this->load->model('localisation/tax_class');
 
-		if (isset($this->request->post['weight_sort_order'])) {
-			$data['weight_sort_order'] = $this->request->post['weight_sort_order'];
-		} else {
-			$data['weight_sort_order'] = $this->config->get('weight_sort_order');
-		}
+        $data['tax_classes'] = $this->model_localisation_tax_class->getTaxClasses();
 
-		$data['header'] = $this->load->controller('common/header');
-		$data['column_left'] = $this->load->controller('common/column_left');
-		$data['footer'] = $this->load->controller('common/footer');
+        if (isset($this->request->post['weight_status'])) {
+            $data['weight_status'] = $this->request->post['weight_status'];
+        } else {
+            $data['weight_status'] = $this->config->get('weight_status');
+        }
 
-		$this->response->setOutput($this->load->view('extension/shipping/weight', $data));
-	}
+        if (isset($this->request->post['weight_sort_order'])) {
+            $data['weight_sort_order'] = $this->request->post['weight_sort_order'];
+        } else {
+            $data['weight_sort_order'] = $this->config->get('weight_sort_order');
+        }
 
-	protected function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/shipping/weight')) {
-			$this->error['warning'] = $this->language->get('error_permission');
-		}
+        $data['header'] = $this->load->controller('common/header');
+        $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
 
-		return !$this->error;
-	}
+        $this->response->setOutput($this->load->view('extension/shipping/weight', $data));
+    }
+
+    protected function validate()
+    {
+        if (!$this->user->hasPermission('modify', 'extension/shipping/weight')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
+
+        return !$this->error;
+    }
 }
