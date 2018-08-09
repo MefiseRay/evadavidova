@@ -1,57 +1,61 @@
 <?php
-class ControllerExtensionTotalCoupon extends Controller {
-	public function index() {
-		if ($this->config->get('coupon_status')) {
-			$this->load->language('extension/total/coupon');
 
-			$data['heading_title'] = $this->language->get('heading_title');
+class ControllerExtensionTotalCoupon extends Controller
+{
+    public function index()
+    {
+        if ($this->config->get('coupon_status')) {
+            $this->load->language('extension/total/coupon');
 
-			$data['text_loading'] = $this->language->get('text_loading');
+            $data['heading_title'] = $this->language->get('heading_title');
 
-			$data['entry_coupon'] = $this->language->get('entry_coupon');
+            $data['text_loading'] = $this->language->get('text_loading');
 
-			$data['button_coupon'] = $this->language->get('button_coupon');
+            $data['entry_coupon'] = $this->language->get('entry_coupon');
 
-			if (isset($this->session->data['coupon'])) {
-				$data['coupon'] = $this->session->data['coupon'];
-			} else {
-				$data['coupon'] = '';
-			}
+            $data['button_coupon'] = $this->language->get('button_coupon');
 
-			return $this->load->view('extension/total/coupon', $data);
-		}
-	}
+            if (isset($this->session->data['coupon'])) {
+                $data['coupon'] = $this->session->data['coupon'];
+            } else {
+                $data['coupon'] = '';
+            }
 
-	public function coupon() {
-		$this->load->language('extension/total/coupon');
+            return $this->load->view('extension/total/coupon', $data);
+        }
+    }
 
-		$json = array();
+    public function coupon()
+    {
+        $this->load->language('extension/total/coupon');
 
-		$this->load->model('extension/total/coupon');
+        $json = array();
 
-		if (isset($this->request->post['coupon'])) {
-			$coupon = $this->request->post['coupon'];
-		} else {
-			$coupon = '';
-		}
+        $this->load->model('extension/total/coupon');
 
-		$coupon_info = $this->model_extension_total_coupon->getCoupon($coupon);
+        if (isset($this->request->post['coupon'])) {
+            $coupon = $this->request->post['coupon'];
+        } else {
+            $coupon = '';
+        }
 
-		if (empty($this->request->post['coupon'])) {
-			$json['error'] = $this->language->get('error_empty');
+        $coupon_info = $this->model_extension_total_coupon->getCoupon($coupon);
 
-			unset($this->session->data['coupon']);
-		} elseif ($coupon_info) {
-			$this->session->data['coupon'] = $this->request->post['coupon'];
+        if (empty($this->request->post['coupon'])) {
+            $json['error'] = $this->language->get('error_empty');
 
-			$this->session->data['success'] = $this->language->get('text_success');
+            unset($this->session->data['coupon']);
+        } elseif ($coupon_info) {
+            $this->session->data['coupon'] = $this->request->post['coupon'];
 
-			$json['redirect'] = $this->url->link('checkout/cart');
-		} else {
-			$json['error'] = $this->language->get('error_coupon');
-		}
+            $this->session->data['success'] = $this->language->get('text_success');
 
-		$this->response->addHeader('Content-Type: application/json');
-		$this->response->setOutput(json_encode($json));
-	}
+            $json['redirect'] = $this->url->link('checkout/cart');
+        } else {
+            $json['error'] = $this->language->get('error_coupon');
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
 }

@@ -1,41 +1,44 @@
 <?php
+
 /**
  * Платежная система Wallet One (Единая касса)
- * 
+ *
  * @cms       ocStore 2.3
  * @author    ocStore Team
  * @support   https://opencartforum.com/profile/3463-shoputils
  * @version   1.0
  * @copyright  Copyright (c) 2016 ocStore Team (https://myopencart.com , https://opencartforum.com)
  */
-class ControllerExtensionPaymentOcstoreW1 extends Controller {
+class ControllerExtensionPaymentOcstoreW1 extends Controller
+{
     private $order;
     private $iso4271 = array(
-        'RUR'  => '810',
-        'RUB'  => '643',
-        'USD'  => '840',
-        'EUR'  => '978',
-        'ZAR'  => '710',
-        'UAH'  => '980',
-        'KZT'  => '398',
-        'BYR'  => '974',
-        'BYN'  => '974',
-        'AZN'  => '944',
-        'PLN'  => '985',
-        'GEL'  => '981',
-        'TJS'  => '972'
+        'RUR' => '810',
+        'RUB' => '643',
+        'USD' => '840',
+        'EUR' => '978',
+        'ZAR' => '710',
+        'UAH' => '980',
+        'KZT' => '398',
+        'BYR' => '974',
+        'BYN' => '974',
+        'AZN' => '944',
+        'PLN' => '985',
+        'GEL' => '981',
+        'TJS' => '972'
     );
 
-    public function index() {
+    public function index()
+    {
         $data['button_confirm'] = $this->language->get('button_confirm');
-        
+
         $data['action'] = 'https://wl.walletone.com/checkout/checkout/Index';
         $data['confirm'] = $this->url->link('extension/payment/ocstore_w1/confirm', '', 'SSL');
-        
+
         $this->load->model('checkout/order');
-        
+
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-        
+
         $currency_code = $this->config->get('ocstore_w1_currency');
         $currency_number = $this->getCurrencyNumberByCode($currency_code);
         $merchant_id = $this->config->get('ocstore_w1_shop_id');
@@ -45,30 +48,32 @@ class ControllerExtensionPaymentOcstoreW1 extends Controller {
         $timeZone = date_default_timezone_get();
         date_default_timezone_set('Europe/Dublin');
         $data['params'] = array(
-            'WMI_MERCHANT_ID'     => $merchant_id,
-            'WMI_PAYMENT_AMOUNT'  => $amount,
-            'WMI_PAYMENT_NO'      => $payment_id,
-            'WMI_CURRENCY_ID'     => $currency_number,
-            'WMI_DESCRIPTION'     => sprintf('OrderID: %d; Total: %s (%s)', $payment_id, $amount, $currency_code),
-            'WMI_SUCCESS_URL'     => $this->url->link('extension/payment/ocstore_w1/success', '', 'SSL'),
-            'WMI_FAIL_URL'        => $this->url->link('extension/payment/ocstore_w1/fail', '', 'SSL'),
-            'WMI_EXPIRED_DATE'    => date("Y-m-d\TH:i:s", time() + 60 * 43200)   //1 month
+            'WMI_MERCHANT_ID' => $merchant_id,
+            'WMI_PAYMENT_AMOUNT' => $amount,
+            'WMI_PAYMENT_NO' => $payment_id,
+            'WMI_CURRENCY_ID' => $currency_number,
+            'WMI_DESCRIPTION' => sprintf('OrderID: %d; Total: %s (%s)', $payment_id, $amount, $currency_code),
+            'WMI_SUCCESS_URL' => $this->url->link('extension/payment/ocstore_w1/success', '', 'SSL'),
+            'WMI_FAIL_URL' => $this->url->link('extension/payment/ocstore_w1/fail', '', 'SSL'),
+            'WMI_EXPIRED_DATE' => date("Y-m-d\TH:i:s", time() + 60 * 43200)   //1 month
         );
         date_default_timezone_set($timeZone);
 
         $data['params']['WMI_SIGNATURE'] = $this->calculateSignature($data['params']);
-      
+
         return $this->load->view('extension/payment/ocstore_w1.tpl', $data);
     }
 
-    public function confirm() {
+    public function confirm()
+    {
         if (!empty($this->session->data['order_id']) && ($this->session->data['payment_method']['code'] == 'ocstore_w1')) {
             $this->load->model('checkout/order');
             $this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('ocstore_w1_order_confirm_status_id'));
         }
     }
-    
-    public function fail() {
+
+    public function fail()
+    {
         if ($this->validate(false, false)) {
             $created = isset($this->request->post['WMI_ORDER_STATE']) && ($this->request->post['WMI_ORDER_STATE'] == 'Created');
             if ($this->order['order_status_id'] && !$created) {
@@ -78,12 +83,14 @@ class ControllerExtensionPaymentOcstoreW1 extends Controller {
 
         $this->response->redirect($this->url->link('checkout/failure', '', 'SSL'));
     }
-    
-    public function success() {
+
+    public function success()
+    {
         $this->response->redirect($this->url->link('checkout/success', '', 'SSL'));
     }
-    
-    public function callback() {
+
+    public function callback()
+    {
         //$this->log->Write('CallbackURL: ');
         //$this->log->Write('  POST:' . var_export($this->request->post, true));
         //$this->log->Write('  GET:' . var_export($this->request->get, true));
@@ -101,7 +108,8 @@ class ControllerExtensionPaymentOcstoreW1 extends Controller {
         $this->sendOk();
     }
 
-    protected function calculateSignature($params) {
+    protected function calculateSignature($params)
+    {
         foreach ($params as $name => $val) {
             if (is_array($val)) {
                 usort($val, "strcasecmp");
@@ -126,11 +134,13 @@ class ControllerExtensionPaymentOcstoreW1 extends Controller {
         return base64_encode(pack("H*", md5($paramValues . $this->config->get('ocstore_w1_sign'))));
     }
 
-    protected function getCurrencyNumberByCode($value) {
+    protected function getCurrencyNumberByCode($value)
+    {
         return isset($this->iso4271[$value]) ? $this->iso4271[$value] : false;
     }
 
-    protected function validate($check_sign_hash = true, $check_request_method = true) {
+    protected function validate($check_sign_hash = true, $check_request_method = true)
+    {
         $this->load->model('checkout/order');
 
         if ($check_request_method) {
@@ -174,18 +184,21 @@ class ControllerExtensionPaymentOcstoreW1 extends Controller {
         return true;
     }
 
-    protected function sendForbidden($error) {
+    protected function sendForbidden($error)
+    {
         //$this->log->Write('ERROR: ' . $error);
         ob_start();
         echo 'WMI_RESULT=RETRY&WMI_DESCRIPTION=' . urlencode($error);
         ob_end_flush();
     }
 
-    protected function sendOk() {
+    protected function sendOk()
+    {
         //$this->log->Write('SEND OK');
         ob_start();
         echo "WMI_RESULT=OK";
         ob_end_flush();
     }
 }
+
 ?>

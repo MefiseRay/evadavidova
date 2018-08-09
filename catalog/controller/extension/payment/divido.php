@@ -1,326 +1,332 @@
 <?php
-class ControllerExtensionPaymentDivido extends Controller {
-	const
-		STATUS_ACCEPTED = 'ACCEPTED',
-		STATUS_ACTION_LENDER = 'ACTION-LENDER',
-		STATUS_CANCELED = 'CANCELED',
-		STATUS_COMPLETED = 'COMPLETED',
-		STATUS_DEPOSIT_PAID = 'DEPOSIT-PAID',
-		STATUS_DECLINED = 'DECLINED',
-		STATUS_DEFERRED = 'DEFERRED',
-		STATUS_REFERRED = 'REFERRED',
-		STATUS_FULFILLED = 'FULFILLED',
-		STATUS_SIGNED = 'SIGNED';
 
-	private $status_id = array(
-		self::STATUS_ACCEPTED => 1,
-		self::STATUS_ACTION_LENDER => 2,
-		self::STATUS_CANCELED => 0,
-		self::STATUS_COMPLETED => 2,
-		self::STATUS_DECLINED => 8,
-		self::STATUS_DEFERRED => 1,
-		self::STATUS_REFERRED => 1,
-		self::STATUS_DEPOSIT_PAID => 1,
-		self::STATUS_FULFILLED => 1,
-		self::STATUS_SIGNED => 2,
-	);
+class ControllerExtensionPaymentDivido extends Controller
+{
+    const
+        STATUS_ACCEPTED = 'ACCEPTED',
+        STATUS_ACTION_LENDER = 'ACTION-LENDER',
+        STATUS_CANCELED = 'CANCELED',
+        STATUS_COMPLETED = 'COMPLETED',
+        STATUS_DEPOSIT_PAID = 'DEPOSIT-PAID',
+        STATUS_DECLINED = 'DECLINED',
+        STATUS_DEFERRED = 'DEFERRED',
+        STATUS_REFERRED = 'REFERRED',
+        STATUS_FULFILLED = 'FULFILLED',
+        STATUS_SIGNED = 'SIGNED';
 
-	private $history_messages = array(
-		self::STATUS_ACCEPTED => 'Credit request accepted',
-		self::STATUS_ACTION_LENDER => 'Lender notified',
-		self::STATUS_CANCELED => 'Credit request canceled',
-		self::STATUS_COMPLETED => 'Credit application completed',
-		self::STATUS_DECLINED => 'Credit request declined',
-		self::STATUS_DEFERRED => 'Credit request deferred',
-		self::STATUS_REFERRED => 'Credit request referred',
-		self::STATUS_DEPOSIT_PAID => 'Deposit paid',
-		self::STATUS_FULFILLED => 'Credit request fulfilled',
-		self::STATUS_SIGNED => 'Contract signed',
-	);
+    private $status_id = array(
+        self::STATUS_ACCEPTED => 1,
+        self::STATUS_ACTION_LENDER => 2,
+        self::STATUS_CANCELED => 0,
+        self::STATUS_COMPLETED => 2,
+        self::STATUS_DECLINED => 8,
+        self::STATUS_DEFERRED => 1,
+        self::STATUS_REFERRED => 1,
+        self::STATUS_DEPOSIT_PAID => 1,
+        self::STATUS_FULFILLED => 1,
+        self::STATUS_SIGNED => 2,
+    );
 
-	public function index() {
-		$this->load->language('extension/payment/divido');
-		$this->load->model('extension/payment/divido');
-		$this->load->model('checkout/order');
+    private $history_messages = array(
+        self::STATUS_ACCEPTED => 'Credit request accepted',
+        self::STATUS_ACTION_LENDER => 'Lender notified',
+        self::STATUS_CANCELED => 'Credit request canceled',
+        self::STATUS_COMPLETED => 'Credit application completed',
+        self::STATUS_DECLINED => 'Credit request declined',
+        self::STATUS_DEFERRED => 'Credit request deferred',
+        self::STATUS_REFERRED => 'Credit request referred',
+        self::STATUS_DEPOSIT_PAID => 'Deposit paid',
+        self::STATUS_FULFILLED => 'Credit request fulfilled',
+        self::STATUS_SIGNED => 'Contract signed',
+    );
 
-		$api_key   = $this->config->get('divido_api_key');
-		$key_parts = explode('.', $api_key);
-		$js_key    = strtolower(array_shift($key_parts));
+    public function index()
+    {
+        $this->load->language('extension/payment/divido');
+        $this->load->model('extension/payment/divido');
+        $this->load->model('checkout/order');
 
-		list($total, $totals) = $this->model_extension_payment_divido->getOrderTotals();
+        $api_key = $this->config->get('divido_api_key');
+        $key_parts = explode('.', $api_key);
+        $js_key = strtolower(array_shift($key_parts));
 
-		$this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
+        list($total, $totals) = $this->model_extension_payment_divido->getOrderTotals();
 
-		$plans = $this->model_extension_payment_divido->getCartPlans($this->cart);
-		foreach ($plans as $key => $plan) {
-			$planMinTotal = $total - ($total * ($plan->min_deposit / 100));
-			if ($plan->min_amount > $planMinTotal) {
-				unset($plans[$key]);
-			}
-		}
+        $this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
 
-		$plans_ids  = array_map(function ($plan) {
-			return $plan->id;
-		}, $plans);
-		$plans_ids  = array_unique($plans_ids);
-		$plans_list = implode(',', $plans_ids);
+        $plans = $this->model_extension_payment_divido->getCartPlans($this->cart);
+        foreach ($plans as $key => $plan) {
+            $planMinTotal = $total - ($total * ($plan->min_deposit / 100));
+            if ($plan->min_amount > $planMinTotal) {
+                unset($plans[$key]);
+            }
+        }
 
-		$data = array(
-			'button_confirm'           => $this->language->get('divido_checkout'),
-			'text_loading'             => $this->language->get('text_loading'),
-			'text_choose_deposit'      => $this->language->get('text_choose_deposit'),
-			'text_choose_plan'         => $this->language->get('text_choose_plan'),
-			'text_checkout_title'      => $this->language->get('text_checkout_title'),
-			'text_monthly_payments'    => $this->language->get('text_monthly_payments'),
-			'text_months'              => $this->language->get('text_months'),
-			'text_term'                => $this->language->get('text_term'),
-			'text_deposit'             => $this->language->get('text_deposit'),
-			'text_credit_amount'       => $this->language->get('text_credit_amount'),
-			'text_amount_payable'      => $this->language->get('text_amount_payable'),
-			'text_total_interest'      => $this->language->get('text_total_interest'),
-			'text_monthly_installment' => $this->language->get('text_monthly_installment'),
-			'text_redirection'         => $this->language->get('text_redirection'),
-			'merchant_script'          => "//cdn.divido.com/calculator/{$js_key}.js",
-			'grand_total'              => $total,
-			'plan_list'                => $plans_list,
-			'generic_credit_req_error' => 'Credit request could not be initiated',
-		);
+        $plans_ids = array_map(function ($plan) {
+            return $plan->id;
+        }, $plans);
+        $plans_ids = array_unique($plans_ids);
+        $plans_list = implode(',', $plans_ids);
 
-		return $this->load->view('extension/payment/divido', $data);
-	}
+        $data = array(
+            'button_confirm' => $this->language->get('divido_checkout'),
+            'text_loading' => $this->language->get('text_loading'),
+            'text_choose_deposit' => $this->language->get('text_choose_deposit'),
+            'text_choose_plan' => $this->language->get('text_choose_plan'),
+            'text_checkout_title' => $this->language->get('text_checkout_title'),
+            'text_monthly_payments' => $this->language->get('text_monthly_payments'),
+            'text_months' => $this->language->get('text_months'),
+            'text_term' => $this->language->get('text_term'),
+            'text_deposit' => $this->language->get('text_deposit'),
+            'text_credit_amount' => $this->language->get('text_credit_amount'),
+            'text_amount_payable' => $this->language->get('text_amount_payable'),
+            'text_total_interest' => $this->language->get('text_total_interest'),
+            'text_monthly_installment' => $this->language->get('text_monthly_installment'),
+            'text_redirection' => $this->language->get('text_redirection'),
+            'merchant_script' => "//cdn.divido.com/calculator/{$js_key}.js",
+            'grand_total' => $total,
+            'plan_list' => $plans_list,
+            'generic_credit_req_error' => 'Credit request could not be initiated',
+        );
 
-	public function update() {
-		$this->load->language('extension/payment/divido');
-		$this->load->model('extension/payment/divido');
-		$this->load->model('checkout/order');
+        return $this->load->view('extension/payment/divido', $data);
+    }
 
-		$data = json_decode(file_get_contents('php://input'));
+    public function update()
+    {
+        $this->load->language('extension/payment/divido');
+        $this->load->model('extension/payment/divido');
+        $this->load->model('checkout/order');
 
-		if (!isset($data->status)) {
-			$this->response->setOutput('');
-			return;
-		}
+        $data = json_decode(file_get_contents('php://input'));
 
-		$lookup = $this->model_extension_payment_divido->getLookupByOrderId($data->metadata->order_id);
-		if ($lookup->num_rows != 1) {
-			$this->response->setOutput('');
-			return;
-		}
+        if (!isset($data->status)) {
+            $this->response->setOutput('');
+            return;
+        }
 
-		$hash = $this->model_extension_payment_divido->hashOrderId($data->metadata->order_id, $lookup->row['salt']);
-		if ($hash !== $data->metadata->order_hash) {
-			$this->response->setOutput('');
-			return;
-		}
+        $lookup = $this->model_extension_payment_divido->getLookupByOrderId($data->metadata->order_id);
+        if ($lookup->num_rows != 1) {
+            $this->response->setOutput('');
+            return;
+        }
 
-		$order_id = $data->metadata->order_id;
-		$order_info = $this->model_checkout_order->getOrder($order_id);
-		$status_id = $order_info['order_status_id'];
-		$message = "Status: {$data->status}";
-		if (isset($this->history_messages[$data->status])) {
-			$message = $this->history_messages[$data->status];
-		}
+        $hash = $this->model_extension_payment_divido->hashOrderId($data->metadata->order_id, $lookup->row['salt']);
+        if ($hash !== $data->metadata->order_hash) {
+            $this->response->setOutput('');
+            return;
+        }
 
-		if ($data->status == self::STATUS_SIGNED) {
-			$status_override = $this->config->get('divido_order_status_id');
-			if (!empty($status_override)) {
-				$this->status_id[self::STATUS_SIGNED] = $status_override;
-			}
-		}
+        $order_id = $data->metadata->order_id;
+        $order_info = $this->model_checkout_order->getOrder($order_id);
+        $status_id = $order_info['order_status_id'];
+        $message = "Status: {$data->status}";
+        if (isset($this->history_messages[$data->status])) {
+            $message = $this->history_messages[$data->status];
+        }
 
-		if (isset($this->status_id[$data->status]) && $this->status_id[$data->status] > $status_id) {
-			$status_id = $this->status_id[$data->status];
-		}
+        if ($data->status == self::STATUS_SIGNED) {
+            $status_override = $this->config->get('divido_order_status_id');
+            if (!empty($status_override)) {
+                $this->status_id[self::STATUS_SIGNED] = $status_override;
+            }
+        }
 
-		if ($data->status == self::STATUS_DECLINED && $order_info['order_status_id'] == 0) {
-			$status_id = 0;
-		}
+        if (isset($this->status_id[$data->status]) && $this->status_id[$data->status] > $status_id) {
+            $status_id = $this->status_id[$data->status];
+        }
 
-		$this->model_extension_payment_divido->saveLookup($data->metadata->order_id, $lookup->row['salt'], null, $data->application);
-		$this->model_checkout_order->addOrderHistory($order_id, $status_id, $message, false);
-		$this->response->setOutput('ok');
-	}
+        if ($data->status == self::STATUS_DECLINED && $order_info['order_status_id'] == 0) {
+            $status_id = 0;
+        }
 
-	public function confirm() {
-		$this->load->language('extension/payment/divido');
+        $this->model_extension_payment_divido->saveLookup($data->metadata->order_id, $lookup->row['salt'], null, $data->application);
+        $this->model_checkout_order->addOrderHistory($order_id, $status_id, $message, false);
+        $this->response->setOutput('ok');
+    }
 
-		$this->load->model('extension/payment/divido');
+    public function confirm()
+    {
+        $this->load->language('extension/payment/divido');
 
-		ini_set('html_errors', 0);
-		if (!$this->session->data['payment_method']['code'] == 'divido') {
-			return false;
-		}
+        $this->load->model('extension/payment/divido');
 
-		$this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
+        ini_set('html_errors', 0);
+        if (!$this->session->data['payment_method']['code'] == 'divido') {
+            return false;
+        }
 
-		$api_key   = $this->config->get('divido_api_key');
+        $this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
 
-		$deposit = $this->request->post['deposit'];
-		$finance = $this->request->post['finance'];
+        $api_key = $this->config->get('divido_api_key');
 
-		$address = $this->session->data['payment_address'];
-		if (isset($this->session->data['shipping_address'])) {
-			$address = $this->session->data['shipping_address'];
-		}
+        $deposit = $this->request->post['deposit'];
+        $finance = $this->request->post['finance'];
 
-		$country  = $address['iso_code_2'];
-		$language = strtoupper($this->language->get('code'));
-		$currency = strtoupper($this->session->data['currency']);
-		$order_id = $this->session->data['order_id'];
+        $address = $this->session->data['payment_address'];
+        if (isset($this->session->data['shipping_address'])) {
+            $address = $this->session->data['shipping_address'];
+        }
 
-		if ($this->customer->isLogged()) {
-			$this->load->model('account/customer');
-			$customer_info = $this->model_account_customer->getCustomer($this->customer->getId());
+        $country = $address['iso_code_2'];
+        $language = strtoupper($this->language->get('code'));
+        $currency = strtoupper($this->session->data['currency']);
+        $order_id = $this->session->data['order_id'];
 
-			$firstname = $customer_info['firstname'];
-			$lastname  = $customer_info['lastname'];
-			$email     = $customer_info['email'];
-			$telephone = $customer_info['telephone'];
-		} elseif (isset($this->session->data['guest'])) {
-			$firstname = $this->session->data['guest']['firstname'];
-			$lastname  = $this->session->data['guest']['lastname'];
-			$email     = $this->session->data['guest']['email'];
-			$telephone = $this->session->data['guest']['telephone'];
-		}
+        if ($this->customer->isLogged()) {
+            $this->load->model('account/customer');
+            $customer_info = $this->model_account_customer->getCustomer($this->customer->getId());
 
-		$postcode  = $address['postcode'];
+            $firstname = $customer_info['firstname'];
+            $lastname = $customer_info['lastname'];
+            $email = $customer_info['email'];
+            $telephone = $customer_info['telephone'];
+        } elseif (isset($this->session->data['guest'])) {
+            $firstname = $this->session->data['guest']['firstname'];
+            $lastname = $this->session->data['guest']['lastname'];
+            $email = $this->session->data['guest']['email'];
+            $telephone = $this->session->data['guest']['telephone'];
+        }
 
-		$products  = array();
-		foreach ($this->cart->getProducts() as $product) {
-			$products[] = array(
-				'type' => 'product',
-				'text' => $product['name'],
-				'quantity' => $product['quantity'],
-				'value' => $product['price'],
-			);
-		}
+        $postcode = $address['postcode'];
 
-		list($total, $totals) = $this->model_extension_payment_divido->getOrderTotals();
+        $products = array();
+        foreach ($this->cart->getProducts() as $product) {
+            $products[] = array(
+                'type' => 'product',
+                'text' => $product['name'],
+                'quantity' => $product['quantity'],
+                'value' => $product['price'],
+            );
+        }
 
-		$sub_total  = $total;
-		$cart_total = $this->cart->getSubTotal();
-		$shiphandle = $sub_total - $cart_total;
+        list($total, $totals) = $this->model_extension_payment_divido->getOrderTotals();
 
-		$products[] = array(
-			'type'     => 'product',
-			'text'     => 'Shipping & Handling',
-			'quantity' => 1,
-			'value'    => $shiphandle,
-		);
+        $sub_total = $total;
+        $cart_total = $this->cart->getSubTotal();
+        $shiphandle = $sub_total - $cart_total;
 
-		$deposit_amount = round(($deposit / 100) * $total, 2, PHP_ROUND_HALF_UP);
+        $products[] = array(
+            'type' => 'product',
+            'text' => 'Shipping & Handling',
+            'quantity' => 1,
+            'value' => $shiphandle,
+        );
 
-		$shop_url = $this->config->get('config_url');
-		if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
-			$shop_url = $this->config->get('config_ssl');
-		}
+        $deposit_amount = round(($deposit / 100) * $total, 2, PHP_ROUND_HALF_UP);
 
-		$callback_url = $this->url->link('extension/payment/divido/update', '', true);
-		$return_url = $this->url->link('checkout/success', '', true);
-		$checkout_url = $this->url->link('checkout/checkout', '', true);
+        $shop_url = $this->config->get('config_url');
+        if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
+            $shop_url = $this->config->get('config_ssl');
+        }
 
-		$salt = uniqid('', true);
-		$hash = $this->model_extension_payment_divido->hashOrderId($order_id, $salt);
+        $callback_url = $this->url->link('extension/payment/divido/update', '', true);
+        $return_url = $this->url->link('checkout/success', '', true);
+        $checkout_url = $this->url->link('checkout/checkout', '', true);
 
-		$request_data = array(
-			'merchant' => $api_key,
-			'deposit'  => $deposit_amount,
-			'finance'  => $finance,
-			'country'  => $country,
-			'language' => $language,
-			'currency' => $currency,
-			'metadata' => array(
-				'order_id'   => $order_id,
-				'order_hash' => $hash,
-			),
-			'customer' => array(
-				'title'         => '',
-				'first_name'    => $firstname,
-				'middle_name'   => '',
-				'last_name'     => $lastname,
-				'country'       => $country,
-				'postcode'      => $postcode,
-				'email'         => $email,
-				'mobile_number' => '',
-				'phone_number'  => $telephone,
-			),
-			'products'     => $products,
-			'response_url' => $callback_url,
-			'redirect_url' => $return_url,
-			'checkout_url' => $checkout_url,
-		);
+        $salt = uniqid('', true);
+        $hash = $this->model_extension_payment_divido->hashOrderId($order_id, $salt);
 
-		$response = Divido_CreditRequest::create($request_data);
+        $request_data = array(
+            'merchant' => $api_key,
+            'deposit' => $deposit_amount,
+            'finance' => $finance,
+            'country' => $country,
+            'language' => $language,
+            'currency' => $currency,
+            'metadata' => array(
+                'order_id' => $order_id,
+                'order_hash' => $hash,
+            ),
+            'customer' => array(
+                'title' => '',
+                'first_name' => $firstname,
+                'middle_name' => '',
+                'last_name' => $lastname,
+                'country' => $country,
+                'postcode' => $postcode,
+                'email' => $email,
+                'mobile_number' => '',
+                'phone_number' => $telephone,
+            ),
+            'products' => $products,
+            'response_url' => $callback_url,
+            'redirect_url' => $return_url,
+            'checkout_url' => $checkout_url,
+        );
 
-		if ($response->status == 'ok') {
+        $response = Divido_CreditRequest::create($request_data);
 
-			$this->model_extension_payment_divido->saveLookup($order_id, $salt, $response->id, null, $deposit_amount);
+        if ($response->status == 'ok') {
 
-			$data = array(
-				'status' => 'ok',
-				'url'    => $response->url,
-			);
-		} else {
-			$data = array(
-				'status'  => 'error',
-				'message' => $this->language->get($response->error),
-			);
-		}
+            $this->model_extension_payment_divido->saveLookup($order_id, $salt, $response->id, null, $deposit_amount);
 
-		$this->response->setOutput(json_encode($data));
-	}
+            $data = array(
+                'status' => 'ok',
+                'url' => $response->url,
+            );
+        } else {
+            $data = array(
+                'status' => 'error',
+                'message' => $this->language->get($response->error),
+            );
+        }
 
-	public function calculator($args) {
-		$this->load->language('extension/payment/divido');
+        $this->response->setOutput(json_encode($data));
+    }
 
-		$this->load->model('extension/payment/divido');
+    public function calculator($args)
+    {
+        $this->load->language('extension/payment/divido');
 
-		if (!$this->model_extension_payment_divido->isEnabled()) {
-			return null;
-		}
+        $this->load->model('extension/payment/divido');
 
-		$this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
+        if (!$this->model_extension_payment_divido->isEnabled()) {
+            return null;
+        }
 
-		$product_selection = $this->config->get('divido_productselection');
-		$price_threshold   = $this->config->get('divido_price_threshold');
-		$product_id        = $args['product_id'];
-		$product_price     = $args['price'];
-		$type              = $args['type'];
+        $this->model_extension_payment_divido->setMerchant($this->config->get('divido_api_key'));
 
-		if ($product_selection == 'threshold' && $product_price < $price_threshold) {
-			return null;
-		}
+        $product_selection = $this->config->get('divido_productselection');
+        $price_threshold = $this->config->get('divido_price_threshold');
+        $product_id = $args['product_id'];
+        $product_price = $args['price'];
+        $type = $args['type'];
 
-		$plans = $this->model_extension_payment_divido->getProductPlans($product_id);
-		if (empty($plans)) {
-			return null;
-		}
+        if ($product_selection == 'threshold' && $product_price < $price_threshold) {
+            return null;
+        }
 
-		$plans_ids = array_map(function ($plan) {
-			return $plan->id;
-		}, $plans);
+        $plans = $this->model_extension_payment_divido->getProductPlans($product_id);
+        if (empty($plans)) {
+            return null;
+        }
 
-		$plan_list = implode(',', $plans_ids);
+        $plans_ids = array_map(function ($plan) {
+            return $plan->id;
+        }, $plans);
 
-		$data = array(
-			'planList'                 => $plan_list,
-			'productPrice'             => $product_price,
-			'text_loading'             => $this->language->get('text_loading'),
-			'text_choose_deposit'      => $this->language->get('text_choose_deposit'),
-			'text_choose_plan'         => $this->language->get('text_choose_plan'),
-			'text_checkout_title'      => $this->language->get('text_checkout_title'),
-			'text_monthly_payments'    => $this->language->get('text_monthly_payments'),
-			'text_months'              => $this->language->get('text_months'),
-			'text_term'                => $this->language->get('text_term'),
-			'text_deposit'             => $this->language->get('text_deposit'),
-			'text_credit_amount'       => $this->language->get('text_credit_amount'),
-			'text_amount_payable'      => $this->language->get('text_amount_payable'),
-			'text_total_interest'      => $this->language->get('text_total_interest'),
-			'text_monthly_installment' => $this->language->get('text_monthly_installment'),
-		);
+        $plan_list = implode(',', $plans_ids);
 
-		$filename = ($type == 'full') ? 'extension/payment/divido_calculator' : 'extension/payment/divido_widget';
+        $data = array(
+            'planList' => $plan_list,
+            'productPrice' => $product_price,
+            'text_loading' => $this->language->get('text_loading'),
+            'text_choose_deposit' => $this->language->get('text_choose_deposit'),
+            'text_choose_plan' => $this->language->get('text_choose_plan'),
+            'text_checkout_title' => $this->language->get('text_checkout_title'),
+            'text_monthly_payments' => $this->language->get('text_monthly_payments'),
+            'text_months' => $this->language->get('text_months'),
+            'text_term' => $this->language->get('text_term'),
+            'text_deposit' => $this->language->get('text_deposit'),
+            'text_credit_amount' => $this->language->get('text_credit_amount'),
+            'text_amount_payable' => $this->language->get('text_amount_payable'),
+            'text_total_interest' => $this->language->get('text_total_interest'),
+            'text_monthly_installment' => $this->language->get('text_monthly_installment'),
+        );
 
-		return $this->load->view($filename, $data);
-	}
+        $filename = ($type == 'full') ? 'extension/payment/divido_calculator' : 'extension/payment/divido_widget';
+
+        return $this->load->view($filename, $data);
+    }
 }

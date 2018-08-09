@@ -1,11 +1,12 @@
 <?php
+
 class ControllerExtensionDToolbarDAjaxFilterSEO extends Controller
 {
     private $codename = 'd_ajax_filter_seo';
     private $route = 'extension/d_toolbar/d_ajax_filter_seo';
     private $config_file = 'd_ajax_filter_seo';
     private $error = array();
-    
+
     /*
     *	Functions for Toolbar.
     */
@@ -13,11 +14,11 @@ class ControllerExtensionDToolbarDAjaxFilterSEO extends Controller
     {
         $this->load->model($this->route);
         $this->load->model('extension/module/' . $this->codename);
-        
+
         $data = array();
         if ($route == 'product/category') {
             if (isset($this->request->get['path']) && isset($this->request->get['ajaxfilter'])) {
-                $query_info = $this->{'model_extension_module_'.$this->codename}->getCurrentQuery();
+                $query_info = $this->{'model_extension_module_' . $this->codename}->getCurrentQuery();
                 if (!empty($query_info)) {
                     $data['route'] = 'af_query_id=' . $query_info['query_id'];
                     if (VERSION >= '3.0.0.0') {
@@ -28,7 +29,7 @@ class ControllerExtensionDToolbarDAjaxFilterSEO extends Controller
                 }
             }
         }
-        
+
         return $data;
     }
 }

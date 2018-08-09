@@ -4,6 +4,7 @@
 +class: ControllerExtensionYandexMarketCart
 +author: Yandex.Money & Alexander Toporkov <toporchillo@gmail.com>
 */
+
 class ControllerExtensionYandexMarketCart extends Controller
 {
     /**
@@ -50,7 +51,7 @@ class ControllerExtensionYandexMarketCart extends Controller
                     }
                 }
             }
-            $result['name'] = $result['name'].' '.implode(' ', $name);
+            $result['name'] = $result['name'] . ' ' . implode(' ', $name);
         }
         $this->response->addHeader('Content-Type: application/json; charset=utf-8');
         $this->response->setOutput(json_encode($result));
@@ -67,7 +68,7 @@ class ControllerExtensionYandexMarketCart extends Controller
             exit;
         } else {
             $json = file_get_contents("php://input");
-            $this->getModel()->log('info', 'pokupki cart request: '.$json);
+            $this->getModel()->log('info', 'pokupki cart request: ' . $json);
             if (!$json) {
                 header('HTTP/1.0 404 Not Found');
                 echo '<h1>No data posted</h1>';
@@ -95,8 +96,7 @@ class ControllerExtensionYandexMarketCart extends Controller
                     if (count($id_array) > 1) {
                         unset($id_array[0]);
                         foreach ($this->model_catalog_product->getProductOptions($id_product) as $option) {
-                            foreach ($option['product_option_value'] as $value)
-                            {
+                            foreach ($option['product_option_value'] as $value) {
                                 if (!in_array($value['option_value_id'], $id_array)) {
                                     continue;
                                 }
@@ -150,20 +150,20 @@ class ControllerExtensionYandexMarketCart extends Controller
                     // "id": 3, "name": "Центральный федеральный округ", "type": "COUNTRY_DISTRICT"
 
                     $address_array = array(
-                        'firstname'      => '',
-                        'lastname'       => '',
-                        'company'        => '',
-                        'address_1'      => '',
-                        'address_2'      => '',
-                        'postcode'       => '',
-                        'city'           => $region['city'],
-                        'zone_id'        => $zone_id,
-                        'zone'           => '',
-                        'zone_code'      => '',
-                        'country_id'     => $country_id,
-                        'country'        => '',
-                        'iso_code_2'     => '',
-                        'iso_code_3'     => '',
+                        'firstname' => '',
+                        'lastname' => '',
+                        'company' => '',
+                        'address_1' => '',
+                        'address_2' => '',
+                        'postcode' => '',
+                        'city' => $region['city'],
+                        'zone_id' => $zone_id,
+                        'zone' => '',
+                        'zone_code' => '',
+                        'country_id' => $country_id,
+                        'country' => '',
+                        'iso_code_2' => '',
+                        'iso_code_3' => '',
                         'address_format' => ''
                     );
                     if (count($data->cart->items)) {
@@ -194,8 +194,8 @@ class ControllerExtensionYandexMarketCart extends Controller
                     $pickup = array();
                     foreach ($results as $result) {
                         if ($this->config->get($result['code'] . '_status')) {
-                            $this->load->model($for23.'shipping/'.$result['code']);
-                            $quote = $this->{'model_'.str_replace("/","_",$for23).'shipping_'.$result['code']}->getQuote($address_array);
+                            $this->load->model($for23 . 'shipping/' . $result['code']);
+                            $quote = $this->{'model_' . str_replace("/", "_", $for23) . 'shipping_' . $result['code']}->getQuote($address_array);
                             $id = $result['code'];
                             $types = $this->config->get('yandex_money_pokupki_carrier');
                             $type = isset($types[$id]) ? $types[$id] : 'POST';
@@ -206,7 +206,7 @@ class ControllerExtensionYandexMarketCart extends Controller
                             if ($type == "SKIP") {
                                 continue;
                             }
-                            $quote = $this->{'model_'.str_replace("/","_",$for23).'shipping_'.$result['code']}->getQuote($address_array);
+                            $quote = $this->{'model_' . str_replace("/", "_", $for23) . 'shipping_' . $result['code']}->getQuote($address_array);
                             if ($quote) {
                                 //TODO Добавить определение названия доставок в настройках модуля
                                 $title_ship = $quote['title'];//(isset($quote['title2']))?$quote['title2']: $quote['title'];
@@ -221,7 +221,7 @@ class ControllerExtensionYandexMarketCart extends Controller
 
                                 $carriers[$k]['type'] = $type;
                                 if (!isset($quote['quote'][$result['code']])) {
-                                    $this->getModel()->log('warning', "См. Cart.php, т.к. в списке доставок отсутствует ключ ".$result['code']);
+                                    $this->getModel()->log('warning', "См. Cart.php, т.к. в списке доставок отсутствует ключ " . $result['code']);
                                     continue;
                                 }
                                 $carriers[$k]['price'] = (float)number_format(
@@ -238,14 +238,14 @@ class ControllerExtensionYandexMarketCart extends Controller
                                 //TODO Дата доставки ставим на 24 часа от сегодняшнего дня. Добавить в настройки модуля
                                 $carriers[$k]['dates'] = array(
                                     'fromDate' => date('d-m-Y', time()),
-                                    'toDate' => date('d-m-Y', time()+24*60*60),
+                                    'toDate' => date('d-m-Y', time() + 24 * 60 * 60),
                                 );
-                                if($type == 'PICKUP') {
+                                if ($type == 'PICKUP') {
                                     $outlets = $model->getOutlets();
                                     $market_id = self::preOutlets($outlets['json']['outlets'], $quote['sort_order']);
-                                    $market_outlet = (int) $outlets['array'][$market_id]->id;
+                                    $market_outlet = (int)$outlets['array'][$market_id]->id;
                                     $carriers[$k]['outlets'][] = array(
-                                        'id'=> $market_outlet
+                                        'id' => $market_outlet
                                     );
                                 }
                                 $k++;
@@ -351,4 +351,6 @@ class ControllerExtensionYandexMarketCart extends Controller
     }
 }
 
-class ControllerYandexMarketCart extends ControllerExtensionYandexMarketCart {}
+class ControllerYandexMarketCart extends ControllerExtensionYandexMarketCart
+{
+}

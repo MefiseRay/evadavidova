@@ -422,8 +422,8 @@ class ControllerExtensionPaymentYandexMoney extends Controller
         $this->getModel()->log('info', 'callback:  request ' . serialize($_REQUEST));
         $orderId = isset($data['label']) ? (int)$data['label'] : 0;
         if ($wallet->isEnabled()) {
-            $this->getModel()->log('info', 'callback:  orderid='.$orderId);
-            if($this->getModel()->checkSign($data, $wallet->getPassword())) {
+            $this->getModel()->log('info', 'callback:  orderid=' . $orderId);
+            if ($this->getModel()->checkSign($data, $wallet->getPassword())) {
                 $this->load->model('checkout/order');
                 $this->model_checkout_order->addOrderHistory(
                     $orderId,
@@ -498,8 +498,7 @@ class ControllerExtensionPaymentYandexMoney extends Controller
                     $market->addCurrency($currency['code'], ((float)$currency_default['value'] / (float)$currency['value']));
                 }
             }
-        }
-        else {
+        } else {
             $market->addCurrency($currency_default['code'], ((float)$currency_default['value']));
         }
 
@@ -603,7 +602,7 @@ class ControllerExtensionPaymentYandexMoney extends Controller
             foreach ($this->model_catalog_product->getProductImages($offer->getId()) as $pic) {
                 if (count($data['picture']) <= 9) {
                     $url = str_replace(
-                        array('&amp;',' '),
+                        array('&amp;', ' '),
                         array('&', '%20'),
                         $this->model_tool_image->resize($pic['image'], 600, 600)
                     );
@@ -680,30 +679,28 @@ class ControllerExtensionPaymentYandexMoney extends Controller
             return false;
         }
 
-        if(count($colors)) {
+        if (count($colors)) {
             foreach ($colors as $option) {
                 $data_temp = $data;
-                $data_temp['model'].= ', '.$option['option_name'].' '.$option['name'];
+                $data_temp['model'] .= ', ' . $option['option_name'] . ' ' . $option['name'];
                 $data_temp['param'][] = array('name' => $option['option_name'], 'value' => $option['name']);
-                $data_temp['id'] = $product['product_id'].'c'.$option['option_value_id'];
+                $data_temp['id'] = $product['product_id'] . 'c' . $option['option_value_id'];
                 $data_temp['available'] = $data['available'];
                 if ($option['price_prefix'] == '+') {
-                    $data_temp['price']+= $option['price'];
+                    $data_temp['price'] += $option['price'];
                     if (isset($data_temp['oldprice'])) {
                         $data_temp['oldprice'] += $option['price'];
                     }
-                }
-                elseif ($option['price_prefix'] == '-') {
-                    $data_temp['price']-= $option['price'];
+                } elseif ($option['price_prefix'] == '-') {
+                    $data_temp['price'] -= $option['price'];
                     if (isset($data_temp['oldprice'])) {
                         $data_temp['oldprice'] -= $option['price'];
                     }
-                }
-                elseif ($option['price_prefix'] == '=') {
+                } elseif ($option['price_prefix'] == '=') {
                     $data_temp['price'] = $option['price'];
                 }
                 $data_temp = $this->setOptionedWeight($data_temp, $option);
-                $data_temp['url'].= '#'.$option['product_option_value_id'];
+                $data_temp['url'] .= '#' . $option['product_option_value_id'];
                 $colors_array[] = $data_temp;
             }
         } else {
@@ -712,7 +709,7 @@ class ControllerExtensionPaymentYandexMoney extends Controller
 
         unset($data_temp);
         unset($option);
-        foreach($colors_array as $i => $data) {
+        foreach ($colors_array as $i => $data) {
             if (count($sizes)) {
                 foreach ($sizes as $option) {
                     $data_temp = $data;
@@ -804,4 +801,6 @@ class ControllerExtensionPaymentYandexMoney extends Controller
     }
 }
 
-class ControllerPaymentYandexMoney extends ControllerExtensionPaymentYandexMoney {}
+class ControllerPaymentYandexMoney extends ControllerExtensionPaymentYandexMoney
+{
+}

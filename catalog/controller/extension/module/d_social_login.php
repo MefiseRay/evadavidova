@@ -3,7 +3,8 @@
  *  location: catalog/controller/extension/module/d_social_login.php
  */
 
-class ControllerExtensionModuleDSocialLogin extends Controller {
+class ControllerExtensionModuleDSocialLogin extends Controller
+{
 
     private $route = 'extension/module/d_social_login';
     private $id = 'd_social_login';
@@ -58,7 +59,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
         unset($this->session->data['HA::CONFIG']);
         unset($this->session->data['HA::STORE']);
 
-        if(VERSION >= '2.2.0.0'){
+        if (VERSION >= '2.2.0.0') {
             return $this->model_extension_d_opencart_patch_load->view($this->route, $data);
         } else {
             if ($this->config->get('config_template')) {
@@ -80,21 +81,21 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
         $this->load->model('setting/store');
         $stores = $this->model_setting_store->getStores();
         $store_id = $this->config->get('config_store_id');
-        foreach ($stores as $store ) {
-            if($store_id == $store['store_id']){
-                $httpServer =  $store['url'];
+        foreach ($stores as $store) {
+            if ($store_id == $store['store_id']) {
+                $httpServer = $store['url'];
                 $httpsServer = $store['ssl'];
                 break;
             }
         }
-        if(empty($httpServer) || empty($httpsServer)){
+        if (empty($httpServer) || empty($httpsServer)) {
             $httpsServer = HTTPS_SERVER;
             $httpServer = HTTP_SERVER;
         }
 
         $this->setting['base_url'] = $this->config->get('config_secure') ? $httpServer . 'index.php?route=extension/d_social_login/callback' : $httpServer . 'index.php?route=extension/d_social_login/callback';
         $this->setting['debug_file'] = DIR_LOGS . $this->setting['debug_file'];
-        $this->setting['debug_mode'] = (bool) $this->setting['debug_mode'];
+        $this->setting['debug_mode'] = (bool)$this->setting['debug_mode'];
 
         if (isset($this->request->get['provider'])) {
             $this->session->data['provider'] = $this->setting['provider'] = $this->request->get['provider'];
@@ -126,7 +127,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
             Hybrid_Auth::$logger->info('d_social_login: Start getUserProfile.');
             // get the user profile
             $profile = $adapter->getUserProfile();
-            $this->setting['profile'] = (array) $profile;
+            $this->setting['profile'] = (array)$profile;
 
             Hybrid_Auth::$logger->info('d_social_login: got UserProfile.' . serialize($this->setting['profile']));
             $authentication_data = array(
@@ -239,7 +240,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
 
             if ($customer_id) {
                 Hybrid_Auth::$logger->info('d_social_login: customer_id found');
-                $authentication_data['customer_id'] = (int) $customer_id;
+                $authentication_data['customer_id'] = (int)$customer_id;
 
                 $this->model_extension_module_d_social_login->addAuthentication($authentication_data);
                 Hybrid_Auth::$logger->info('d_social_login: addAuthentication');
@@ -252,26 +253,35 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
         } catch (Exception $e) {
 
             switch ($e->getCode()) {
-                case 0 : $error = "Unspecified error.";
+                case 0 :
+                    $error = "Unspecified error.";
                     break;
-                case 1 : $error = "Hybriauth configuration error.";
+                case 1 :
+                    $error = "Hybriauth configuration error.";
                     break;
-                case 2 : $error = "Provider not properly configured.";
+                case 2 :
+                    $error = "Provider not properly configured.";
                     break;
-                case 3 : $error = "Unknown or disabled provider.";
+                case 3 :
+                    $error = "Unknown or disabled provider.";
                     break;
-                case 4 : $error = "Missing provider application credentials.";
+                case 4 :
+                    $error = "Missing provider application credentials.";
                     break;
-                case 5 : $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection.";
+                case 5 :
+                    $error = "Authentication failed. The user has canceled the authentication or the provider refused the connection.";
                     break;
-                case 6 : $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again.";
+                case 6 :
+                    $error = "User profile request failed. Most likely the user is not connected to the provider and he should to authenticate again.";
                     if (isset($adapter)) {
                         $adapter->logout();
                     }
                     break;
-                case 7 : $error = "User not connected to the provider.";
+                case 7 :
+                    $error = "User not connected to the provider.";
                     break;
-                case 8 : $error = "Provider does not support this feature.";
+                case 8 :
+                    $error = "Provider does not support this feature.";
                     break;
             }
 
@@ -337,9 +347,9 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
         $this->load->model('localisation/country');
         $data['countries'] = $this->model_localisation_country->getCountries();
 
-        if(VERSION >= '2.2.0.0'){
+        if (VERSION >= '2.2.0.0') {
             $this->response->setOutput($this->load->view('d_social_login/form', $data));
-        }elseif (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/d_social_login/form.tpl')) {
+        } elseif (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/d_social_login/form.tpl')) {
             $this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/d_social_login/form.tpl', $data));
         } else {
             $this->response->setOutput($this->load->view('default/template/d_social_login/form.tpl', $data));
@@ -364,7 +374,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
             $customer_id = $this->model_extension_module_d_social_login->getCustomerByEmail($customer_data['email']);
             if ($customer_id) {
                 if (!$this->model_extension_module_d_social_login->checkAuthentication($customer_id, $this->session->data['provider'])) {
-                    $authentication_data['customer_id'] = (int) $customer_id;
+                    $authentication_data['customer_id'] = (int)$customer_id;
                     $this->model_extension_module_d_social_login->addAuthentication($authentication_data);
                 } else {
                     $json['error']['email'] = $this->language->get('error_email_taken');
@@ -397,7 +407,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
 
             $customer_id = $this->model_extension_module_d_social_login->addCustomer($customer_data);
 
-            $authentication_data['customer_id'] = (int) $customer_id;
+            $authentication_data['customer_id'] = (int)$customer_id;
             $this->model_extension_module_d_social_login->addAuthentication($authentication_data);
 
             //login
@@ -473,7 +483,7 @@ class ControllerExtensionModuleDSocialLogin extends Controller {
     public function getCurrentUrl($request_uri = true)
     {
         if (
-            isset($_SERVER['HTTPS']) && ( $_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1 ) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
+            isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
         ) {
             $protocol = 'https://';
         } else {
