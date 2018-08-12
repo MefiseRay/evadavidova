@@ -21,25 +21,11 @@ class HtmlDom
         $this->buildDom();
     }
 
-    private function buildDom()
-    {
-        if (!empty($this->dom)) return;
-
-        $this->root = new HtmlDomNode('', null);
-        $iterator = new StringIterator($this->content);
-        $this->root->parseDom($iterator);
-    }
-
     public static function fromURL($url)
     {
         //try to get the url's content with curl if browser class or file_get_contents fails, also try with the browser class
         $dom = new HtmlDom(file_get_contents($url));
         return $dom->getRoot();
-    }
-
-    public function getRoot()
-    {
-        return $this->root;
     }
 
     public static function fromFile($file)
@@ -52,5 +38,19 @@ class HtmlDom
     {
         $dom = new HtmlDom($string);
         return $dom->getRoot();
+    }
+
+    public function getRoot()
+    {
+        return $this->root;
+    }
+
+    private function buildDom()
+    {
+        if (!empty($this->dom)) return;
+
+        $this->root = new HtmlDomNode('', null);
+        $iterator = new StringIterator($this->content);
+        $this->root->parseDom($iterator);
     }
 }

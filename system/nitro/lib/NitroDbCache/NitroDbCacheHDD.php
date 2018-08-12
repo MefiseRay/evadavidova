@@ -40,17 +40,6 @@ class NitroDbCacheHDD extends NitroDbCacheDriver
         return false;
     }
 
-    private function isDirWritable()
-    {
-        if (empty($this->cache_dir)) return false;
-
-        if (!is_dir($this->cache_dir)) {
-            if (!mkdir($this->cache_dir)) return false;
-        }
-
-        return is_writeable($this->cache_dir);
-    }
-
     public function set($key, $value, $ttl)
     {
         if ($this->isDirWritable()) {
@@ -58,11 +47,6 @@ class NitroDbCacheHDD extends NitroDbCacheDriver
         }
 
         return false;
-    }
-
-    private function getFileForKey($key)
-    {
-        return $this->cache_dir . $key . '.nitro';
     }
 
     public function get($key)
@@ -82,5 +66,21 @@ class NitroDbCacheHDD extends NitroDbCacheDriver
         }
 
         return false;
+    }
+
+    private function isDirWritable()
+    {
+        if (empty($this->cache_dir)) return false;
+
+        if (!is_dir($this->cache_dir)) {
+            if (!mkdir($this->cache_dir)) return false;
+        }
+
+        return is_writeable($this->cache_dir);
+    }
+
+    private function getFileForKey($key)
+    {
+        return $this->cache_dir . $key . '.nitro';
     }
 }

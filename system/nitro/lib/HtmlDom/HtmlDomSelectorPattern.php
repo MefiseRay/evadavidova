@@ -22,6 +22,70 @@ class HtmlDomSelectorPattern
         $this->parse();
     }
 
+    public function test(&$node)
+    {
+        if ($this->tagName && $node->tagName !== $this->tagName) return false;
+
+        foreach ($this->attributes as $attr => $values) {
+            $node_attr = $node->getAttribute($attr);
+
+            if (!$node_attr) return false;
+            if (!$values->count()) continue;//this handles selectors like: a[rel]
+
+            foreach ($values as $pattern) {
+                switch ($pattern->mode) {
+                    case HtmlDomSelectorPatternMode::EQUALS:
+                        if ($node_attr->value != $pattern->value) return false;
+                        break;
+                    case HtmlDomSelectorPatternMode::STARTS_WITH:
+                        if (strpos($node_attr->value, $pattern->value) !== 0) return false;
+                        break;
+                    case HtmlDomSelectorPatternMode::CONTAINS:
+                        if ($attr == "class") {
+                            $class_names = preg_split("/\s+/", $node_attr->value);
+                            $match = false;
+                            foreach ($class_names as $class_name) {
+                                if ($class_name == $pattern->value) $match = true;
+                            }
+
+                            if (!$match) return false;
+                        } else {
+                            if (strpos($node_attr->value, $pattern->value) === false) return false;
+                        }
+                        break;
+                    case HtmlDomSelectorPatternMode::ENDS_WITH:
+                        if (substr($node_attr->value, -strlen($pattern->value)) != $pattern->value) return false;
+                        break;
+                }
+            }
+        }
+
+        if ($this->parent_patterns->count()) {
+            $parent = $node->parent;
+            $this->parent_patterns->rewind();
+            $parent_pattern = $this->parent_patterns->current();
+
+            $parents_found = false;
+            while ($parent) {//walk up the tree
+                if ($parent_pattern->test($parent)) {
+                    $this->parent_patterns->next();
+                    if (!$this->parent_patterns->valid()) {
+                        $parents_found = true;
+                        break;
+                    } else {
+                        $targets_parent = $this->parent_patterns->current();
+                    }
+                } else if ($parent_pattern->is_direct_parent) {
+                    break;
+                }
+                $parent = $parent->parent;
+            }
+            if (!$parents_found) return false;
+        }
+
+        return true;
+    }
+
     private function parse()
     {
         $parts = explode(' ', preg_replace('/\s?>\s?/', '> ', preg_replace('/\s+/', ' ', $this->pattern_string)));//This will break if there are spaces in the attribute query. Example: [data-greeting="hello world"]
@@ -90,69 +154,5 @@ class HtmlDomSelectorPattern
         if ($val) {
             $this->attributes[$attr]->attach(new HtmlDomSelectorPatternAttributeValue($mode, $val));
         }
-    }
-
-    public function test(&$node)
-    {
-        if ($this->tagName && $node->tagName !== $this->tagName) return false;
-
-        foreach ($this->attributes as $attr => $values) {
-            $node_attr = $node->getAttribute($attr);
-
-            if (!$node_attr) return false;
-            if (!$values->count()) continue;//this handles selectors like: a[rel]
-
-            foreach ($values as $pattern) {
-                switch ($pattern->mode) {
-                    case HtmlDomSelectorPatternMode::EQUALS:
-                        if ($node_attr->value != $pattern->value) return false;
-                        break;
-                    case HtmlDomSelectorPatternMode::STARTS_WITH:
-                        if (strpos($node_attr->value, $pattern->value) !== 0) return false;
-                        break;
-                    case HtmlDomSelectorPatternMode::CONTAINS:
-                        if ($attr == "class") {
-                            $class_names = preg_split("/\s+/", $node_attr->value);
-                            $match = false;
-                            foreach ($class_names as $class_name) {
-                                if ($class_name == $pattern->value) $match = true;
-                            }
-
-                            if (!$match) return false;
-                        } else {
-                            if (strpos($node_attr->value, $pattern->value) === false) return false;
-                        }
-                        break;
-                    case HtmlDomSelectorPatternMode::ENDS_WITH:
-                        if (substr($node_attr->value, -strlen($pattern->value)) != $pattern->value) return false;
-                        break;
-                }
-            }
-        }
-
-        if ($this->parent_patterns->count()) {
-            $parent = $node->parent;
-            $this->parent_patterns->rewind();
-            $parent_pattern = $this->parent_patterns->current();
-
-            $parents_found = false;
-            while ($parent) {//walk up the tree
-                if ($parent_pattern->test($parent)) {
-                    $this->parent_patterns->next();
-                    if (!$this->parent_patterns->valid()) {
-                        $parents_found = true;
-                        break;
-                    } else {
-                        $targets_parent = $this->parent_patterns->current();
-                    }
-                } else if ($parent_pattern->is_direct_parent) {
-                    break;
-                }
-                $parent = $parent->parent;
-            }
-            if (!$parents_found) return false;
-        }
-
-        return true;
     }
 }

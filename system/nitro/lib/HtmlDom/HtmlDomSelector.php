@@ -12,15 +12,6 @@ class HtmlDomSelector
         $this->parse();
     }
 
-    private function parse()
-    {
-        $patterns = array_map('trim', explode(',', $this->selector));
-
-        foreach ($patterns as $p_str) {
-            $this->patterns->attach(new HtmlDomSelectorPattern($p_str));
-        }
-    }
-
     public function test(&$node)
     {
         foreach ($this->patterns as $pattern) {
@@ -28,5 +19,14 @@ class HtmlDomSelector
         }
 
         return false;
+    }
+
+    private function parse()
+    {
+        $patterns = array_map('trim', explode(',', $this->selector));
+
+        foreach ($patterns as $p_str) {
+            $this->patterns->attach(new HtmlDomSelectorPattern($p_str));
+        }
     }
 }

@@ -125,6 +125,17 @@ class Minifier
     }
 
     /**
+     * Checks to see if a character is alphanumeric.
+     *
+     * @param  string $char Just one character
+     * @return bool
+     */
+    protected static function isAlphaNumeric($char)
+    {
+        return preg_match('/^[\w\$]$/', $char) === 1 || $char == '/';
+    }
+
+    /**
      * Replace patterns in the given string and store the replacement
      *
      * @param  string $js The string to lock
@@ -503,17 +514,6 @@ class Minifier
                     echo $this->a;
             }
         }
-    }
-
-    /**
-     * Checks to see if a character is alphanumeric.
-     *
-     * @param  string $char Just one character
-     * @return bool
-     */
-    protected static function isAlphaNumeric($char)
-    {
-        return preg_match('/^[\w\$]$/', $char) === 1 || $char == '/';
     }
 
     /**
