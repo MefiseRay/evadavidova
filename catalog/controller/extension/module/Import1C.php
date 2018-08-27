@@ -29,6 +29,7 @@ class ControllerExtensionModuleImport1C extends Controller
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->load->model('extension/module/Import1C');
+//        echo "<pre>";
 
         // Directory
         $dir = $this->request->server['DOCUMENT_ROOT'] . $this->dir;
@@ -253,17 +254,20 @@ class ControllerExtensionModuleImport1C extends Controller
                         foreach ($props->ЗначениеРеквизита as $value) {
                             $pics = $value->Значение->__toString();
                             $pieces = explode("#", $pics);
+                            //var_dump($this->clear($pieces[0]));
                             if (isset($pieces[1]) && $pieces[1] == 'КартинкаЦвета') {
-                                $products[$product_id]['product_color_image'] = str_replace('/public_html/image/', '', $this->clear($pieces[0]));
+                                $products[$product_id]['product_color_image'] = str_replace('/image/', '', $this->clear($pieces[0]));
                             }
                         }
                     }
                     $products[$product_id]['product_image'] = array();
                     foreach ($product->Картинка as $image) {
-                        $thumb = str_replace('/public_html/image/', '', $this->clear($image->__toString()));
+                        $thumb = str_replace('/image/', '', $this->clear($image->__toString()));
                         if ($products[$product_id]['product_color_image'] == false || $products[$product_id]['product_color_image'] != $thumb) {
                             $products[$product_id]['product_image'][] = $thumb;
                         }
+//                        var_dump($product_id." | ".$thumb);
+//                        echo "<br>";
                     }
                     if (count($products[$product_id]['product_image'])) {
                         $products[$product_id]['status'] = 1; // Если есть фото
