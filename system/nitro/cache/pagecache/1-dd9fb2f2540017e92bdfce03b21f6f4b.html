@@ -91,8 +91,6 @@
 						<script type="text/javascript" src="catalog/view/javascript/jquery/formstyler/jquery.formstyler.min.js"></script>
 										<script type="text/javascript" src="//api-maps.yandex.ru/2.1/?lang=ru_RU&ns=cdekymap"></script>
 										<script type="text/javascript" src="catalog/view/javascript/sdek.js"></script>
-										<script type="text/javascript" src="catalog/view/extension/related_options/js/liveopencart.select_option_toggle.js?v=1533625512"></script>
-										<script type="text/javascript" src="catalog/view/extension/related_options/js/liveopencart.related_options.js?v=1533625512"></script>
 						
 		
 		<!-- Yandex.Metrika counter -->
@@ -143,73 +141,7 @@ var s = document.createElement('script'); s.type = 'text/javascript'; s.async = 
         <script type="text/javascript" src="catalog/view/javascript/ocdevwizard/smart_contact_me/main.js"></script>
         <!-- OCdev Smart Contact Me:2.0.0 -->
               
-
-				
-			
-						
-							<script  type = "text/javascript" ><!--
-					function poip_show_thumb(elem) {
-						
-						if ($(elem).attr('data-thumb') && $(elem).attr('data-image_id')) {
-										
-							var main_img = $('img[data-poip_id="image_'+$(elem).attr('data-image_id')+'"]');
-							if (main_img.length == 0) {
-								main_img = $('img[data-poip_id="'+$(elem).attr('data-image_id')+'"]');
-							}
-							
-							var prev_img = main_img.attr('src'); // journal2 compatibility
-							main_img.attr('src', $(elem).attr('data-thumb'));
-							main_img.closest('a').attr('href', $(elem).attr('href'));
-							
-							// moment theme compatibility (second image)
-							if ( main_img.parent().parent().is('div.product-thumb__primary') ) {
-								main_img.parent().parent().siblings('div.product-thumb__secondary').find('a').attr('href', $(elem).attr('href'));
-							}
-							
-							// journal2 compatibility
-							if (main_img.parent().hasClass('has-second-image')) {
-								main_img.parent().attr('style', main_img.parent().attr('style').replace(prev_img, $(elem).attr('data-thumb')) );
-							}
-							
-						}
-					}
-				//--></script>
-								
-									
-
-			
-						
-							<script  type = "text/javascript" ><!--
-					function poip_show_thumb(elem) {
-						
-						if ($(elem).attr('data-thumb') && $(elem).attr('data-image_id')) {
-										
-							var main_img = $('img[data-poip_id="image_'+$(elem).attr('data-image_id')+'"]');
-							if (main_img.length == 0) {
-								main_img = $('img[data-poip_id="'+$(elem).attr('data-image_id')+'"]');
-							}
-							
-							var prev_img = main_img.attr('src'); // journal2 compatibility
-							main_img.attr('src', $(elem).attr('data-thumb'));
-							main_img.closest('a').attr('href', $(elem).attr('href'));
-							
-							// moment theme compatibility (second image)
-							if ( main_img.parent().parent().is('div.product-thumb__primary') ) {
-								main_img.parent().parent().siblings('div.product-thumb__secondary').find('a').attr('href', $(elem).attr('href'));
-							}
-							
-							// journal2 compatibility
-							if (main_img.parent().hasClass('has-second-image')) {
-								main_img.parent().attr('style', main_img.parent().attr('style').replace(prev_img, $(elem).attr('data-thumb')) );
-							}
-							
-						}
-					}
-				//--></script>
-								
-									
-				</head>
-				
+</head>	
 <body class="product-category-11 header-type-5">
 
                 <div id="modal-quicksignup" class="mfp-hide">
@@ -533,7 +465,7 @@ $(window).load(function(){
                          
                          <div class="main-menu">
                               
-<div id="megamenu_124613952" class="container-megamenu container horizontal">
+<div id="megamenu_213574368" class="container-megamenu container horizontal">
 		<div class="megaMenuToggle">
 		<div class="megamenuToogle-wrapper">
 			<div class="megamenuToogle-pattern">
@@ -619,7 +551,7 @@ $(window).load(function(){
 <script type="text/javascript">
   $(window).load(function(){
       var css_tpl = '<style type="text/css">';
-      css_tpl += '#megamenu_124613952 ul.megamenu > li > .sub-menu > .content {';
+      css_tpl += '#megamenu_213574368 ul.megamenu > li > .sub-menu > .content {';
       css_tpl += '-webkit-transition: all 200ms ease-out !important;';
       css_tpl += '-moz-transition: all 200ms ease-out !important;';
       css_tpl += '-o-transition: all 200ms ease-out !important;';
@@ -911,7 +843,7 @@ $(window).load(function(){
 					
 											<div class="hidden-sm hidden-xs">
 								
-<div id="megamenu_45856140" class="container-megamenu container horizontal">
+<div id="megamenu_3970100" class="container-megamenu container horizontal">
 		<div class="megaMenuToggle">
 		<div class="megamenuToogle-wrapper">
 			<div class="megamenuToogle-pattern">
@@ -997,7 +929,7 @@ $(window).load(function(){
 <script type="text/javascript">
   $(window).load(function(){
       var css_tpl = '<style type="text/css">';
-      css_tpl += '#megamenu_45856140 ul.megamenu > li > .sub-menu > .content {';
+      css_tpl += '#megamenu_3970100 ul.megamenu > li > .sub-menu > .content {';
       css_tpl += '-webkit-transition: all 200ms ease-out !important;';
       css_tpl += '-moz-transition: all 200ms ease-out !important;';
       css_tpl += '-o-transition: all 200ms ease-out !important;';
@@ -3365,7 +3297,7 @@ var nitro_xhr;
 if (window.XMLHttpRequest){nitro_xhr=new XMLHttpRequest();}
 else{nitro_xhr=new ActiveXObject("Microsoft.XMLHTTP");}
 nitro_xhr.onreadystatechange=function(){if (nitro_xhr.readyState==4 && nitro_xhr.status==200){var nitroBarWrapper = document.createElement('div'); nitroBarWrapper.innerHTML = nitro_xhr.responseText; document.body.appendChild(nitroBarWrapper);}}
-nitro_xhr.open("GET","index.php?route=tool/nitro/getwidget&cachefile=MS1kZDlmYjJmMjU0MDAxN2U5MmJkZmNlMDNiMjFmNmY0Yi5odG1s&render_time=34.1178150177",true);
+nitro_xhr.open("GET","index.php?route=tool/nitro/getwidget&cachefile=MS1kZDlmYjJmMjU0MDAxN2U5MmJkZmNlMDNiMjFmNmY0Yi5odG1s&render_time=7.6676568985",true);
 nitro_xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 nitro_xhr.send();
 </script>
