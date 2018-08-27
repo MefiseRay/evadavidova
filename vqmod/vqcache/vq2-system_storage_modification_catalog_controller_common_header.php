@@ -2,29 +2,6 @@
 class ControllerCommonHeader extends Controller {
 	public function index() {
 
-      // Product Option Image PRO module <<
-			
-      if ( !$this->model_module_product_option_image_pro ) {
-				$this->load->model('module/product_option_image_pro');
-			}
-      $data['poip_installed'] = $this->model_module_product_option_image_pro->installed();
-			$data['poip_settings'] = $this->model_module_product_option_image_pro->getSettings();
-			$data['poip_theme_name'] = $this->model_module_product_option_image_pro->getThemeName();
-			$data['poip_inclide_file_name_default'] = $this->model_module_product_option_image_pro->getTemplateIncludeFileName('list', true);
-			$data['poip_inclide_file_name_custom'] = $this->model_module_product_option_image_pro->getTemplateIncludeFileName('list');
-			
-      // >> Product Option Image PRO module
-      
-
-				if( ! isset( $this->request->request['mfp_seo_alias'] ) ) {
-					$mfilterSeoConfig = $this->config->get('mega_filter_seo');
-
-					if( ! empty( $mfilterSeoConfig['meta_robots'] ) && ! empty( $this->request->get[$this->config->get('mfilter_url_param')?$this->config->get('mfilter_url_param'):'mfp'] ) ) {
-						$data['mfp_robots_value'] = $mfilterSeoConfig['meta_robots_value'];
-					}
-				}
-			
-
         // start: OCdevWizard SMCM
         $this->load->model('ocdevwizard/ocdevwizard_setting');
         
@@ -78,18 +55,6 @@ class ControllerCommonHeader extends Controller {
 
                 $data['styles'] = nitroCDNResolve($data['styles']);
             
-
-				// << Related Options
-				if ( !$this->model_module_related_options ) {
-					$this->load->model('module/related_options');
-				}
-				
-				if ( $this->model_module_related_options->installed() ) {
-					$this->document->addScript( $this->model_module_related_options->getScriptPathWithVersion('view/extension/related_options/js/liveopencart.select_option_toggle.js') );
-					$this->document->addScript( $this->model_module_related_options->getScriptPathWithVersion('view/extension/related_options/js/liveopencart.related_options.js') );
-				}
-				// >> Related Options
-			
 		$data['scripts'] = $this->document->getScripts();
 
                 require_once(DIR_SYSTEM . 'nitro/core/core.php');
@@ -251,10 +216,7 @@ class ControllerCommonHeader extends Controller {
 				foreach ($children as $child) {
 					$filter_data = array(
 						'filter_category_id'  => $child['category_id'],
-										
-				'filter_sub_category' => true,
-				'mfp_disabled' => true
-			
+						'filter_sub_category' => true
 					);
 
 					$children_data[] = array(

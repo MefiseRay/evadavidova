@@ -166,3 +166,16 @@ catalog/view/theme/logancee/template/extension/module/revslideroutput.tpl
 catalog/view/theme/logancee/template/common/home.tpl
 catalog/language/en-gb/extension/module/featured.php
 catalog/language/ru-ru/extension/module/featured.php
+system/library/cart/cart.php
+catalog/controller/startup/seo_pro.php
+system/storage/modification/catalog/controller/common/column_left.php
+system/storage/modification/catalog/controller/common/column_right.php
+system/storage/modification/catalog/controller/common/content_top.php
+system/storage/modification/catalog/model/catalog/product.php
+system/storage/modification/catalog/controller/common/language.php
+catalog/controller/extension/module/filter_product.php
+catalog/view/theme/logancee/template/extension/module/filter_product.tpl
+catalog/view/extension/product_option_image_pro/_default.product.tpl
+catalog/view/extension/related_options/tpl/product_page_common.tpl
+catalog/view/extension/related_options/tpl/product_page_related_options.tpl
+catalog/view/theme/logancee/template/product/review.tpl
